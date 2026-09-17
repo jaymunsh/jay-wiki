@@ -175,7 +175,15 @@ function selfCheck() {
   eq(at(null, null, false), '2026-09-04T10:19:22.937Z',
     '아무 데도 없으면 지금이다');
 
-  console.log('자기검사 8개 통과');
+  const series = seriesIds(
+    { prevSlug: 'previous', nextSlug: 'not-published' },
+    new Map([['previous', 12]]),
+  );
+  eq(series.prevPostId, 12, '기존 시리즈 글은 ID로 연결한다');
+  eq(series.nextPostId, null, '아직 없는 글은 ID를 만들지 않는다');
+  if (!series.note.includes('not-published')) throw new Error('없는 글을 진단에 표시해야 한다');
+
+  console.log('자기검사 11개 통과');
 }
 
 /**
@@ -351,6 +359,8 @@ async function main() {
   walk(categories);
   const existing = await api('/admin/blog/posts');
   const bySlug = new Map(existing.map((p) => [p.slug, p]));
+  // 시리즈 연결은 초안에 slug 로 적고 id 로 보낸다 — 내부 동기 경로와 같은 규칙이다.
+  const idBySlug = new Map(existing.map((p) => [p.slug, p.id]));
   const localDates = await localPublishedAt();
 
   for (const d of drafts) {
@@ -365,10 +375,12 @@ async function main() {
     const publishedAt = d.publishedAt ?? localDates.get(d.slug)?.publishedAt ?? prev?.publishedAt ?? null;
     // 수정일도 로컬이 정본이다. 안 보내면 서버가 지금 시각을 박아 '운영에 반영한 시각'이 된다.
     const updatedAt = d.updatedAt ?? localDates.get(d.slug)?.updatedAt ?? null;
+    const series = seriesIds(d, idBySlug);
     const dateNote = publishedAt
       ? `발행일 ${publishedAt.slice(0, 19)} (${source})`
       : '발행일 새로 매김';
-    console.log(`${write ? '발행' : 'dry-run'}  ${d.slug}  ${action}  ${d.body.length}자  태그 ${d.tags.length}개  목차 ${d.tocEnabled ? '켬' : '끔'}  ${dateNote}`);
+    console.log(`${write ? '발행' : 'dry-run'}  ${d.slug}  ${action}  ${d.body.length}자  태그 ${d.tags.length}개  목차 ${d.tocEnabled ? '켬' : '끔'}  ${dateNote}`
+      + (series.note ? `  ${series.note}` : ''));
     if (!write) continue;
 
     const payload = {
@@ -378,10 +390,10 @@ async function main() {
       body: d.body,
       categoryId: category.id,
       coverAssetId: prev?.coverAssetId ?? null,
-      // 시리즈 연결은 초안에 없고 관리자 화면에서만 지정한다. 안 실어 보내면
+      // 초안의 prevSlug·nextSlug 를 우선하고, 초안에 없으면 기존 값을 유지한다. 안 실어 보내면
       // 서버가 null 로 덮고 상대편 링크까지 끊는다(BlogPostService.applySeriesLinks).
-      prevPostId: prev?.prevPostId ?? null,
-      nextPostId: prev?.nextPostId ?? null,
+      prevPostId: series.prevPostId ?? prev?.prevPostId ?? null,
+      nextPostId: series.nextPostId ?? prev?.nextPostId ?? null,
       status: 'published',
       publishedAt,
       updatedAt,
