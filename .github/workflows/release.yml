@@ -23,12 +23,12 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  BACKEND_IMAGE: ghcr.io/jaymunsh/jay-wiki-backend
-  WEB_IMAGE: ghcr.io/jaymunsh/jay-wiki-web
-  PAYMENT_IMAGE: ghcr.io/jaymunsh/jay-wiki-payment-api
-  SHIPPING_IMAGE: ghcr.io/jaymunsh/jay-wiki-shipping-api
-  PARTNER_IMAGE: ghcr.io/jaymunsh/jay-wiki-partner-simulator
-  OPENSEARCH_IMAGE: ghcr.io/jaymunsh/jay-wiki-opensearch
+  BACKEND_IMAGE: ghcr.io/jaymunsh/jay-wiki-source-backend
+  WEB_IMAGE: ghcr.io/jaymunsh/jay-wiki-source-web
+  PAYMENT_IMAGE: ghcr.io/jaymunsh/jay-wiki-source-payment-api
+  SHIPPING_IMAGE: ghcr.io/jaymunsh/jay-wiki-source-shipping-api
+  PARTNER_IMAGE: ghcr.io/jaymunsh/jay-wiki-source-partner-simulator
+  OPENSEARCH_IMAGE: ghcr.io/jaymunsh/jay-wiki-source-opensearch
 
 permissions:
   contents: read
