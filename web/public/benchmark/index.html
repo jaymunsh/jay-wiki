@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="ko" class="light">
+<head>
+  <base href="/benchmark/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leneu Benchmark — 실행 기록과 산출물 탐색기</title>
+  <meta name="description" content="Leneu Benchmark의 실행 기록, 과제별 제출물, 인터랙티브 산출물을 한곳에서 비교하고 살펴보는 정적 대시보드입니다.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="alternate icon" href="favicon.svg">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    };
+  </script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Marked.js Markdown Parser -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@14.1.3/marked.min.js"></script>
+  <!-- KaTeX: render formulas in reasoning explanations without changing source files -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <!-- Custom Production Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Non-visual accessibility and responsive behavior additions. */
+    button, a, input, select { touch-action: manipulation; }
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
+    summary:focus-visible { outline: 3px solid rgb(99 102 241 / .38); outline-offset: 2px; }
+    .skip-link { position: fixed; left: 1rem; top: .75rem; z-index: 100; transform: translateY(-160%); }
+    .skip-link:focus { transform: translateY(0); }
+    .runs-tree details > summary { list-style: none; }
+    .runs-tree details > summary::-webkit-details-marker { display: none; }
+    .runs-tree details[open] .run-chevron { transform: rotate(90deg); }
+    .run-chevron { transition: transform .16s ease; }
+    .runs-tree details { transition: border-color .16s ease, box-shadow .16s ease; }
+    .runs-tree details[open] {
+      border-color: rgb(129 140 248 / .58);
+      box-shadow: 0 10px 20px rgb(79 70 229 / .09);
+    }
+    .runs-tree details[open] > summary {
+      background: linear-gradient(135deg, rgb(238 242 255 / .98), rgb(255 255 255 / .98));
+      border-bottom: 1px solid rgb(199 210 254 / .85);
+      box-shadow: 0 5px 12px rgb(79 70 229 / .08);
+    }
+    .dark .runs-tree details[open] > summary {
+      background: linear-gradient(135deg, rgb(49 46 129 / .38), rgb(15 23 42 / .98));
+      border-bottom-color: rgb(99 102 241 / .4);
+    }
+    .runs-tree .run-item-selected {
+      background: rgb(238 242 255);
+      color: rgb(67 56 202);
+      box-shadow: inset 3px 0 0 rgb(79 70 229);
+    }
+    .dark .runs-tree .run-item-selected { background: rgb(49 46 129 / .36); color: rgb(199 210 254); }
+    #view-concept2 .arena-viewport-host { position: relative; overflow: hidden; }
+    #view-concept2 .arena-viewport-host iframe {
+      flex: none;
+      max-width: none;
+      transform-origin: top center;
+      border: 1px solid rgb(148 163 184 / .38);
+      border-radius: .35rem;
+      box-shadow: 0 18px 38px rgb(15 23 42 / .18), 0 3px 10px rgb(15 23 42 / .12);
+    }
+    #view-concept2 .arena-viewport-host {
+      background-color: #eef2f7;
+      background-image: radial-gradient(rgb(148 163 184 / .22) .7px, transparent .7px);
+      background-size: 12px 12px;
+      box-shadow: inset 0 0 0 1px rgb(148 163 184 / .12);
+    }
+    .dark #view-concept2 .arena-viewport-host {
+      background-color: #111827;
+      background-image: radial-gradient(rgb(71 85 105 / .3) .7px, transparent .7px);
+    }
+    #view-concept2 .arena-frame-label {
+      position: absolute;
+      z-index: 2;
+      top: .75rem;
+      left: .75rem;
+      pointer-events: none;
+      padding: .25rem .5rem;
+      border: 1px solid rgb(148 163 184 / .3);
+      border-radius: .5rem;
+      background: rgb(255 255 255 / .84);
+      color: #64748b;
+      font: 700 .625rem/1 var(--font-mono, ui-monospace, monospace);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      backdrop-filter: blur(6px);
+    }
+    #view-concept2 .arena-task-picker select {
+      width: min(32rem, 100%);
+    }
+    #view-concept3 #ws-type-badge {
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: .35rem;
+    }
+    #view-concept3 #ws-title {
+      display: block;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+    #view-concept3 #ws-path {
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      text-align: left;
+    }
+    .dark #view-concept2 .arena-frame-label {
+      border-color: rgb(100 116 139 / .42);
+      background: rgb(15 23 42 / .82);
+      color: #cbd5e1;
+    }
+    #leaderboard-body td:nth-child(3) { min-width: 8.5rem; }
+    #leaderboard-body td:nth-child(4) { min-width: 18rem; }
+    #ws-md-content .katex { color: inherit; font-size: 1.02em; }
+    #ws-md-content .katex-display {
+      margin: .7rem 0;
+      padding: .35rem 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+    #leaderboard-body .scorecard { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem .6rem; }
+    #leaderboard-body .scorecard strong { color: #0f766e; font-size: .9rem; }
+    #leaderboard-body .scorecard span { color: #64748b; font-size: .7rem; font-weight: 700; }
+    .dark #leaderboard-body .scorecard strong { color: #6ee7b7; }
+    .dark #leaderboard-body .scorecard span { color: #94a3b8; }
+    #leaderboard-table thead th { text-align: center; }
+    #leaderboard-table tbody td:nth-child(1),
+    #leaderboard-table tbody td:nth-child(3),
+    #leaderboard-table tbody td:nth-child(5) { text-align: center; }
+    #leaderboard-table tbody td { border-right: 1px solid rgb(226 232 240 / .72); border-bottom: 1px solid rgb(226 232 240 / .72); }
+    #leaderboard-table tbody tr:last-child td { border-bottom: 0; }
+    #leaderboard-table tbody td:last-child { border-right: 0; }
+    .dark #leaderboard-table tbody td { border-color: rgb(51 65 85 / .58); }
+    /* Target Style Applied to Original Benchmark Cards */
+    .aa-font-serif {
+      font-family: 'Newsreader', 'Playfair Display', Georgia, 'Times New Roman', serif;
+    }
+    .benchmark-bento-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+    @media (max-width: 1279px) {
+      .benchmark-bento-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.25rem;
+      }
+    }
+    @media (max-width: 639px) {
+      .benchmark-bento-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .benchmark-bento-card {
+      background: #ffffff;
+      border: 1px solid rgb(226 232 240 / .95);
+      border-radius: 1.25rem;
+      padding: 1.35rem 1.15rem 1.15rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.03);
+      display: flex;
+      flex-direction: column;
+    }
+    .dark .benchmark-bento-card {
+      background: rgb(15 23 42 / .95);
+      border-color: rgb(51 65 85 / .8);
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2);
+    }
+    .benchmark-bento-plot {
+      position: relative;
+      height: 10rem;
+      margin-top: 1rem;
+      margin-bottom: 5.5rem;
+      display: flex;
+      align-items: flex-end;
+      gap: 0.5rem;
+      padding: 0 0.25rem;
+      box-sizing: border-box;
+    }
+    .benchmark-bento-dashed {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-bottom: 1px dashed rgb(226 232 240 / .85);
+      pointer-events: none;
+    }
+    .dark .benchmark-bento-dashed {
+      border-bottom-color: rgb(51 65 85 / .55);
+    }
+    .benchmark-bento-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+      position: relative;
+      min-width: 0;
+    }
+    .benchmark-bento-bar {
+      width: 100%;
+      max-width: 2.25rem;
+      height: var(--height);
+      min-height: 1.5rem;
+      border-radius: 0.35rem 0.35rem 0.15rem 0.15rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 0.25rem;
+      box-shadow: 0 2px 4px rgb(0 0 0 / .06);
+      transition: filter 0.15s ease;
+      cursor: default;
+    }
+    .benchmark-bento-bar:hover {
+      filter: brightness(1.08);
+    }
+    .benchmark-bento-bar.is-missing {
+      border: 1px dashed #94a3b8;
+      background: repeating-linear-gradient(135deg, #f8fafc 0, #f8fafc 4px, #ffffff 4px, #ffffff 8px) !important;
+      box-shadow: none;
+      height: 1.5rem !important;
+    }
+    .dark .benchmark-bento-bar.is-missing {
+      border-color: #64748b;
+      background: repeating-linear-gradient(135deg, #1e293b 0, #1e293b 4px, #0f172a 4px, #0f172a 8px) !important;
+    }
+    .benchmark-bento-val {
+      color: #ffffff;
+      font-size: 0.68rem;
+      font-weight: 800;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      line-height: 1;
+      text-shadow: 0 1px 2px rgb(0 0 0 / .25);
+    }
+    .is-missing .benchmark-bento-val {
+      color: #94a3b8;
+      text-shadow: none;
+    }
+    .benchmark-bento-axis {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+    }
+    .benchmark-bento-logo {
+      margin-top: 0.5rem;
+      width: 1.15rem;
+      height: 1.15rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .benchmark-bento-logo { display: none; }
+    .benchmark-bento-label-wrap {
+      position: relative;
+      width: 0;
+      height: 0;
+      margin-top: 0.3rem;
+    }
+    .benchmark-bento-label {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 5.5rem;
+      transform: rotate(-60deg);
+      transform-origin: 100% 50%;
+      text-align: right;
+      font-size: 0.68rem;
+      font-weight: 500;
+      color: #0f172a;
+      line-height: 1.18;
+      white-space: normal;
+      word-break: break-word;
+      pointer-events: none;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .dark .benchmark-bento-label {
+      color: #f1f5f9;
+    }
+    .benchmark-bento-label .sub {
+      color: #64748b;
+      font-size: 0.62rem;
+      font-weight: 400;
+    }
+    .dark .benchmark-bento-label .sub {
+      color: #94a3b8;
+    }
+    @media (max-width: 767px) {
+      #view-concept2 > div { padding: 1rem; }
+      #view-concept2 .h-\[620px\] { height: 34rem; }
+      #view-concept3 > div { height: auto; min-height: 48rem; }
+      #view-concept3 aside { max-height: 22rem; border-right: 0; border-bottom: 1px solid rgb(226 232 240); }
+      #view-concept3 main { min-height: 38rem; }
+      #ws-md-view { padding: 1rem; }
+      #preview-modal { padding: .5rem; }
+      #preview-modal > div { height: 92vh; border-radius: 1rem; }
+      #view-concept2 .arena-frame-label { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50/80 text-slate-800 antialiased dark:bg-[#0B0F17] dark:text-slate-100 transition-colors duration-200 selection:bg-indigo-500 selection:text-white">
+
+  <a href="#main-content" class="skip-link px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold shadow-lg">본문으로 건너뛰기</a>
+
+  <!-- ============================================================ -->
+  <!-- TOP NAVIGATION                                               -->
+  <!-- ============================================================ -->
+  <header class="border-b border-slate-200/80 bg-white/95 dark:bg-[#0F172A]/90 backdrop-blur sticky top-0 z-50 shadow-xs dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+
+      <!-- Brand & Version -->
+      <div class="flex items-center space-x-3.5 shrink-0 cursor-pointer" onclick="switchConcept('concept1')" role="button" tabindex="0" aria-label="종합 현황으로 이동" onkeydown="if (event.key === 'Enter' || event.key === ' ') switchConcept('concept1')">
+        <span class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.5 14a7.5 7.5 0 0 1 15 0"/>
+            <path d="M12 14 16.5 8.5"/>
+            <circle cx="12" cy="14" r="1.7" fill="currentColor" stroke="none"/>
+            <path d="M6.5 18h11" stroke="#bfdbfe"/>
+          </svg>
+        </span>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight">Leneu Benchmark</h1>
+          </div>
+          <p class="text-[11px] text-slate-400 dark:text-slate-500 hidden sm:block">Independent evaluation · runs & artifacts</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs (Center) -->
+      <nav aria-label="벤치마크 화면" class="hidden md:flex h-10 items-center bg-slate-100 dark:bg-slate-900/80 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+        <button onclick="switchConcept('concept1')" id="tab-concept1" class="concept-tab px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-white text-indigo-600 shadow-xs dark:bg-indigo-600 dark:text-white">
+          <i class="fa-solid fa-chart-simple"></i>
+          <span>1. 현황</span>
+        </button>
+        <button onclick="switchConcept('concept2')" id="tab-concept2" class="concept-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+          <i class="fa-solid fa-bolt text-amber-500"></i>
+          <span>2. 아레나</span>
+        </button>
+        <button onclick="switchConcept('concept3')" id="tab-concept3" class="concept-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+          <i class="fa-solid fa-folder-tree"></i>
+          <span>3. 인스펙터</span>
+        </button>
+      </nav>
+
+      <!-- Right Actions: Search & Utilities -->
+      <div class="flex items-center space-x-4 shrink-0">
+        <div class="relative hidden sm:block w-44 lg:w-56">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="search" id="model-search" oninput="filterModels(this.value)" placeholder="모델 또는 실행 ID 검색..." aria-label="모델 또는 실행 ID 검색" class="w-full h-10 bg-slate-100/80 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs rounded-xl pl-8 pr-3 py-0 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900 transition">
+        </div>
+
+        <button type="button" onclick="toggleTheme()" id="theme-btn" aria-label="라이트/다크 모드 전환" class="w-10 h-10 p-0 inline-flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-amber-400 border border-slate-200 dark:border-slate-700 transition" title="라이트/다크 모드 전환">
+          <i class="fa-solid fa-moon" id="theme-icon"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Mobile Nav Tabs Bar -->
+    <div aria-label="모바일 벤치마크 화면" class="flex md:hidden px-4 py-2 border-t border-slate-200 dark:border-slate-800 justify-around bg-slate-50 dark:bg-slate-900 text-xs">
+      <button data-mobile-concept="concept1" onclick="switchConcept('concept1')" class="mobile-concept-tab px-3 py-1.5 rounded-lg font-bold bg-white text-indigo-600 shadow-xs dark:bg-slate-800">현황</button>
+      <button data-mobile-concept="concept2" onclick="switchConcept('concept2')" class="mobile-concept-tab px-3 py-1.5 rounded-lg text-slate-500">아레나</button>
+      <button data-mobile-concept="concept3" onclick="switchConcept('concept3')" class="mobile-concept-tab px-3 py-1.5 rounded-lg text-slate-500">인스펙터</button>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <!-- MAIN APP CONTAINER                                           -->
+  <!-- ============================================================ -->
+  <main id="main-content" class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- VIEW 1: LEADERBOARD -->
+    <div id="view-concept1" class="concept-view space-y-6">
+
+      <!-- Benchmark Summary Banner -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
+        <div>
+          <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <h2 class="text-base font-extrabold text-slate-900 dark:text-white">Leneu Benchmark — 실제 작업 기반 AI 평가</h2>
+              <span class="text-xs text-slate-400">|</span>
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">원본 기록: <code class="font-mono text-indigo-600 dark:text-indigo-400">runs/*</code></span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              5개 모델 실행에 동일한 18개 과제를 부여하고, 코딩·도구·웹/게임·글쓰기·리서치·추론 결과를 원본 산출물과 독립 채점 근거로 비교합니다.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Metrics 4-Cards Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
+              <span>비교 중인 실행</span>
+            <span class="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400"><i class="fa-solid fa-microchip"></i></span>
+          </div>
+            <div id="metric-model-count" class="text-2xl font-black text-slate-900 dark:text-white mt-1.5">5 Runs</div>
+            <div class="text-[11px] text-emerald-600 font-medium mt-1 flex items-center gap-1">
+            <i class="fa-solid fa-circle-check"></i>
+              <span>모델·세션별 원본과 보고서 보존</span>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <span>평가 범위</span>
+            <span class="p-1.5 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"><i class="fa-solid fa-list-check"></i></span>
+          </div>
+          <div class="text-2xl font-black text-slate-900 dark:text-white mt-1.5">18개 실제 과제</div>
+          <div class="text-[11px] text-slate-500 mt-1">실무 14개 · 추론/알고리즘 4개</div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <span>평가 구성</span>
+            <span class="p-1.5 rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-950 dark:text-violet-400"><i class="fa-solid fa-layer-group"></i></span>
+          </div>
+            <div class="text-2xl font-black text-slate-900 dark:text-white mt-1.5">6개 평가 분야</div>
+            <div class="text-[11px] text-slate-500 mt-1">코딩 · 도구 · 웹/게임 · 글쓰기 · 리서치 · 추론</div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <span>독립 채점 현황</span>
+            <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i></span>
+          </div>
+            <div id="metric-scored-count" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1.5">5 / 5 완료</div>
+            <div class="text-[11px] text-slate-500 mt-1">v0.4 기준 18개 과제 통합 점수 산출</div>
+        </div>
+      </div>
+
+      <!-- External Reference: Common coding-agent benchmarks (Bento Style with Original Data) -->
+      <section id="external-benchmark-card" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300 flex items-center justify-center text-xs"><i class="fa-solid fa-chart-simple"></i></span>
+              <span>주요 벤치마크 비교</span>
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">모델별 묶음이 아니라 벤치마크별로 묶어 공개 점수를 비교합니다. Leneu 점수나 순위에 합산하지 않는 외부 참고값입니다.</p>
+          </div>
+        </div>
+
+        <!-- 4 Bento Cards Grid -->
+        <div class="benchmark-bento-grid">
+          <div class="benchmark-bento-card">
+            <div class="flex items-center">
+              <span class="w-3 h-3 rounded-xs bg-[#7c3aed] inline-block mr-2 shrink-0"></span>
+              <h4 class="aa-font-serif text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-tight"><a href="https://artificialanalysis.ai/models" target="_blank" rel="noopener" class="hover:text-indigo-600 dark:hover:text-indigo-400">Artificial Analysis</a></h4>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">추론·수학·코딩을 종합한 모델 지능</p>
+            <div class="benchmark-bento-plot" role="img" aria-label="Artificial Analysis 차트">
+              <div class="benchmark-bento-dashed" style="bottom: 25%;"></div>
+              <div class="benchmark-bento-dashed" style="bottom: 50%;"></div>
+              <div class="benchmark-bento-dashed" style="bottom: 75%;"></div>
+              <div class="benchmark-bento-dashed" style="bottom: 100%;"></div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 75%; background: #685dcc;" title="Muse Spark 1.3: 45"><span class="benchmark-bento-val">45</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#685dcc]">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="#685dcc"><path d="M12 7.74c-2.3 0-4.28 1.4-5.32 3.42C5.64 9.14 3.66 7.74 1.36 7.74 0 7.74 0 8.87 0 9.77c0 3.32 2.7 6.49 6.02 6.49 2.3 0 4.28-1.4 5.32-3.42 1.04 2.02 3.02 3.42 5.32 3.42 3.32 0 6.02-3.17 6.02-6.49 0-.9 0-2.03-1.36-2.03-2.3 0-4.28 1.4-5.32 3.42-1.04-2.02-3.02-3.42-5.32-3.42Zm-5.98 6.44c-2.16 0-3.94-2.22-3.94-4.41 0-.93.5-1.95 1.94-1.95 1.76 0 3.48 2.08 4.28 3.64-.64 1.63-1.36 2.72-2.28 2.72Zm11.96 0c-.92 0-1.64-1.09-2.28-2.72.8-1.56 2.52-3.64 4.28-3.64 1.44 0 1.94 1.02 1.94 1.95 0 2.19-1.78 4.41-3.94 4.41Z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>Muse Spark</div><div class="sub">1.3 (max)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 68.3%; background: #26944a;" title="Gemini 3.8 Flash: 41"><span class="benchmark-bento-val">41</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo ">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24Z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15Z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98Z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>Gemini 3.8</div><div class="sub">Flash (medium)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 66.7%; background: #243fca;" title="DeepSeek V4.1 Flash: 40"><span class="benchmark-bento-val">40</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#243fca]">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="#243fca"><path d="M12 2C6.48 2 2 6.48 2 12c0 2.5 1 4.8 2.6 6.5l-.6 2.5 2.7-.8C8.3 21.3 10.1 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm1 14.5c-2.5 0-4.5-1.5-5.2-3.5h1.8c.6 1.2 1.9 2 3.4 2 2.1 0 3.8-1.7 3.8-3.8 0-1.8-1.3-3.4-3.1-3.7v-1.8c2.8.4 5 2.8 5 5.5 0 2.9-2.3 5.3-5.7 5.3z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>DeepSeek V4.1</div><div class="sub">Flash (max)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 58.3%; background: #bd694b;" title="GPT-5.6 Luna: 35"><span class="benchmark-bento-val">35</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#bd694b]">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="#bd694b"><path d="M22.28 9.37a5.98 5.98 0 0 0-.52-4.88 6.07 6.07 0 0 0-6.51-2.89A6.06 6.06 0 0 0 10.7.35a6.08 6.08 0 0 0-5.83 4.23A6.05 6.05 0 0 0 .8 7.4a6.08 6.08 0 0 0 .93 7.07 6.04 6.04 0 0 0 .52 4.88 6.08 6.08 0 0 0 6.51 2.89 6.04 6.04 0 0 0 4.55 1.25 6.08 6.08 0 0 0 5.83-4.23 6.04 6.04 0 0 0 4.07-2.82 6.08 6.08 0 0 0-.93-7.07ZM12 21.6a4.57 4.57 0 0 1-3.03-1.16l.15-.09 5.04-2.91a.76.76 0 0 0 .38-.66v-7.1l2.13 1.23a.08.08 0 0 1 .04.06v5.85A4.6 4.6 0 0 1 12 21.6Zm-8.4-4.52a4.56 4.56 0 0 1-.58-3.21l.16.1 5.04 2.91a.75.75 0 0 0 .76 0l6.15-3.55v2.46a.08.08 0 0 1-.03.07l-5.07 2.93a4.6 4.6 0 0 1-6.43-1.71ZM2.43 8.35a4.57 4.57 0 0 1 2.45-2.06v6.17a.75.75 0 0 0 .38.65l6.15 3.55-2.13 1.23a.08.08 0 0 1-.08 0L4.14 15A4.6 4.6 0 0 1 2.43 8.35ZM18.98 12l-6.15-3.55 2.13-1.23a.08.08 0 0 1 .08 0l5.06 2.92a4.6 4.6 0 0 1 .93 6.6l-.16-.09-5.04-2.91a.76.76 0 0 0-.76 0l-.09.05v-.79Zm2.59-3.83-.16-.1-5.04-2.91a.75.75 0 0 0-.76 0L9.46 8.71V6.25a.08.08 0 0 1 .03-.07l5.07-2.93a4.6 4.6 0 0 1 7.01 4.92ZM9.7 13.06l-2.13-1.23a.08.08 0 0 1-.04-.06V5.92A4.6 4.6 0 0 1 12 2.4a4.57 4.57 0 0 1 3.03 1.16l-.15.09-5.04 2.91a.76.76 0 0 0-.38.66v5.84Zm1.05-1.78 2.5-1.45 2.5 1.45v2.89l-2.5 1.45-2.5-1.45V11.28Z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>GPT-5.6</div><div class="sub">Luna (xhigh)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar is-missing" title="SWE-2: 미등록"><span class="benchmark-bento-val">—</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#1f2937] dark:text-slate-300">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor"><rect width="20" height="20" x="2" y="2" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 8l4 4-4 4M13 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>SWE-2</div><div class="sub">(standard)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="benchmark-bento-card">
+            <div class="flex items-center">
+              <span class="w-3 h-3 rounded-xs bg-[#3b82f6] inline-block mr-2 shrink-0"></span>
+              <h4 class="aa-font-serif text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-tight"><a href="https://benchlm.ai/benchmarks/deepswe" target="_blank" rel="noopener" class="hover:text-indigo-600 dark:hover:text-indigo-400">DeepSWE 1.1</a></h4>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">저장소 탐색·수정 중심의 SWE 능력</p>
+            <div class="benchmark-bento-plot" role="img" aria-label="DeepSWE 1.1 차트">
+              <div class="benchmark-bento-dashed" style="bottom: 25%;"></div>
+              <div class="benchmark-bento-dashed" style="bottom: 50%;"></div>
+              <div class="benchmark-bento-dashed" style="bottom: 75%;"></div>
+              <div class="benchmark-bento-dashed" style="bottom: 100%;"></div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 75.4%; background: #685dcc;" title="Muse Spark 1.3: 75.4"><span class="benchmark-bento-val">75.4</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#685dcc]">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="#685dcc"><path d="M12 7.74c-2.3 0-4.28 1.4-5.32 3.42C5.64 9.14 3.66 7.74 1.36 7.74 0 7.74 0 8.87 0 9.77c0 3.32 2.7 6.49 6.02 6.49 2.3 0 4.28-1.4 5.32-3.42 1.04 2.02 3.02 3.42 5.32 3.42 3.32 0 6.02-3.17 6.02-6.49 0-.9 0-2.03-1.36-2.03-2.3 0-4.28 1.4-5.32 3.42-1.04-2.02-3.02-3.42-5.32-3.42Zm-5.98 6.44c-2.16 0-3.94-2.22-3.94-4.41 0-.93.5-1.95 1.94-1.95 1.76 0 3.48 2.08 4.28 3.64-.64 1.63-1.36 2.72-2.28 2.72Zm11.96 0c-.92 0-1.64-1.09-2.28-2.72.8-1.56 2.52-3.64 4.28-3.64 1.44 0 1.94 1.02 1.94 1.95 0 2.19-1.78 4.41-3.94 4.41Z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>Muse Spark</div><div class="sub">1.3 (max)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 74.2%; background: #243fca;" title="DeepSeek V4.1 Flash: 74.2"><span class="benchmark-bento-val">74.2</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#243fca]">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="#243fca"><path d="M12 2C6.48 2 2 6.48 2 12c0 2.5 1 4.8 2.6 6.5l-.6 2.5 2.7-.8C8.3 21.3 10.1 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm1 14.5c-2.5 0-4.5-1.5-5.2-3.5h1.8c.6 1.2 1.9 2 3.4 2 2.1 0 3.8-1.7 3.8-3.8 0-1.8-1.3-3.4-3.1-3.7v-1.8c2.8.4 5 2.8 5 5.5 0 2.9-2.3 5.3-5.7 5.3z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>DeepSeek V4.1</div><div class="sub">Flash (max)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 73.8%; background: #26944a;" title="Gemini 3.8 Flash: 73.8"><span class="benchmark-bento-val">73.8</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo ">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24Z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15Z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98Z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>Gemini 3.8</div><div class="sub">Flash (medium)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 73%; background: #171717;" title="SWE-2: 73.0"><span class="benchmark-bento-val">73.0</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#1f2937] dark:text-slate-300">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor"><rect width="20" height="20" x="2" y="2" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 8l4 4-4 4M13 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>SWE-2</div><div class="sub">(standard)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 67.2%; background: #bd694b;" title="GPT-5.6 Luna: 67.2"><span class="benchmark-bento-val">67.2</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#bd694b]">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="#bd694b"><path d="M22.28 9.37a5.98 5.98 0 0 0-.52-4.88 6.07 6.07 0 0 0-6.51-2.89A6.06 6.06 0 0 0 10.7.35a6.08 6.08 0 0 0-5.83 4.23A6.05 6.05 0 0 0 .8 7.4a6.08 6.08 0 0 0 .93 7.07 6.04 6.04 0 0 0 .52 4.88 6.08 6.08 0 0 0 6.51 2.89 6.04 6.04 0 0 0 4.55 1.25 6.08 6.08 0 0 0 5.83-4.23 6.04 6.04 0 0 0 4.07-2.82 6.08 6.08 0 0 0-.93-7.07ZM12 21.6a4.57 4.57 0 0 1-3.03-1.16l.15-.09 5.04-2.91a.76.76 0 0 0 .38-.66v-7.1l2.13 1.23a.08.08 0 0 1 .04.06v5.85A4.6 4.6 0 0 1 12 21.6Zm-8.4-4.52a4.56 4.56 0 0 1-.58-3.21l.16.1 5.04 2.91a.75.75 0 0 0 .76 0l6.15-3.55v2.46a.08.08 0 0 1-.03.07l-5.07 2.93a4.6 4.6 0 0 1-6.43-1.71ZM2.43 8.35a4.57 4.57 0 0 1 2.45-2.06v6.17a.75.75 0 0 0 .38.65l6.15 3.55-2.13 1.23a.08.08 0 0 1-.08 0L4.14 15A4.6 4.6 0 0 1 2.43 8.35ZM18.98 12l-6.15-3.55 2.13-1.23a.08.08 0 0 1 .08 0l5.06 2.92a4.6 4.6 0 0 1 .93 6.6l-.16-.09-5.04-2.91a.76.76 0 0 0-.76 0l-.09.05v-.79Zm2.59-3.83-.16-.1-5.04-2.91a.75.75 0 0 0-.76 0L9.46 8.71V6.25a.08.08 0 0 1 .03-.07l5.07-2.93a4.6 4.6 0 0 1 7.01 4.92ZM9.7 13.06l-2.13-1.23a.08.08 0 0 1-.04-.06V5.92A4.6 4.6 0 0 1 12 2.4a4.57 4.57 0 0 1 3.03 1.16l-.15.09-5.04 2.91a.76.76 0 0 0-.38.66v5.84Zm1.05-1.78 2.5-1.45 2.5 1.45v2.89l-2.5 1.45-2.5-1.45V11.28Z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>GPT-5.6</div><div class="sub">Luna (xhigh)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Card 3: Terminal-Bench 2.1 -->
+          <div class="benchmark-bento-card">
+            <div class="flex items-center">
+              <span class="w-3 h-3 rounded-xs bg-[#1e293b] dark:bg-slate-300 inline-block mr-2 shrink-0"></span>
+              <h4 class="aa-font-serif text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-tight"><a href="https://benchlm.ai/benchmarks/terminalbench21" target="_blank" rel="noopener" class="hover:text-indigo-600 dark:hover:text-indigo-400">Terminal-Bench 2.1</a></h4>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">터미널 명령·도구 활용 능력</p>
+            <div class="benchmark-bento-plot" role="img" aria-label="Terminal-Bench 2.1 차트">
+              <div class="benchmark-bento-dashed" style="bottom: 25%;"></div>
+              <div class="benchmark-bento-dashed" style="bottom: 50%;"></div>
+              <div class="benchmark-bento-dashed" style="bottom: 75%;"></div>
+              <div class="benchmark-bento-dashed" style="bottom: 100%;"></div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 92.8%; background: #171717;" title="SWE-2: 92.8"><span class="benchmark-bento-val">92.8</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#1f2937] dark:text-slate-300">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor"><rect width="20" height="20" x="2" y="2" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 8l4 4-4 4M13 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>SWE-2</div><div class="sub">(standard)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 90.6%; background: #243fca;" title="DeepSeek V4.1 Flash: 90.6"><span class="benchmark-bento-val">90.6</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#243fca]">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="#243fca"><path d="M12 2C6.48 2 2 6.48 2 12c0 2.5 1 4.8 2.6 6.5l-.6 2.5 2.7-.8C8.3 21.3 10.1 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm1 14.5c-2.5 0-4.5-1.5-5.2-3.5h1.8c.6 1.2 1.9 2 3.4 2 2.1 0 3.8-1.7 3.8-3.8 0-1.8-1.3-3.4-3.1-3.7v-1.8c2.8.4 5 2.8 5 5.5 0 2.9-2.3 5.3-5.7 5.3z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>DeepSeek V4.1</div><div class="sub">Flash (max)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 89.4%; background: #26944a;" title="Gemini 3.8 Flash: 89.4"><span class="benchmark-bento-val">89.4</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo ">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24Z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15Z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98Z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>Gemini 3.8</div><div class="sub">Flash (medium)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 88.8%; background: #685dcc;" title="Muse Spark 1.3: 88.8"><span class="benchmark-bento-val">88.8</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#685dcc]">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="#685dcc"><path d="M12 7.74c-2.3 0-4.28 1.4-5.32 3.42C5.64 9.14 3.66 7.74 1.36 7.74 0 7.74 0 8.87 0 9.77c0 3.32 2.7 6.49 6.02 6.49 2.3 0 4.28-1.4 5.32-3.42 1.04 2.02 3.02 3.42 5.32 3.42 3.32 0 6.02-3.17 6.02-6.49 0-.9 0-2.03-1.36-2.03-2.3 0-4.28 1.4-5.32 3.42-1.04-2.02-3.02-3.42-5.32-3.42Zm-5.98 6.44c-2.16 0-3.94-2.22-3.94-4.41 0-.93.5-1.95 1.94-1.95 1.76 0 3.48 2.08 4.28 3.64-.64 1.63-1.36 2.72-2.28 2.72Zm11.96 0c-.92 0-1.64-1.09-2.28-2.72.8-1.56 2.52-3.64 4.28-3.64 1.44 0 1.94 1.02 1.94 1.95 0 2.19-1.78 4.41-3.94 4.41Z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>Muse Spark</div><div class="sub">1.3 (max)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 79%; background: #bd694b;" title="GPT-5.6 Luna: 79.0"><span class="benchmark-bento-val">79.0</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#bd694b]">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="#bd694b"><path d="M22.28 9.37a5.98 5.98 0 0 0-.52-4.88 6.07 6.07 0 0 0-6.51-2.89A6.06 6.06 0 0 0 10.7.35a6.08 6.08 0 0 0-5.83 4.23A6.05 6.05 0 0 0 .8 7.4a6.08 6.08 0 0 0 .93 7.07 6.04 6.04 0 0 0 .52 4.88 6.08 6.08 0 0 0 6.51 2.89 6.04 6.04 0 0 0 4.55 1.25 6.08 6.08 0 0 0 5.83-4.23 6.04 6.04 0 0 0 4.07-2.82 6.08 6.08 0 0 0-.93-7.07ZM12 21.6a4.57 4.57 0 0 1-3.03-1.16l.15-.09 5.04-2.91a.76.76 0 0 0 .38-.66v-7.1l2.13 1.23a.08.08 0 0 1 .04.06v5.85A4.6 4.6 0 0 1 12 21.6Zm-8.4-4.52a4.56 4.56 0 0 1-.58-3.21l.16.1 5.04 2.91a.75.75 0 0 0 .76 0l6.15-3.55v2.46a.08.08 0 0 1-.03.07l-5.07 2.93a4.6 4.6 0 0 1-6.43-1.71ZM2.43 8.35a4.57 4.57 0 0 1 2.45-2.06v6.17a.75.75 0 0 0 .38.65l6.15 3.55-2.13 1.23a.08.08 0 0 1-.08 0L4.14 15A4.6 4.6 0 0 1 2.43 8.35ZM18.98 12l-6.15-3.55 2.13-1.23a.08.08 0 0 1 .08 0l5.06 2.92a4.6 4.6 0 0 1 .93 6.6l-.16-.09-5.04-2.91a.76.76 0 0 0-.76 0l-.09.05v-.79Zm2.59-3.83-.16-.1-5.04-2.91a.75.75 0 0 0-.76 0L9.46 8.71V6.25a.08.08 0 0 1 .03-.07l5.07-2.93a4.6 4.6 0 0 1 7.01 4.92ZM9.7 13.06l-2.13-1.23a.08.08 0 0 1-.04-.06V5.92A4.6 4.6 0 0 1 12 2.4a4.57 4.57 0 0 1 3.03 1.16l-.15.09-5.04 2.91a.76.76 0 0 0-.38.66v5.84Zm1.05-1.78 2.5-1.45 2.5 1.45v2.89l-2.5 1.45-2.5-1.45V11.28Z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>GPT-5.6</div><div class="sub">Luna (xhigh)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="benchmark-bento-card">
+            <div class="flex items-center">
+              <span class="w-3 h-3 rounded-xs bg-[#d97706] inline-block mr-2 shrink-0"></span>
+              <h4 class="aa-font-serif text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-tight"><a href="https://www.swebench.com/" target="_blank" rel="noopener" class="hover:text-indigo-600 dark:hover:text-indigo-400">SWE-bench</a></h4>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">GitHub 이슈 기반 코드 수정·테스트</p>
+            <div class="benchmark-bento-plot" role="img" aria-label="SWE-bench 차트">
+              <div class="benchmark-bento-dashed" style="bottom: 25%;"></div>
+              <div class="benchmark-bento-dashed" style="bottom: 50%;"></div>
+              <div class="benchmark-bento-dashed" style="bottom: 75%;"></div>
+              <div class="benchmark-bento-dashed" style="bottom: 100%;"></div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 93%; background: #bd694b;" title="GPT-5.6 Luna: 93.0"><span class="benchmark-bento-val">93.0</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#bd694b]">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="#bd694b"><path d="M22.28 9.37a5.98 5.98 0 0 0-.52-4.88 6.07 6.07 0 0 0-6.51-2.89A6.06 6.06 0 0 0 10.7.35a6.08 6.08 0 0 0-5.83 4.23A6.05 6.05 0 0 0 .8 7.4a6.08 6.08 0 0 0 .93 7.07 6.04 6.04 0 0 0 .52 4.88 6.08 6.08 0 0 0 6.51 2.89 6.04 6.04 0 0 0 4.55 1.25 6.08 6.08 0 0 0 5.83-4.23 6.04 6.04 0 0 0 4.07-2.82 6.08 6.08 0 0 0-.93-7.07ZM12 21.6a4.57 4.57 0 0 1-3.03-1.16l.15-.09 5.04-2.91a.76.76 0 0 0 .38-.66v-7.1l2.13 1.23a.08.08 0 0 1 .04.06v5.85A4.6 4.6 0 0 1 12 21.6Zm-8.4-4.52a4.56 4.56 0 0 1-.58-3.21l.16.1 5.04 2.91a.75.75 0 0 0 .76 0l6.15-3.55v2.46a.08.08 0 0 1-.03.07l-5.07 2.93a4.6 4.6 0 0 1-6.43-1.71ZM2.43 8.35a4.57 4.57 0 0 1 2.45-2.06v6.17a.75.75 0 0 0 .38.65l6.15 3.55-2.13 1.23a.08.08 0 0 1-.08 0L4.14 15A4.6 4.6 0 0 1 2.43 8.35ZM18.98 12l-6.15-3.55 2.13-1.23a.08.08 0 0 1 .08 0l5.06 2.92a4.6 4.6 0 0 1 .93 6.6l-.16-.09-5.04-2.91a.76.76 0 0 0-.76 0l-.09.05v-.79Zm2.59-3.83-.16-.1-5.04-2.91a.75.75 0 0 0-.76 0L9.46 8.71V6.25a.08.08 0 0 1 .03-.07l5.07-2.93a4.6 4.6 0 0 1 7.01 4.92ZM9.7 13.06l-2.13-1.23a.08.08 0 0 1-.04-.06V5.92A4.6 4.6 0 0 1 12 2.4a4.57 4.57 0 0 1 3.03 1.16l-.15.09-5.04 2.91a.76.76 0 0 0-.38.66v5.84Zm1.05-1.78 2.5-1.45 2.5 1.45v2.89l-2.5 1.45-2.5-1.45V11.28Z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>GPT-5.6</div><div class="sub">Luna (xhigh)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 80%; background: #26944a;" title="Gemini 3.8 Flash: 80.0"><span class="benchmark-bento-val">80.0</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo ">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24Z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15Z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98Z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>Gemini 3.8</div><div class="sub">Flash (medium)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 77.4%; background: #685dcc;" title="Muse Spark 1.3: 77.4"><span class="benchmark-bento-val">77.4</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#685dcc]">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="#685dcc"><path d="M12 7.74c-2.3 0-4.28 1.4-5.32 3.42C5.64 9.14 3.66 7.74 1.36 7.74 0 7.74 0 8.87 0 9.77c0 3.32 2.7 6.49 6.02 6.49 2.3 0 4.28-1.4 5.32-3.42 1.04 2.02 3.02 3.42 5.32 3.42 3.32 0 6.02-3.17 6.02-6.49 0-.9 0-2.03-1.36-2.03-2.3 0-4.28 1.4-5.32 3.42-1.04-2.02-3.02-3.42-5.32-3.42Zm-5.98 6.44c-2.16 0-3.94-2.22-3.94-4.41 0-.93.5-1.95 1.94-1.95 1.76 0 3.48 2.08 4.28 3.64-.64 1.63-1.36 2.72-2.28 2.72Zm11.96 0c-.92 0-1.64-1.09-2.28-2.72.8-1.56 2.52-3.64 4.28-3.64 1.44 0 1.94 1.02 1.94 1.95 0 2.19-1.78 4.41-3.94 4.41Z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>Muse Spark</div><div class="sub">1.3 (max)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar is-missing" title="SWE-2: 미확인"><span class="benchmark-bento-val">—</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#1f2937] dark:text-slate-300">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="currentColor"><rect width="20" height="20" x="2" y="2" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 8l4 4-4 4M13 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>SWE-2</div><div class="sub">(standard)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar is-missing" title="DeepSeek V4.1 Flash: 미확인"><span class="benchmark-bento-val">—</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo text-[#243fca]">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="#243fca"><path d="M12 2C6.48 2 2 6.48 2 12c0 2.5 1 4.8 2.6 6.5l-.6 2.5 2.7-.8C8.3 21.3 10.1 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm1 14.5c-2.5 0-4.5-1.5-5.2-3.5h1.8c.6 1.2 1.9 2 3.4 2 2.1 0 3.8-1.7 3.8-3.8 0-1.8-1.3-3.4-3.1-3.7v-1.8c2.8.4 5 2.8 5 5.5 0 2.9-2.3 5.3-5.7 5.3z"/></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>DeepSeek V4.1</div><div class="sub">Flash (max)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400">
+          <div class="flex flex-wrap items-end justify-between gap-2">
+            <p>공개 점수의 모델·하네스·effort가 다를 수 있으며, 미측정 값은 0점이 아닙니다.</p>
+            <p class="ml-auto font-semibold text-slate-500 dark:text-slate-300">최근 조회: 2026.09.15</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Leaderboard Table Card -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+        <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4 bg-slate-50/70 dark:bg-slate-950/40">
+          <div class="w-full">
+            <h3 id="run-scores" class="text-base font-bold text-slate-900 dark:text-white flex items-center justify-between gap-2">
+              <span>실행 목록 & 점수표</span>
+              <a href="scoring-guide.html" class="score-guide-link" aria-label="평가 항목과 채점 기준 상세 안내" title="평가 항목과 채점 기준 상세 안내">?</a>
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">현재 번호는 정렬 순서이며 순위가 아닙니다. 실행 ID를 눌러 인스펙터에서 산출물과 평가 근거를 확인할 수 있습니다.</p>
+            <div class="mt-3 overflow-hidden rounded-xl border border-indigo-100 dark:border-indigo-900/70 bg-white/80 dark:bg-slate-900/60 text-[11px] text-slate-600 dark:text-slate-300">
+              <div class="flex flex-wrap items-center justify-between gap-2 bg-indigo-50/80 dark:bg-indigo-950/30 px-3 py-2 border-b border-indigo-100 dark:border-indigo-900/70">
+                <strong class="text-indigo-700 dark:text-indigo-300">18개 과제 통합 점수 기준</strong>
+                <span>6개 분야 · 가중치 합계 100% · v0.4 독립 채점 완료</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-2">
+                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">코딩·알고리즘 25%</strong><span>CODE-01 · H-03 · ALG-01</span></div>
+                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">도구·하네스 20%</strong><span>TC-01 · TC-02 · TC-04 · H-01</span></div>
+                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">웹·게임 20%</strong><span>WEB-01 · GAME-01 · GAME-02</span></div>
+                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">글쓰기·요약 15%</strong><span>WRITE-01 · WRITE-02 · THINK-01</span></div>
+                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">리서치 10%</strong><span>SEARCH-01 · SEARCH-03</span></div>
+                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">지식·추론 10%</strong><span>REASON-KO-01 · REASON-MATH-01 · REASON-SCI-01</span></div>
+              </div>
+              <p class="px-3 py-2 border-t border-slate-100 dark:border-slate-800">각 과제는 100점 만점이며, 분야별 평균에 위 가중치를 적용해 통합 점수를 계산합니다. 요구사항 통과 판정은 점수와 별도로 표시합니다.</p>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table id="leaderboard-table" class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-100/60 dark:bg-slate-950/60 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold border-b border-slate-200 dark:border-slate-800">
+                  <th class="py-3.5 px-4 w-12 text-center">No.</th>
+                <th class="py-3.5 px-4 min-w-[240px]">모델명 / 세션 ID / 하네스</th>
+                <th class="py-3.5 px-4">측정일</th>
+                <th class="py-3.5 px-4 min-w-[288px]">점수표</th>
+                <th class="py-3.5 px-4 text-right">인스펙터</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body" class="font-normal">
+              <!-- Dynamically populated by app.js -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="p-3.5 bg-slate-50/90 dark:bg-slate-950/60 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex flex-wrap items-center justify-between gap-2">
+          <span>v0.4 독립 채점이 완료된 18개 과제의 통합·분야별 점수입니다.</span>
+          <span class="text-slate-400">기준 문서: scoring-v0.4.md</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- VIEW 2: ARENA -->
+    <div id="view-concept2" class="concept-view hidden space-y-6">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+
+        <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,auto)] gap-x-6 gap-y-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+          <div class="min-w-0">
+            <div class="flex items-center space-x-2">
+              <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-bolt"></i>
+              </span>
+              <h2 class="text-base font-extrabold text-slate-900 dark:text-white">1:1 산출물 아레나 비교기</h2>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">두 실행의 웹·게임 또는 ARTICLE 산출물을 같은 조건에서 나란히 비교합니다. 이 화면만으로 요구사항 통과가 확정되지는 않습니다.</p>
+          </div>
+
+          <div class="arena-task-picker min-w-0 flex items-center gap-2 lg:col-start-2 lg:row-start-1 lg:justify-self-end">
+            <span class="text-xs font-bold text-slate-500 shrink-0">과제:</span>
+            <select id="arena-task-select" onchange="updateArena()" class="min-w-0 w-full bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-xl px-3 py-2 border border-slate-200 dark:border-slate-700 shadow-2xs focus:outline-none focus:border-indigo-500">
+              <option value="outputs/GAME-01/index.html">GAME-01: Tetris (테트리스 — Hold 기능 포함)</option>
+              <option value="outputs/GAME-02/index.html">GAME-02: Platformer Game (횡스크롤 플랫폼)</option>
+              <option value="outputs/SEARCH-01/research.md">SEARCH-01: 공식 기능 확인 리서치</option>
+              <option value="outputs/SEARCH-03/research.md">SEARCH-03: 환경별 비교 리서치</option>
+              <option value="outputs/WEB-01/index.html">WEB-01: Leneu Desk (반응형 제품 웹앱)</option>
+              <option value="outputs/WRITE-01/article.md">WRITE-01: 저장소 작업 규칙 기술 블로그</option>
+              <option value="outputs/WRITE-02/edited.md">WRITE-02: 배포·롤백 운영 문서</option>
+            </select>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3 lg:col-start-1 lg:row-start-2">
+            <div class="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+              <button onclick="setArenaViewport('100%')" class="vp-btn px-2.5 py-1 rounded-lg font-bold bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-2xs">Desktop fit</button>
+              <button onclick="setArenaViewport('390px')" class="vp-btn px-2.5 py-1 rounded-lg font-medium text-slate-500 hover:text-slate-800">Mobile fit</button>
+            </div>
+            <span id="arena-viewport-readout" class="text-[10px] font-mono text-slate-400" aria-live="polite">viewport 1024×560 · fit</span>
+          </div>
+        </div>
+
+        <!-- Spec Checklist Banner -->
+        <div id="spec-banner" class="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-xs space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-extrabold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+              <i class="fa-solid fa-clipboard-check text-indigo-600"></i>
+                <span id="spec-title">평가 기준 체크리스트</span>
+            </span>
+            <span id="spec-source" class="text-[10px] text-slate-400 font-mono">cases/v0.1/QUESTIONS.md</span>
+          </div>
+          <p id="spec-summary" class="text-[11px] leading-relaxed text-slate-600 dark:text-slate-300"></p>
+          <div id="spec-items" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-[11px]">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Split Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- Column A -->
+          <div class="bg-white dark:bg-slate-950 border-2 border-indigo-200 dark:border-indigo-500/40 rounded-2xl overflow-hidden flex flex-col h-[620px] shadow-sm">
+            <div class="p-3.5 bg-indigo-50/60 dark:bg-indigo-950/40 border-b border-indigo-100 dark:border-indigo-500/30 flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+                <span class="text-xs font-black text-indigo-700 dark:text-indigo-300 uppercase tracking-wide">Model A:</span>
+                <select id="model-a-select" onchange="updateArena()" class="bg-white dark:bg-slate-900 text-slate-800 dark:text-white text-xs font-bold rounded-lg px-2.5 py-1 border border-indigo-200 dark:border-indigo-500/40 focus:outline-none">
+                </select>
+              </div>
+              <a id="model-a-external" href="#" target="_blank" rel="noopener" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg flex items-center space-x-1 transition shadow-2xs">
+                <span>새 창 열기</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+              </a>
+            </div>
+            <div class="artifact-frame arena-viewport-host flex-1 relative bg-slate-100 dark:bg-[#0F141C] flex justify-center items-center overflow-hidden">
+              <span class="arena-frame-label" aria-hidden="true">A · fit preview</span>
+              <iframe id="iframe-a" src="" title="모델 A 산출물" loading="lazy" class="viewport-transition w-full h-full border-none shadow-md"></iframe>
+            </div>
+          </div>
+
+          <!-- Column B -->
+          <div class="bg-white dark:bg-slate-950 border-2 border-purple-200 dark:border-purple-500/40 rounded-2xl overflow-hidden flex flex-col h-[620px] shadow-sm">
+            <div class="p-3.5 bg-purple-50/60 dark:bg-purple-950/40 border-b border-purple-100 dark:border-purple-500/30 flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
+                <span class="text-xs font-black text-purple-700 dark:text-purple-300 uppercase tracking-wide">Model B:</span>
+                <select id="model-b-select" onchange="updateArena()" class="bg-white dark:bg-slate-900 text-slate-800 dark:text-white text-xs font-bold rounded-lg px-2.5 py-1 border border-purple-200 dark:border-purple-500/40 focus:outline-none">
+                </select>
+              </div>
+              <a id="model-b-external" href="#" target="_blank" rel="noopener" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg flex items-center space-x-1 transition shadow-2xs">
+                <span>새 창 열기</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+              </a>
+            </div>
+            <div class="artifact-frame arena-viewport-host flex-1 relative bg-slate-100 dark:bg-[#0F141C] flex justify-center items-center overflow-hidden">
+              <span class="arena-frame-label" aria-hidden="true">B · fit preview</span>
+              <iframe id="iframe-b" src="" title="모델 B 산출물" loading="lazy" class="viewport-transition w-full h-full border-none shadow-md"></iframe>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: INSPECTOR -->
+    <div id="view-concept3" class="concept-view hidden space-y-6">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs flex flex-col md:flex-row h-[740px]">
+
+        <!-- Left Sidebar: Explorer -->
+        <aside class="w-full md:w-80 bg-slate-50 dark:bg-slate-950/90 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0">
+          <div class="p-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900">
+            <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-folder-tree text-indigo-600"></i>
+              <span>Runs Explorer</span>
+            </span>
+              <span id="explorer-run-count" class="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded font-mono">5 Runs</span>
+            </div>
+
+            <div id="runs-explorer-list" class="runs-tree flex-1 overflow-y-auto p-2.5 space-y-2 text-xs" aria-live="polite">
+              <div class="p-3 text-slate-500 dark:text-slate-400">카탈로그에서 실행 목록을 불러오는 중입니다.</div>
+            </div>
+        </aside>
+
+        <!-- Right Main View -->
+        <main class="flex-1 flex flex-col bg-white dark:bg-[#0B0F17] overflow-hidden">
+          <div class="p-3.5 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-x-5 gap-y-2">
+            <div class="min-w-0 lg:col-start-1 lg:col-span-2 lg:row-start-1">
+              <span id="ws-type-badge" class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">LIVE HTML</span>
+              <div class="mt-1.5 flex flex-wrap items-center gap-2">
+                <span id="ws-title" class="min-w-0 text-sm font-extrabold text-slate-900 dark:text-white">GAME-01: Tetris (gemini-3.8-flash)</span>
+                <div id="ws-artifact-switcher" class="hidden ml-auto items-center gap-1 w-fit shrink-0 p-1 rounded-lg bg-slate-200/70 dark:bg-slate-800" aria-label="표시할 산출물 선택"></div>
+              </div>
+            </div>
+
+              <a id="ws-newtab-btn" href="#" target="_blank" rel="noopener" class="self-start justify-self-end px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold inline-flex items-center space-x-1.5 shadow-2xs transition whitespace-nowrap lg:col-start-2 lg:row-start-1">
+                <span>전체화면 새 창 열기</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+              </a>
+            <div id="ws-task-brief" class="hidden lg:col-span-2 px-3 py-2 rounded-lg border border-indigo-100 dark:border-indigo-900/60 bg-indigo-50/70 dark:bg-indigo-950/25 text-[11px] leading-relaxed text-slate-600 dark:text-slate-300"></div>
+            <span id="ws-path" class="block w-full text-[11px] font-mono text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 lg:col-span-2">runs/gemini-3.8-flash/.../outputs/GAME-01/index.html</span>
+          </div>
+
+            <div class="artifact-frame flex-1 relative bg-slate-100 dark:bg-[#0F141C] overflow-hidden">
+              <iframe id="ws-frame" src="" title="선택한 HTML 산출물" loading="lazy" class="w-full h-full border-none"></iframe>
+            <div id="ws-md-view" class="hidden absolute inset-0 bg-white dark:bg-slate-900 p-6 overflow-y-auto">
+              <div class="max-w-3xl mx-auto space-y-4">
+                <div class="p-4 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl border border-indigo-100 dark:border-indigo-800/50">
+                  <h4 id="ws-md-note-title" class="text-xs font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider mb-1">마크다운 문서</h4>
+                    <p id="ws-md-note-description" class="text-xs text-slate-600 dark:text-slate-400">응시 실행 폴더에 보존된 원문 산출물입니다.</p>
+                </div>
+                <div id="ws-md-content" class="markdown-body text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-950 p-5 rounded-2xl border border-slate-200 dark:border-slate-800"></div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Common Modal -->
+  <div id="preview-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-5xl h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950">
+        <div>
+          <h3 id="modal-title" class="text-sm font-bold text-slate-900 dark:text-white">산출물 라이브 미리보기</h3>
+          <p id="modal-subtitle" class="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">path/to/artifact</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <a id="modal-external-link" href="#" target="_blank" rel="noopener" class="px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-cyan-300 text-xs font-bold flex items-center space-x-1.5 border border-indigo-200 dark:border-slate-700 transition">
+            <span>새 창에서 직접 열기</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          </a>
+          <button type="button" onclick="closePreviewModal()" aria-label="미리보기 닫기" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-white flex items-center justify-center transition">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+      <div class="flex-1 bg-slate-100 dark:bg-[#0F141C] relative">
+        <iframe id="modal-iframe" src="" title="산출물 미리보기" loading="lazy" class="w-full h-full border-none"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Architecture Modal -->
+  <div id="info-modal" role="dialog" aria-modal="true" aria-labelledby="info-modal-title" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-2xl p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+        <h3 id="info-modal-title" class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <i class="fa-solid fa-sitemap text-indigo-600"></i>
+          <span>데이터 흐름과 화면 이용 안내</span>
+        </h3>
+        <button type="button" onclick="closeInfoModal()" aria-label="이용 안내 닫기" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+        <p class="font-bold text-slate-900 dark:text-white">1. 실행 폴더를 읽는 카탈로그 빌더</p>
+        <p class="text-slate-500 dark:text-slate-400">
+          <code class="font-mono">node scripts/build-site-catalog.mjs</code>를 실행하면 <code class="font-mono">runs/&lt;model-slug&gt;/&lt;run-id&gt;/</code>의 기록을 스캔해 <code class="font-mono">benchmark-html/data/catalog.json</code>을 갱신합니다. 폴더 추가만으로 화면이 바뀌는 것은 아니며 빌더 실행이 필요합니다.
+        </p>
+        <p class="font-bold text-slate-900 dark:text-white mt-3">2. HTML 실행과 보고서 원문을 분리해서 확인</p>
+        <p class="text-slate-500 dark:text-slate-400">
+          화면 안 미리보기로 빠르게 확인하거나 새 탭에서 원본을 직접 조작할 수 있습니다. <code class="font-mono">RESULT.md</code>는 제출자가 작성한 보고서이므로 최종 평가표와 동일한 의미가 아닙니다.
+        </p>
+        <p class="font-bold text-slate-900 dark:text-white mt-3">3. 정적 HTTP 환경 권장</p>
+        <p class="text-slate-500 dark:text-slate-400">
+          백엔드 없이 동작하지만 <code class="font-mono">file://</code>로 직접 열면 브라우저 보안 정책 때문에 JSON과 Markdown 로딩이 제한될 수 있습니다. 로컬 HTTP 서버나 정적 호스팅에서 확인하는 편이 안전합니다.
+        </p>
+      </div>
+      <div class="pt-3 border-t border-slate-200 dark:border-slate-800 text-right">
+        <button onclick="closeInfoModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs shadow-xs transition">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Script -->
+  <script src="js/app.js?v=20260915-6"></script>
+  <script>
+    const arenaViewportPresets = {
+      '100%': { label: '1024×560', width: 1024, height: 560 },
+      '390px': { label: '390×560', width: 390, height: 560 }
+    };
+
+    // 아레나에서는 양쪽 패널이 같은 실행을 비교하지 않도록 반대편 선택값을 잠근다.
+    function syncArenaModelSelects() {
+      const selectA = document.getElementById('model-a-select');
+      const selectB = document.getElementById('model-b-select');
+      if (!selectA || !selectB) return;
+
+      const values = Array.from(selectA.options).map((option) => option.value);
+      if (values.length > 1 && selectA.value === selectB.value) {
+        const fallback = values.find((value) => value !== selectA.value);
+        if (document.activeElement === selectA) selectB.value = fallback;
+        else selectA.value = fallback;
+      }
+
+      const valueA = selectA.value;
+      const valueB = selectB.value;
+      Array.from(selectA.options).forEach((option) => {
+        option.disabled = values.length > 1 && option.value === valueB;
+      });
+      Array.from(selectB.options).forEach((option) => {
+        option.disabled = values.length > 1 && option.value === valueA;
+      });
+      selectA.setAttribute('aria-label', `모델 A 선택 (모델 B: ${valueB || '없음'})`);
+      selectB.setAttribute('aria-label', `모델 B 선택 (모델 A: ${valueA || '없음'})`);
+    }
+
+    function applyArenaViewport() {
+      const preset = arenaViewportPresets[state.arena.viewport] || arenaViewportPresets['100%'];
+      const readout = document.getElementById('arena-viewport-readout');
+      let scale = 1;
+      document.querySelectorAll('#view-concept2 .arena-viewport-host').forEach((host) => {
+        const iframe = host.querySelector('iframe');
+        if (!iframe || !host.clientWidth || !host.clientHeight) return;
+        const panel = host.parentElement;
+        const panelHeader = panel?.firstElementChild;
+        const isDesktopPreset = preset.width > 390;
+        if (panel && !isDesktopPreset) panel.style.height = '';
+        scale = Math.min(host.clientWidth / preset.width, host.clientHeight / preset.height, 1);
+        host.style.alignItems = 'flex-start';
+        if (panel && panelHeader) {
+          // Desktop preview is scaled to fit horizontally, so shrink the outer card
+          // to the rendered frame instead of leaving a 620px empty well underneath.
+          panel.style.height = isDesktopPreset
+            ? `${Math.ceil(panelHeader.getBoundingClientRect().height + (preset.height * scale) + 72)}px`
+            : '';
+        }
+        const frameLabel = host.querySelector('.arena-frame-label');
+        if (frameLabel) frameLabel.style.display = preset.width > 390 ? '' : 'none';
+        iframe.style.width = `${preset.width}px`;
+        iframe.style.height = `${preset.height}px`;
+        iframe.style.marginTop = preset.width > 390 ? '2.5rem' : '0';
+        iframe.style.transform = `scale(${scale})`;
+      });
+      if (readout) readout.textContent = `viewport ${preset.label} · ${Math.round(scale * 100)}% fit`;
+    }
+
+    // app.js의 초기 렌더 파이프라인이 호출하는 아레나 진입점을 이 페이지에서 연결한다.
+    function renderArena() {
+      updateArena();
+      requestAnimationFrame(applyArenaViewport);
+    }
+
+    const baseUpdateArena = updateArena;
+    updateArena = function updateArenaWithFitViewport() {
+      syncArenaModelSelects();
+      baseUpdateArena();
+      syncArenaModelSelects();
+      requestAnimationFrame(applyArenaViewport);
+    };
+
+    const baseRenderArenaOptions = renderArenaOptions;
+    renderArenaOptions = function renderArenaOptionsWithUniqueModels() {
+      baseRenderArenaOptions();
+      syncArenaModelSelects();
+    };
+
+    const baseSetArenaViewport = setArenaViewport;
+    setArenaViewport = function setArenaViewportWithFit(width) {
+      baseSetArenaViewport(width);
+      requestAnimationFrame(applyArenaViewport);
+    };
+
+    window.addEventListener('resize', () => requestAnimationFrame(applyArenaViewport));
+
+    // 각 외부 벤치마크 패널은 높은 공개 점수부터 자동 정렬한다.
+    // 공개값이 없는 막대(—)는 항상 마지막에 남겨 0점으로 오해하지 않게 한다.
+    function sortBenchmarkBars() {
+      document.querySelectorAll('#external-benchmark-card .benchmark-bars').forEach((bars) => {
+        const wraps = Array.from(bars.children);
+        const scoreOf = (wrap) => {
+          const value = Number(wrap.querySelector('.benchmark-bar')?.dataset.value);
+          return Number.isFinite(value) ? value : Number.NEGATIVE_INFINITY;
+        };
+        wraps.sort((a, b) => scoreOf(b) - scoreOf(a));
+        wraps.forEach((wrap) => bars.appendChild(wrap));
+      });
+    }
+    sortBenchmarkBars();
+
+    // Page-only enhancement: keep the leaderboard order and score metadata separate
+    // from the candidate run artifacts. Missing grading data is shown as 미측정.
+    const leaderboardOrder = [
+      'gpt-5.6-luna-xhigh',
+      'swe-2-high',
+      'deepseek-v4.1-flash',
+      'opencode-muse-spark-1.3-contributor-free',
+      'gemini-3.8-flash'
+    ];
+    const leaderboardScorecards = {
+      'gpt-5.6-luna-xhigh': {
+        weightedScore: 97.60096153846155,
+        groups: { code: 99.48717948717949, tools: 100, web_games: 93.33333333333333, writing: 99.16666666666667, research: 96.875, reasoning: 95 },
+        statusCounts: { scored: 18, passed: 16, failed: 2, pending: 0 }, reviewedAt: '2026-09-14T19:15:57Z'
+      },
+      'swe-2-high': {
+        weightedScore: 98.7051282051282,
+        groups: { code: 99.48717948717949, tools: 100, web_games: 99.16666666666667, writing: 100, research: 100, reasoning: 90 },
+        statusCounts: { scored: 18, passed: 17, failed: 1, pending: 0 }, reviewedAt: '2026-09-14T19:24:00Z'
+      },
+      'deepseek-v4.1-flash': {
+        weightedScore: 99.375,
+        groups: { code: 100, tools: 100, web_games: 100, writing: 100, research: 98.75, reasoning: 95 },
+        statusCounts: { scored: 18, passed: 12, failed: 0, pending: 6 }, reviewedAt: '2026-09-14T19:31:39Z'
+      },
+      'opencode-muse-spark-1.3-contributor-free': {
+        weightedScore: 98.4875,
+        groups: { code: 100, tools: 100, web_games: 96.25, writing: 100, research: 96.875, reasoning: 95.5 },
+        statusCounts: { scored: 18, passed: 18, failed: 0, pending: 0 }, reviewedAt: '2026-09-14T19:21:00Z'
+      },
+      'gemini-3.8-flash': {
+        weightedScore: 99.03846153846155,
+        groups: { code: 99.48717948717949, tools: 100, web_games: 98.33333333333333, writing: 100, research: 100, reasoning: 95 },
+        statusCounts: { scored: 18, passed: 10, failed: 1, pending: 7 }, reviewedAt: '2026-09-14T19:10:00Z'
+      }
+    };
+    const leaderboardMeasuredAt = {
+      'gpt-5.6-luna-xhigh': '2026-09-15T04:00:00+09:00',
+      'swe-2-high': '2026-09-15T04:00:00+09:00',
+      'deepseek-v4.1-flash': '2026-09-15T04:00:00+09:00',
+      'opencode-muse-spark-1.3-contributor-free': '2026-09-15T04:00:00+09:00',
+      'gemini-3.8-flash': '2026-09-15T04:00:00+09:00'
+    };
+    const leaderboardHarnesses = {
+      'gpt-5.6-luna-xhigh': 'Codex CLI',
+      'swe-2-high': 'Devin CLI·Desktop',
+      'deepseek-v4.1-flash': 'WorkBuddy',
+      'opencode-muse-spark-1.3-contributor-free': 'OpenCode',
+      'gemini-3.8-flash': 'Antigravity'
+    };
+
+    function orderedLeaderboardModels() {
+      const models = [...(state.catalog?.models || [])];
+      const order = new Map(leaderboardOrder.map((slug, index) => [slug, index]));
+      return models.sort((a, b) => (order.get(a.modelSlug) ?? 999) - (order.get(b.modelSlug) ?? 999));
+    }
+
+    function visibleLeaderboardModels() {
+      const query = (state.searchQuery || '').toLowerCase();
+      return orderedLeaderboardModels().filter((model) => {
+        return model.modelSlug.toLowerCase().includes(query) || model.runId.toLowerCase().includes(query);
+      });
+    }
+
+    function formatRunDate(runId) {
+      const match = String(runId || '').match(/^(\d{4})(\d{2})(\d{2})/);
+      if (!match) return { iso: '', label: '미확인' };
+      return { iso: `${match[1]}-${match[2]}-${match[3]}`, label: `${match[1]}.${match[2]}.${match[3]}` };
+    }
+
+    function formatMeasuredAt(value, fallbackRunId) {
+      const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+      if (!match) return formatRunDate(fallbackRunId);
+      return {
+        iso: value,
+        label: `${match[1]}.${match[2]}.${match[3]} ${match[4]}:${match[5]}`
+      };
+    }
+
+    function formatScore(value) {
+      if (typeof value !== 'number' || !Number.isFinite(value)) return '미측정';
+      return Number.isInteger(value) ? `${value}` : value.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+    }
+
+    const baseRenderLeaderboard = renderLeaderboard;
+    renderLeaderboard = function renderLeaderboardWithScorecards() {
+      const originalModels = state.catalog?.models;
+      const modelsForDisplay = visibleLeaderboardModels();
+      if (originalModels) state.catalog.models = orderedLeaderboardModels();
+      try {
+        baseRenderLeaderboard();
+      } finally {
+        if (originalModels) state.catalog.models = originalModels;
+      }
+
+      document.querySelectorAll('#leaderboard-body tr').forEach((row, index) => {
+        const model = modelsForDisplay[index];
+
+        const casesBadge = row.querySelector('td:nth-child(2) > div.flex > span:nth-child(2)');
+        if (casesBadge) casesBadge.remove();
+        const verificationLine = row.querySelector('td:nth-child(2) > div.text-emerald-600');
+        if (verificationLine) verificationLine.remove();
+        const sessionLine = row.querySelector('td:nth-child(2) > div.font-mono');
+        if (sessionLine && model) {
+          const harness = leaderboardHarnesses[model.modelSlug] || '미확인';
+          sessionLine.className = 'mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-400';
+          sessionLine.replaceChildren();
+          const runId = document.createElement('span');
+          runId.className = 'font-mono';
+          runId.textContent = model.runId;
+          const separator = document.createElement('span');
+          separator.className = 'text-slate-300 dark:text-slate-600';
+          separator.textContent = '/';
+          const harnessName = document.createElement('span');
+          harnessName.className = 'rounded-md bg-slate-100 px-1.5 py-0.5 font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300';
+          harnessName.textContent = harness;
+          sessionLine.append(runId, separator, harnessName);
+        }
+
+        // Remove the previous status/time/matrix cells from the generated row.
+        [4, 3, 2].forEach((cellIndex) => row.children[cellIndex]?.remove());
+
+        const rank = row.querySelector('td:first-child > span');
+        if (rank) rank.className = 'inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 font-extrabold text-xs';
+
+        const date = formatMeasuredAt(leaderboardMeasuredAt[model?.modelSlug], model?.runId);
+        const dateCell = document.createElement('td');
+        dateCell.className = 'py-4 px-4 font-mono text-xs text-slate-600 dark:text-slate-300';
+        dateCell.innerHTML = `<time datetime="${date.iso}">${date.label}</time>`;
+
+        const score = model?.scorecard || leaderboardScorecards[model?.modelSlug] || {};
+        const overall = formatScore(score.weightedScore);
+        const groupLabels = [
+          ['code', '코딩'], ['tools', '도구'], ['web_games', '웹·게임'],
+          ['writing', '글쓰기'], ['research', '리서치'], ['reasoning', '추론']
+        ];
+        const groupDetails = groupLabels
+          .filter(([key]) => typeof score.groups?.[key] === 'number')
+          .map(([key, label]) => `${label} ${formatScore(score.groups[key])}`);
+        const counts = score.statusCounts;
+        const verdict = counts
+          ? `판정 통과 ${counts.passed} · 실패 ${counts.failed} · 대기 ${counts.pending}`
+          : '과제별 판정 미확인';
+        const primary = overall === '미측정' ? '독립 채점 대기' : `18개 과제 종합 ${overall}점`;
+        const details = overall === '미측정'
+          ? ['18개 과제 기록 · 점수 미확정']
+          : [...groupDetails, verdict];
+        const scoreCell = document.createElement('td');
+        scoreCell.className = 'py-4 px-4';
+        scoreCell.innerHTML = `<div class="scorecard"><strong>${primary}</strong><span>${details.join(' · ') || '독립 채점 대기'}</span></div>`;
+
+        const inspectorCell = row.lastElementChild;
+        if (inspectorCell) {
+          row.insertBefore(dateCell, inspectorCell);
+          row.insertBefore(scoreCell, inspectorCell);
+        }
+      });
+    };
+
+    const baseRenderAll = renderAll;
+    renderAll = function renderAllWithExplorer() {
+      baseRenderAll();
+      renderRunsExplorer();
+      syncCatalogSummary();
+    };
+
+    const baseSwitchConcept = switchConcept;
+    switchConcept = function switchConceptWithMobileState(conceptId) {
+      baseSwitchConcept(conceptId);
+      document.querySelectorAll('.mobile-concept-tab').forEach((button) => {
+        const active = button.dataset.mobileConcept === conceptId;
+        button.className = active
+          ? 'mobile-concept-tab px-3 py-1.5 rounded-lg font-bold bg-white text-indigo-600 shadow-xs dark:bg-slate-800 dark:text-indigo-300'
+          : 'mobile-concept-tab px-3 py-1.5 rounded-lg font-medium text-slate-500 dark:text-slate-400';
+        button.setAttribute('aria-current', active ? 'page' : 'false');
+      });
+      if (conceptId === 'concept2') requestAnimationFrame(applyArenaViewport);
+    };
+
+    function syncCatalogSummary() {
+      const runs = state.catalog?.models?.length || 0;
+      const scoredRuns = (state.catalog?.models || []).filter((model) => Number.isFinite(model.scorecard?.weightedScore)).length;
+      const metric = document.getElementById('metric-model-count');
+      const scoredMetric = document.getElementById('metric-scored-count');
+      const explorerCount = document.getElementById('explorer-run-count');
+      if (metric) metric.textContent = `${runs} Runs`;
+      if (scoredMetric) scoredMetric.textContent = `${scoredRuns} / ${runs} 완료`;
+      if (explorerCount) explorerCount.textContent = `${runs} Runs`;
+    }
+
+    function renderRunsExplorer() {
+      const root = document.getElementById('runs-explorer-list');
+      const models = state.catalog?.models || [];
+      if (!root) return;
+
+      root.replaceChildren();
+      if (!models.length) {
+        const empty = document.createElement('p');
+        empty.className = 'p-3 text-slate-500 dark:text-slate-400';
+        empty.textContent = '표시할 실행 기록이 없습니다.';
+        root.append(empty);
+        return;
+      }
+
+      const activeRun = models.find((run) => run.modelSlug === state.inspector?.model && run.runId === state.inspector?.runId) || models[0];
+      const primaryArtifacts = {
+        'TC-01': { file: 'answer.md', type: 'ANSWER', badge: 'ANSWER' },
+        'TC-02': { file: 'answer.md', type: 'ANSWER', badge: 'ANSWER' },
+        'TC-04': { file: 'answer.md', type: 'ANSWER', badge: 'ANSWER' },
+        'ALG-01': { file: 'explanation.md', type: 'SOLUTION', badge: '풀이' },
+        'REASON-KO-01': { file: 'explanation.md', type: 'SOLUTION', badge: '풀이' },
+        'REASON-MATH-01': { file: 'explanation.md', type: 'SOLUTION', badge: '풀이' },
+        'REASON-SCI-01': { file: 'explanation.md', type: 'SOLUTION', badge: '풀이' },
+        'SEARCH-01': { file: 'research.md', type: 'RESEARCH', badge: '리서치' },
+        'SEARCH-03': { file: 'research.md', type: 'RESEARCH', badge: '리서치' },
+        'WRITE-01': { file: 'article.md', type: 'ARTICLE', badge: 'ARTICLE' },
+        'WRITE-02': { file: 'edited.md', type: 'RUNBOOK', badge: 'RUNBOOK' },
+        'THINK-01': { file: 'summary.md', type: 'MEMO', badge: 'MEMO' }
+      };
+      const markSelected = (button) => {
+        root.querySelectorAll('.run-item-selected').forEach((item) => item.classList.remove('run-item-selected'));
+        button.classList.add('run-item-selected');
+      };
+
+      models.forEach((run) => {
+        const details = document.createElement('details');
+        details.className = 'rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden';
+        details.open = run === activeRun;
+
+        const summary = document.createElement('summary');
+        summary.className = 'cursor-pointer px-3 py-2.5 flex items-start justify-between gap-2 hover:bg-indigo-50 dark:hover:bg-slate-800';
+
+        const identity = document.createElement('span');
+        identity.className = 'min-w-0 flex items-start gap-2';
+        const chevron = document.createElement('i');
+        chevron.className = 'run-chevron fa-solid fa-chevron-right mt-1 text-[10px] text-slate-400';
+        const labels = document.createElement('span');
+        labels.className = 'min-w-0';
+        const modelName = document.createElement('strong');
+        modelName.className = 'block truncate text-slate-800 dark:text-slate-100';
+        modelName.textContent = run.modelSlug;
+        const runId = document.createElement('span');
+        runId.className = 'block truncate font-mono text-[10px] text-slate-400 mt-0.5';
+        runId.textContent = run.runId;
+        labels.append(modelName, runId);
+        identity.append(chevron, labels);
+
+        const count = document.createElement('span');
+        count.className = 'shrink-0 text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full font-bold';
+        count.textContent = `${Object.keys(run.tasks || {}).length} 과제`;
+        summary.append(identity, count);
+        details.addEventListener('toggle', () => {
+          if (!details.open) return;
+          root.querySelectorAll('details[open]').forEach((other) => {
+            if (other !== details) other.open = false;
+          });
+          requestAnimationFrame(() => {
+            const rootBox = root.getBoundingClientRect();
+            const detailsBox = details.getBoundingClientRect();
+            root.scrollTo({
+              top: root.scrollTop + detailsBox.top - rootBox.top - 10,
+              behavior: 'smooth'
+            });
+          });
+        });
+
+        const taskList = document.createElement('div');
+        taskList.className = 'p-2 border-t border-slate-100 dark:border-slate-800 space-y-1';
+
+        const submission = document.createElement('button');
+        submission.type = 'button';
+        submission.className = 'w-full text-left px-2.5 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-600 flex items-center justify-between gap-2 font-medium';
+        if (state.inspector?.model === run.modelSlug && state.inspector?.runId === run.runId && state.inspector?.file === 'SUBMISSION.md') {
+          submission.classList.add('run-item-selected');
+        }
+        submission.innerHTML = '<span>종합 제출서</span><span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold">SUBMISSION</span>';
+        submission.addEventListener('click', () => {
+          markSelected(submission);
+          openInspectorItem(run.modelSlug, run.runId, 'SUBMISSION.md', 'MD', '종합 제출서');
+        });
+        taskList.append(submission);
+
+        Object.entries(run.tasks || {})
+          .sort(([taskA], [taskB]) => taskA.localeCompare(taskB, 'en'))
+          .forEach(([taskId, task]) => {
+          const isHtml = Boolean(task.hasHtml);
+          const primaryArtifact = primaryArtifacts[taskId];
+          const file = isHtml
+            ? `outputs/${taskId}/index.html`
+            : primaryArtifact
+              ? `outputs/${taskId}/${primaryArtifact.file}`
+              : `outputs/${taskId}/RESULT.md`;
+          const type = isHtml ? 'HTML' : primaryArtifact?.type || 'MD';
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'w-full text-left px-2.5 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-600 flex items-center justify-between gap-2 font-medium';
+
+          const label = document.createElement('span');
+          label.className = 'truncate';
+          label.textContent = `${taskId} · ${task.meta?.title || taskId}`;
+          const badge = document.createElement('span');
+          badge.className = isHtml
+            ? 'shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold'
+            : 'shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold';
+          badge.textContent = isHtml ? 'LIVE' : primaryArtifact?.badge || 'REPORT';
+          button.append(label, badge);
+          if (state.inspector?.model === run.modelSlug && state.inspector?.runId === run.runId && state.inspector?.file === file) {
+            button.classList.add('run-item-selected');
+          }
+          button.addEventListener('click', () => {
+            markSelected(button);
+            openInspectorItem(run.modelSlug, run.runId, file, type, `${taskId}: ${task.meta?.title || taskId}`);
+          });
+            taskList.append(button);
+          });
+
+        details.append(summary, taskList);
+        root.append(details);
+      });
+    }
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      if (!document.getElementById('preview-modal').classList.contains('hidden')) closePreviewModal();
+      if (!document.getElementById('info-modal').classList.contains('hidden')) closeInfoModal();
+    });
+  </script>
+</body>
+</html>

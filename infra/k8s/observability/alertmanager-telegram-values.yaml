@@ -1,0 +1,114 @@
+alertmanager:
+  # 알림 문구의 발생 시간이 KST 로 찍히게 한다. 없으면 컨테이너 기본값 UTC 다.
+  extraEnv:
+    - name: TZ
+      value: Asia/Seoul
+
+  extraSecretMounts:
+    - name: telegram-secret-files
+      mountPath: /etc/alertmanager/secrets/telegram
+      subPath: ""
+      secretName: alertmanager-telegram
+      readOnly: true
+
+  config:
+    enabled: true
+    global: {}
+    templates:
+      - /etc/alertmanager/*.tmpl
+
+    # 지표 규칙과 로그 규칙은 중복이 아니라 덮는 범위가 다르다. 지표는 백엔드의 모든 5xx 를
+    # 잡지만 trace_id 를 못 싣고, 로그는 상세하지만 그 핸들러를 타는 예외만 잡으며
+    # promtail·Loki·로그 형식까지 성해야 돈다. 둘 다 둔다.
+    # 다만 같은 사고를 둘이 함께 잡았을 때는 상세한 쪽만 보낸다.
+    # equal 에 status 까지 넣는다. 같은 경로에서 400 과 500 이 함께 나면 서로 다른 사고다.
+    inhibit_rules:
+      - source_matchers:
+          - alertname="JaywikiApiErrorLogged"
+        target_matchers:
+          - alertname=~"JaywikiApi(5xx|400)Observed"
+        equal: [method, uri, status]
+
+    route:
+      receiver: telegram
+      # 규칙별로 묶는다. 없으면 기본이 '전부 한 묶음'이라, 동시에 뜬 서로 다른 알림이
+      # 한 통에 이어 붙어 어디까지가 어느 사고인지 읽을 수 없다.
+      # namespace 까지 넣는 이유는 같은 규칙이라도 backend 와 data 는 다른 사고여서다.
+      group_by: [alertname, namespace]
+      group_wait: 10s
+      group_interval: 5m
+      repeat_interval: 3h
+      routes:
+        # Watchdog 은 텔레그램으로 보내지 않는다. 조건이 없는 규칙이라 항상 firing 이고,
+        # 텔레그램으로 새면 3시간마다 쓸모없는 통이 온다. 라우트는 위에서부터 먼저 맞는
+        # 하나만 타므로 이 줄이 맨 앞에 있어야 한다.
+        #
+        # 주기를 정하는 것은 group_interval 이다. 묶음은 그 눈금에서만 깨어나고,
+        # repeat_interval 은 그 눈금에서 '보낼까'를 정하는 문턱일 뿐이다.
+        # 둘을 5m 으로 같게 뒀더니 실제 ping 이 10분마다 왔다 — 직전 통보가 눈금보다
+        # 아주 조금 뒤에 끝나서, 다음 눈금에서 경과가 5분에 간발로 못 미쳐 건너뛴다.
+        # 문턱을 1m 으로 낮춰 5분 눈금마다 항상 통과하게 한다.
+        #
+        # healthchecks 쪽은 Period 5분 · Grace 20분이라 25분 침묵에서 울린다.
+        - receiver: healthchecks
+          matchers:
+            - alertname="Watchdog"
+          group_wait: 0s
+          group_interval: 5m
+          repeat_interval: 1m
+        # 가동 시간 알림은 조건이 해소될 때까지 계속 firing 한다 — 재부팅하기 전에는
+        # 30일이 29일로 줄지 않는다. 기본 3시간이면 하루 여덟 통이 온다.
+        # 하루 한 통이면 「아직 안 돌았다」를 상기시키기에 충분하다.
+        # 위에서부터 먼저 맞는 하나만 타므로 아래의 severity 라우트보다 앞에 있어야 한다.
+        - receiver: telegram
+          matchers:
+            - alertname="NodeUptimeLong"
+          repeat_interval: 24h
+        - receiver: telegram
+          matchers:
+            - severity="warning"
+
+    receivers:
+      - name: telegram
+        telegram_configs:
+          # 해제 알림을 보내지 않는다. 규칙 식이 10분 창이라 마지막 오류에서 10분
+          # 지나면 자동으로 풀리는데, 그건 '고침'이 아니라 '새 발생 없음'일 뿐이다.
+          # 해결 여부는 사람이 판단하는 것이고 시스템이 통보할 사실이 아니다.
+          - send_resolved: false
+            api_url: https://api.telegram.org
+            bot_token_file: /etc/alertmanager/secrets/telegram/bot-token
+            chat_id_file: /etc/alertmanager/secrets/telegram/chat-id
+            parse_mode: HTML
+            # 갈래를 나누지 않는다. 예전에는 uri 라벨이 있는 알림만 구조화해 싣고 나머지는
+            # 문장으로 냈는데, 그 구조화 갈래가 .Annotations 를 한 글자도 안 읽었다.
+            # 규칙 파일에 한글로 써 둔 summary·description 넷(5xx·400·403·로그)이
+            # 그래서 알림에 실린 적이 없다. 문구를 쓴 것과 그 문구가 도착하는 것은 다른 일이다.
+            #
+            # 대신 줄마다 라벨이 있을 때만 그린다. 없는 값을 빈 칸으로 내보내지 않는다 —
+            # 403 규칙은 status 라벨이 없어서 '에러코드: ' 뒤가 비어 있었다.
+            # 예외 본문과 trace_id 는 지표 경로에 없다 — 로그 링크가 그 자리다.
+            message: |-
+              🚨 <b>[jay-wiki] {{ .GroupLabels.alertname }}</b>
+              {{ range .Alerts }}
+              • 시간: {{ .StartsAt.Local.Format "2006-01-02 15:04:05 MST" }}
+              {{ with .Annotations.summary }}• 내용: {{ . }}
+              {{ end }}{{ with .Labels.namespace }}• 네임스페이스: <code>{{ . }}</code>
+              {{ end }}{{ with .Labels.pod }}• Pod: <code>{{ . }}</code>
+              {{ end }}{{ with .Labels.status }}• 에러코드: <code>{{ . }}</code>
+              {{ end }}{{ if .Labels.uri }}• 에러경로: <code>{{ .Labels.method }} {{ if .Labels.path }}{{ .Labels.path }}{{ else }}{{ .Labels.uri }}{{ end }}</code>
+              {{ end }}{{ with .Labels.trace_id }}• Trace: <code>{{ . }}</code>
+              {{ end }}{{ with .Annotations.description }}{{ . }}
+              {{ end }}🔗 <a href="https://grafana.leneu.cloud/explore">로그 상세 확인</a>
+              {{ end }}
+
+      # dead man's switch 의 바깥쪽. Watchdog 이 도착하는 것을 healthchecks.io 가 세고,
+      # 끊기면 저쪽이 자기 채널로 알린다. 판정자가 이 클러스터 밖에 있어야 하는 이유는
+      # 알림 체계가 죽었다는 사실을 그 죽은 알림 체계로 알릴 수 없기 때문이다.
+      #
+      # ping URL 은 그 자체가 비밀이라 이 파일에 적지 않는다. 텔레그램과 같은 Secret
+      # (obs/alertmanager-telegram)에 키를 하나 더 넣어 파일로 읽는다. 넣는 명령은
+      # infra/README.md 에 있다. url_file 은 Alertmanager 0.26+ 기능이고 지금은 0.33 이다.
+      - name: healthchecks
+        webhook_configs:
+          - send_resolved: false
+            url_file: /etc/alertmanager/secrets/telegram/healthchecks-url

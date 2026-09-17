@@ -1,0 +1,20 @@
+/* ============================================================
+   jay-wiki 전역 스타일 — 섹션별 파일로 분리 관리
+   import 순서 = 캐스케이드 순서이므로 바꾸지 말 것.
+   새 화면의 스타일은 여기 인라인하지 말고 styles/ 아래 파일로 추가한다.
+   ============================================================ */
+@import './styles/tokens.css';
+@import './styles/base.css';
+@import './styles/header.css';
+@import './styles/home.css';
+@import './styles/tabs.css';
+@import './styles/scenarios.css';
+@import './styles/portfolio.css';
+@import './styles/wiki-content.css';
+@import './styles/prose.css';
+@import './styles/admin.css';
+@import './styles/footer.css';
+@import './styles/board.css';
+@import './styles/labs.css';
+@import './styles/blog.css';
+@import './styles/sync.css';

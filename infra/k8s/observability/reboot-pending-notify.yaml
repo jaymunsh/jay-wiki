@@ -1,0 +1,106 @@
+# 재부팅 예약을 사람에게 알린다.
+#
+# 커널·libc·systemd 패치가 깔리면 우분투가 /var/run/reboot-required 를 만들고,
+# unattended-upgrades 가 그것을 보고 다음 04:00 에 재부팅을 예약한다.
+# 8월 사례는 오전 6시 11분에 깔려 다음 날 오전 4시에 돌았다 -- 그 사이 22시간 동안
+# 아무 알림도 없었고, 설정한 본인도 자동 재부팅이 도는 줄 몰랐다.
+#
+# 이 Job 은 그 쪽지를 30분마다 확인해서 텔레그램으로 알린다. 알림을 받은 사람은
+# 그날 낮에 직접 재부팅해 취약 구간을 끝내거나(그러면 22시간이 0이 된다),
+# shutdown -c 로 취소하거나, 그냥 두어 새벽에 적용되게 할 수 있다.
+#
+# 왜 Alertmanager 를 안 쓰나: node-exporter 가 textfile collector 를 안 쓰고 있어서
+# 「파일이 있다」는 사실이 지금 구조로는 메트릭이 되지 않는다. 켜려면 값 수정과
+# hostPath 마운트와 .prom 을 쓰는 호스트 cron 이 함께 필요해 조각이 더 는다.
+# 재부팅 자체(NodeRebooted)와 가동 시간(NodeUptimeLong)은 Alertmanager 를 탄다.
+#
+# 왜 호스트 cron 이 아니라 CronJob 인가: 호스트 cron 은 배포 파이프라인 밖이라
+# 저장소가 그 상태를 모른다. 이 파일은 infra/k8s/observability/** 라 배포가 반영한다.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: jaywiki-reboot-pending-notify
+  namespace: obs
+spec:
+  # 30분이면 충분하다. 재부팅까지 22시간이 남아 있고, 두 달에 한 번 쓰는 알림이다.
+  # 10분으로 줄이면 하루 144번 도는 Job 이 되는데 그만큼의 값이 없다.
+  schedule: "*/30 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          # curlimages/curl 은 uid 100 으로 돈다. 그 상태로는 /var/run 에 마커를 못 써서
+          # 매번 「이미 보냈나」 판단이 실패하고 30분마다 같은 통이 나간다.
+          securityContext:
+            runAsUser: 0
+          # /var/run 은 tmpfs 다. 그래서 마커 파일을 여기 두면 재부팅과 함께 사라진다 --
+          # 다음 패치 때 다시 알림이 나가고, 지우는 절차를 따로 만들 필요가 없다.
+          volumes:
+            - name: host-run
+              hostPath:
+                path: /var/run
+                type: Directory
+          containers:
+            - name: notify
+              image: curlimages/curl:8.11.1
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: BOT_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: alertmanager-telegram
+                      key: bot-token
+                - name: CHAT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: alertmanager-telegram
+                      key: chat-id
+              volumeMounts:
+                - name: host-run
+                  mountPath: /host-run
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -eu
+
+                  # 쪽지가 없으면 알릴 것이 없다. 대부분의 날이 여기서 끝난다.
+                  [ -f /host-run/reboot-required ] || exit 0
+
+                  # 이미 보냈으면 다시 보내지 않는다. 안 그러면 재부팅까지 남은
+                  # 22시간 동안 30분마다, 즉 마흔 번 넘게 같은 통이 온다.
+                  [ -f /host-run/jaywiki-reboot-notified ] && exit 0
+
+                  # 무엇 때문에 재부팅이 필요한지는 .pkgs 에 패키지 이름으로 적힌다.
+                  # 없을 수도 있으므로 없으면 빈 값으로 둔다.
+                  pkgs="$(cat /host-run/reboot-required.pkgs 2>/dev/null | tr '\n' ' ' || true)"
+
+                  text="🔁 <b>[jay-wiki] 재부팅이 예약됐다</b>
+                  • 커널·libc 계열 보안 패치가 설치됐고, 재부팅해야 적용된다
+                  • 적용 시각: <b>다음 04:00</b> (unattended-upgrades 자동)
+                  • 원인 패키지: <code>${pkgs:-확인 못 함}</code>
+
+                  지금 적용하려면 miniPC 에서 <code>sudo reboot</code> 를 실행한다.
+                  예약을 취소하려면 <code>sudo shutdown -c</code> 다.
+                  그냥 두면 새벽에 적용된다. 공개 화면 다운타임은 실측 60초다."
+
+                  curl -sS --max-time 20 --fail-with-body \
+                    "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+                    -d "chat_id=${CHAT_ID}" \
+                    -d "parse_mode=HTML" \
+                    --data-urlencode "text=${text}"
+
+                  # 보낸 뒤에 마커를 남긴다. 순서를 뒤집으면 전송이 실패했을 때
+                  # 마커만 남아 그 패치는 영영 안 알려진다.
+                  touch /host-run/jaywiki-reboot-notified
+              resources:
+                requests:
+                  cpu: 5m
+                  memory: 16Mi
+                limits:
+                  memory: 64Mi

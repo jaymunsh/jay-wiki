@@ -1,0 +1,1105 @@
+<title>요청 경로 도면</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+  /* 재료가 둘이다. 종이가 기본이고 청사진은 단추로 갈아입는다. host 의 명·암 설정을
+     따라가지 않는다 -- 도면은 그 자체가 한 재료라서, 재료를 host 가 정하면 그림이 흔들린다.
+     모든 색을 값으로 명시해 어디서 열어도 같게 선다. (초록 칠판을 한 번 입혔다가 되돌렸다 --
+     초록은 잉크 셋 중 초록 하나를 바탕에 묻어 버려서 갈래가 덜 갈렸다.) */
+  /* 종이 도면이 기본이다. 잉크가 종이 위에서 가장 잘 읽힌다. */
+  :root {
+    color-scheme: light;
+    --board:   #f2ece0;
+    --board-2: #ebe4d4;
+    --chalk:   #1b1813;
+    --chalk-2: #4c463a;
+    --chalk-3: #7a7364;
+    --rule:    #d3cab6;
+    --grid:    #e3dac6;
+    --line:    #6f6653;
+
+    --adr:  #1f66c0;
+    --pm:   #c9552a;
+    --iv:   #157f5c;
+    --plain:#8a8271;
+    --mark: #b07d09;
+
+    --fill:   rgb(255 253 247 / 0.72);
+    --fill-2: rgb(255 253 247 / 0.45);
+    --fill-3: rgb(255 253 247 / 0.80);
+    --hover:  rgb(27 24 19 / 0.06);
+    --self:   rgb(27 24 19 / 0.08);
+    --hit-bg: rgb(176 125 9 / 0.16);
+    --shade:  rgb(60 50 30 / 0.14);
+    --wash-1: rgb(255 255 255 / 0.55);
+    --wash-2: rgb(120 100 60 / 0.05);
+
+    --f-disp: 'Gothic A1', 'Apple SD Gothic Neo', system-ui, sans-serif;
+    --f-body: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif;
+    --f-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  }
+
+  /* 청사진. 같은 도면을 다른 재료에 옮긴 것이라 값만 갈아 끼운다. */
+  :root[data-sheet="blueprint"] {
+    color-scheme: dark;
+    --board:   #0d2537;
+    --board-2: #0a1e2d;
+    --chalk:   #e2edf5;
+    --chalk-2: #a7c4da;
+    --chalk-3: #7b9db6;
+    --rule:    #1d3f58;
+    --grid:    #14344a;
+    --line:    #6ba0c6;
+
+    --adr:  #4a90d9;
+    --pm:   #d9713c;
+    --iv:   #44a882;
+    --plain:#93aec4;
+    --mark: #f0b429;
+
+    /* 면은 토큰으로 둔다. 종이로 갈아입을 때 값을 한 자리에서만 바꾸기 위해서다. */
+    --fill:   rgb(5 18 29 / 0.45);
+    --fill-2: rgb(5 18 29 / 0.30);
+    --fill-3: rgb(5 18 29 / 0.55);
+    --hover:  rgb(226 237 245 / 0.08);
+    --self:   rgb(226 237 245 / 0.11);
+    --hit-bg: rgb(240 180 41 / 0.15);
+    --shade:  rgb(0 0 0 / 0.40);
+    --wash-1: rgb(255 255 255 / 0.035);
+    --wash-2: rgb(255 255 255 / 0.028);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; overflow: hidden;
+    background: var(--board);
+    color: var(--chalk);
+    font-family: var(--f-body); font-size: 14px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; border-radius: 3px; }
+
+  /* 왼쪽은 읽는 자리, 오른쪽은 보는 자리. 설명을 판 위에 얹으면 확대할 때 같이 작아져서
+     안 읽힌다 -- 그래서 배율을 안 타는 기둥으로 떼어 낸다. 도면의 «주기란» 이 그 자리다. */
+  .app { display: grid; grid-template-columns: 372px minmax(0, 1fr); height: 100vh; }
+
+  .notes {
+    background: var(--board-2); border-right: 1.5px solid var(--rule);
+    display: flex; flex-direction: column; min-height: 0; min-width: 0;
+  }
+  .notes-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--rule); }
+  .notes-head .eyebrow {
+    font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--chalk-3); margin: 0 0 6px;
+  }
+  .notes-head h1 {
+    font-family: var(--f-disp); font-weight: 700; font-size: 21px;
+    margin: 0 0 8px; line-height: 1.28;
+  }
+  .notes-head p { margin: 0 0 7px; font-size: 12.5px; color: var(--chalk-2); }
+  .notes-head .facts {
+    font-family: var(--f-mono); font-size: 10.5px; color: var(--chalk-3);
+    font-variant-numeric: tabular-nums; margin: 10px 0 0;
+    padding-top: 9px; border-top: 1px dashed var(--rule);
+  }
+  .notes-tools { padding: 12px 20px; border-bottom: 1px solid var(--rule); }
+  .notes-tools input {
+    width: 100%; padding: 7px 9px;
+    background: var(--board); color: var(--chalk);
+    border: 1px solid var(--rule); border-radius: 2px; font: inherit; font-size: 12.5px;
+  }
+  .notes-tools input::placeholder { color: var(--chalk-3); }
+  .notes-body { overflow-y: auto; flex: 1 1 auto; min-height: 0; padding: 0 0 28px; }
+  .note-item {
+    display: block; width: 100%; text-align: left;
+    padding: 13px 20px 15px; margin: 0;
+    background: none; border: 0; border-bottom: 1px solid var(--rule);
+    font: inherit; color: inherit; cursor: pointer;
+  }
+  .note-item:hover { background: var(--hover); }
+  .note-item .no {
+    font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.14em;
+    color: var(--chalk-3); display: flex; align-items: baseline; gap: 8px;
+  }
+  .note-item .no .go { margin-left: auto; letter-spacing: 0; }
+  .note-item h2 {
+    font-family: var(--f-disp); font-weight: 700; font-size: 15px;
+    margin: 3px 0 5px; line-height: 1.3;
+  }
+  .note-item p { margin: 0; font-size: 12.5px; color: var(--chalk-2); line-height: 1.62; }
+  .note-item .tally {
+    margin-top: 8px; font-family: var(--f-mono); font-size: 10.5px;
+    color: var(--chalk-3); font-variant-numeric: tabular-nums;
+  }
+
+  #stage {
+    position: relative; overflow: hidden; cursor: grab; touch-action: none;
+    background-color: var(--board);
+    background-image:
+      radial-gradient(ellipse 60% 40% at 22% 18%, var(--wash-1), transparent 70%),
+      radial-gradient(ellipse 50% 45% at 78% 72%, var(--wash-2), transparent 70%),
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: auto, auto, 28px 28px, 28px 28px;
+  }
+  #stage.dragging { cursor: grabbing; }
+  #world { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+  #wires { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
+
+  /* 선으로 세운 상자. 채우지 않고 선으로만 세운다 -- 도면의 규칙이다. */
+  .card {
+    position: absolute;
+    border: 1.5px solid var(--line);
+    border-radius: 2px;
+    background: var(--fill);
+    padding: 12px 14px 11px;
+  }
+  .card.band { border-style: dashed; background: var(--fill-2); }
+  .card.entry { border-style: dashed; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+
+  /* 도면의 모서리 표식. 장식이 아니라 «이건 재서 그린 것» 이라는 신호다. */
+  .card::before, .card::after {
+    content: ''; position: absolute; width: 7px; height: 7px;
+    border: 1.5px solid var(--line); pointer-events: none;
+  }
+  .card::before { top: -1.5px; left: -1.5px; border-right: 0; border-bottom: 0; }
+  .card::after  { bottom: -1.5px; right: -1.5px; border-left: 0; border-top: 0; }
+
+  .card > .head { display: flex; align-items: baseline; gap: 9px; margin-bottom: 2px; }
+  .card > .head h2 {
+    font-family: var(--f-disp); font-weight: 700; font-size: 18px;
+    margin: 0; letter-spacing: 0.01em; color: var(--chalk);
+  }
+  .card > .head .n {
+    margin-left: auto; font-family: var(--f-mono); font-size: 10.5px;
+    color: var(--chalk-3); font-variant-numeric: tabular-nums;
+  }
+  .card > .sub {
+    margin: 0 0 5px; font-family: var(--f-mono); font-size: 10.5px;
+    color: var(--chalk-3); letter-spacing: 0.02em;
+  }
+  .card > .role {
+    margin: 0 0 9px; padding-top: 7px; border-top: 1px dashed var(--rule);
+    font-size: 12px; color: var(--chalk-2);
+  }
+
+  /* 기술 표식. 멀리서 볼 때 글자보다 이것이 먼저 읽힌다. */
+  .glyphs {
+    display: flex; flex-wrap: wrap; gap: 9px 14px;
+    margin: 9px 0 2px; padding-top: 9px; border-top: 1px dashed var(--rule);
+  }
+  .glyph { display: flex; align-items: center; gap: 6px; color: var(--chalk-2); }
+  .glyph svg { display: block; width: 20px; height: 20px; flex: 0 0 auto; }
+  .glyph span { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.02em; }
+  /* 뼈대 단계에서는 표식만 크게. 이 단계는 «무엇으로 되어 있나» 만 답한다. */
+  .lod1 .glyphs { gap: 14px 20px; border-top: 0; padding-top: 12px; }
+  .lod1 .glyph svg { width: 38px; height: 38px; }
+  .lod1 .glyph span { font-size: 13px; }
+
+  /* 그림은 어느 단계에서나 보인다. 확대는 «글자» 를 더하는 일만 한다 --
+     멀리서 볼 때 도형이 사라지면 빈 상자만 남아 판이 아무 말도 안 한다. */
+  .seq h3 {
+    font-family: var(--f-disp); font-weight: 700; font-size: 14px;
+    margin: 0 0 2px; color: var(--chalk);
+  }
+  .seq .why { margin: 0 0 8px; font-size: 11.5px; color: var(--chalk-3); }
+  .seq svg { display: block; width: 100%; height: auto; }
+
+  .items { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+  .band .items { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px 20px; }
+
+  .item {
+    display: grid; grid-template-columns: 10px minmax(0, 1fr) auto;
+    align-items: baseline; gap: 8px;
+    width: 100%; padding: 3px 5px; margin: 0;
+    background: none; border: 0; border-radius: 3px;
+    font: inherit; font-size: 12.5px; line-height: 1.4;
+    color: var(--chalk-2); text-align: left; cursor: pointer;
+  }
+  /* 갈래는 색과 «모양» 둘로 말한다. 색만 쓰면 색으로 못 가르는 사람에게는 한 갈래가 된다. */
+  .item .tick { font-family: var(--f-mono); font-size: 11px; line-height: 1; }
+  .item .t { overflow-wrap: anywhere; }
+  .item .deg {
+    font-family: var(--f-mono); font-size: 9.5px; color: var(--chalk-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .item .note {
+    grid-column: 2 / -1; display: none;
+    font-size: 11px; color: var(--chalk-3); line-height: 1.45; margin-top: 1px;
+  }
+  .item:hover { background: var(--hover); color: var(--chalk); }
+  .item.dim { opacity: 0.22; }
+  .item.hit {
+    color: var(--chalk); background: var(--hit-bg);
+    box-shadow: inset 2px 0 0 var(--mark);
+  }
+  .item.self {
+    color: var(--chalk); font-weight: 600;
+    background: var(--self); box-shadow: inset 2px 0 0 var(--chalk);
+  }
+
+  /* 줌 단계. 사라지는 것은 «글 목록» 하나뿐이다. */
+  .lod1 .items { display: none; }
+  .lod1 .card > .head h2 { font-size: 22px; }
+  .lod1 .seq .why, .lod1 .mind .why, .lod1 .pipe .why { display: none; }
+  .lod3 .item .note { display: block; }
+
+  /* 구역 이름표. 판 위에서 «여기부터는 다른 종류의 그림» 이라고 말한다. */
+  .zone {
+    position: absolute; display: flex; align-items: baseline; gap: 11px;
+    font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--chalk-3);
+  }
+  .zone::after {
+    content: ''; flex: 1 1 auto; height: 1px;
+    background: repeating-linear-gradient(90deg, var(--rule) 0 6px, transparent 6px 12px);
+    transform: translateY(-4px);
+  }
+  .zone b { font-family: var(--f-body); font-weight: 500; font-size: 12px; letter-spacing: 0; text-transform: none; color: var(--chalk-2); }
+
+  /* ---------- 얹혀 있는 것들 ---------- */
+  .hud {
+    position: absolute; z-index: 20;
+    background: var(--board-2); border: 1.5px solid var(--rule); border-radius: 3px;
+    box-shadow: 0 6px 24px var(--shade);
+  }
+  .hud.zoom { left: 14px; bottom: 14px; padding: 5px; display: flex; align-items: center; gap: 4px; }
+  .hud.zoom button {
+    height: 29px; min-width: 29px; padding: 0 9px;
+    background: none; border: 0; border-radius: 2px;
+    color: var(--chalk-2); font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .hud.zoom button:hover { background: var(--hover); color: var(--chalk); }
+  .hud.zoom .wide { font-size: 12px; }
+  .hud.zoom .z {
+    font-family: var(--f-mono); font-size: 10.5px; color: var(--chalk-3);
+    min-width: 52px; text-align: center; font-variant-numeric: tabular-nums;
+  }
+  .hud.zoom .sep { width: 1px; align-self: stretch; background: var(--rule); margin: 0 3px; }
+  .lodpick { display: flex; gap: 2px; }
+  .lodpick button {
+    padding: 0 9px; height: 26px; font-size: 11.5px;
+    border: 1px solid transparent; border-radius: 2px;
+  }
+  .lodpick button[aria-pressed="true"] {
+    color: var(--chalk); border-color: var(--line);
+    background: var(--hover);
+  }
+
+  .hud.read { right: 14px; bottom: 14px; width: min(380px, calc(100vw - 28px)); padding: 13px 15px; }
+  .hud.read[hidden] { display: none; }
+  .hud.read .kind {
+    font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--chalk-3);
+    display: flex; align-items: center; gap: 7px; margin-bottom: 5px;
+  }
+  .hud.read .kind .deg { margin-left: auto; letter-spacing: 0; text-transform: none; }
+  .hud.read h3 { font-family: var(--f-disp); font-weight: 700; font-size: 15px; margin: 0 0 5px; line-height: 1.3; }
+  .hud.read p { margin: 0; font-size: 12px; color: var(--chalk-2); }
+  .hud.read a { display: inline-block; margin-top: 9px; font-size: 12px; color: var(--mark); text-decoration: none; }
+  .hud.read a:hover { text-decoration: underline; }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 46vh) minmax(0, 54vh); }
+    .notes { border-right: 0; border-bottom: 1.5px solid var(--rule); order: 2; }
+    #stage { order: 1; }
+    .hud.read { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="app">
+  <aside class="notes">
+    <div class="notes-head">
+      <p class="eyebrow">portfolio.leneu.cloud · 도면</p>
+      <h1>요청 하나가 지나는 길</h1>
+      <p>miniPC 한 대 위의 k3s 에 전부 올라가 있습니다. 오른쪽 도면은 그 한 대를 여섯 층으로 갈라 그린 것이고, 층마다 그 자리를 적은 글이 매달려 있습니다.</p>
+      <p>아래 여섯 줄이 도면의 차례입니다. <strong>누르면 그 자리로 옮겨 갑니다.</strong></p>
+      <p class="facts" id="facts"></p>
+    </div>
+    <div class="notes-tools">
+      <input id="q" type="search" placeholder="제목 · slug · 태그로 좁히기" aria-label="글 좁히기" autocomplete="off">
+      <div class="keys" id="keys"></div>
+    </div>
+    <div class="notes-body" id="notesBody"></div>
+  </aside>
+
+  <div id="stage">
+    <div id="world"><svg id="wires" aria-hidden="true"></svg></div>
+
+<div class="hud zoom">
+  <button type="button" id="zout" aria-label="축소">－</button>
+  <span class="z" id="zlabel"></span>
+  <button type="button" id="zin" aria-label="확대">＋</button>
+  <span class="sep"></span>
+  <div class="lodpick" id="lodpick" role="group" aria-label="적히는 양"></div>
+  <span class="sep"></span>
+  <button type="button" id="sheet" class="wide" aria-pressed="false">청사진</button>
+  <button type="button" id="fit" class="wide">전체</button>
+</div>
+
+<div class="hud read" id="read" hidden>
+  <span class="kind" id="rkind"></span>
+  <h3 id="rtitle"></h3>
+  <p id="rnote"></p>
+  <a id="rgo" href="#" target="_blank" rel="noopener">위키에서 열기 ↗</a>
+</div>
+
+  </div>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+/* 갈래는 색과 모양 둘로 말한다. 도면 위에서 색만 쓰면 선색끼리 묻힌다. */
+const KIND = {
+  adr:        { label: '설계 결정', v: '--adr',   tick: '◆' },
+  postmortem: { label: '사고 기록', v: '--pm',    tick: '▲' },
+  interview:  { label: '면접 문서', v: '--iv',    tick: '■' },
+  wiki:       { label: '일반 글',   v: '--plain', tick: '·' },
+};
+const kindOf = (n) => (n.kind === 'interview' ? 'interview' : (KIND[n.doc] ? n.doc : 'wiki'));
+const colorOf = (n) => `var(${KIND[kindOf(n)].v})`;
+
+const byId = new Map(DATA.nodes.map((n) => [n.id, n]));
+const nodesOf = (gid) => DATA.nodes.filter((n) => n.tab === gid);
+
+const near = new Map();
+const tie = (a, b) => { if (!near.has(a)) near.set(a, new Set()); near.get(a).add(b); };
+for (const e of DATA.edges) { tie(e.from, e.to); tie(e.to, e.from); }
+
+/* ------------------------------------------------------------------ *
+ * 기술 표식. 바깥에서 그림을 못 불러온다(CSP) -- 도면 선으로 직접 긋는다.
+ * 브랜드 로고를 흉내 내지 않는다. 그 자리가 «무엇을 하는가» 를 그린다:
+ * 터널은 관, 라우터는 갈래, 큐는 줄, 저장소는 통.
+ * ------------------------------------------------------------------ */
+const GLYPH = {
+  tunnel:  ['M3 8 h18 M3 16 h18', 'M3 8 a3 8 0 0 0 0 8', 'M21 8 a3 8 0 0 1 0 8'],
+  router:  ['M4 12 h6', 'M10 12 L20 5', 'M10 12 L20 12', 'M10 12 L20 19'],
+  k8s:     ['M12 3 L20 7.5 v9 L12 21 L4 16.5 v-9 Z', 'M12 8.5 L15.5 10.5 v3 L12 15.5 L8.5 13.5 v-3 Z'],
+  browser: ['M3 5 h18 v14 H3 Z', 'M3 9 h18', 'M6 7 h1.5 M9.5 7 h1.5'],
+  server:  ['M3 5 h18 v6 H3 Z', 'M3 13 h18 v6 H3 Z', 'M6.5 8 h.01 M6.5 16 h.01'],
+  bolt:    ['M13 3 L6 13 h5 l-1 8 L18 11 h-5 Z'],
+  db:      ['M4 6.5 a8 3.2 0 1 0 16 0 a8 3.2 0 1 0 -16 0', 'M4 6.5 v11 a8 3.2 0 0 0 16 0 v-11', 'M4 12 a8 3.2 0 0 0 16 0'],
+  cache:   ['M4 7 h16 v4 H4 Z', 'M4 13 h16 v4 H4 Z', 'M7 9 h.01 M7 15 h.01'],
+  queue:   ['M3 12 h18', 'M6 8.5 v7', 'M11 8.5 v7', 'M16 8.5 v7', 'M19 9.5 L21.5 12 L19 14.5'],
+  search:  ['M11 4 a6.5 6.5 0 1 0 0 13 a6.5 6.5 0 1 0 0 -13', 'M15.7 15.7 L21 21'],
+  bucket:  ['M4 7 h16 l-2 13 H6 Z', 'M4 7 a8 2.4 0 0 1 16 0'],
+  person:  ['M12 5 a3 3 0 1 0 0 6 a3 3 0 1 0 0 -6', 'M5 21 a7 6 0 0 1 14 0'],
+};
+function glyphSvg(id) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  for (const d of GLYPH[id] ?? []) {
+    const path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'currentColor');
+    path.setAttribute('stroke-width', '1.5');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+    svg.append(path);
+  }
+  return svg;
+}
+
+/* 그 자리에서 실제로 무엇이 오가는지. 확대해야 펼쳐진다 -- 뼈대 단계에 있으면 도면이 막힌다. */
+const SEQ = {
+  infra: {
+    title: '배포 한 판',
+    why: 'develop → main 머지 하나가 여기까지 간다. 실패하면 이미지 캡처 이후 어디서든 되감긴다.',
+    lanes: ['개발자', 'Actions', 'k3s'],
+    msgs: [
+      { a: 0, b: 1, t: 'main 머지' },
+      { a: 1, b: 1, t: 'verify · build', self: true },
+      { a: 1, b: 2, t: 'rollout' },
+      { a: 2, b: 1, t: '기동 실패', hot: true },
+      { a: 1, b: 2, t: '이전 이미지로 되감기', hot: true },
+    ],
+  },
+  backend: {
+    title: '주문 Saga 와 보상',
+    why: '결제가 실패하면 앞서 잡은 재고를 되돌린다. 롤백이 아니라 «반대 동작» 이다.',
+    lanes: ['주문', '재고', '결제 API'],
+    msgs: [
+      { a: 0, b: 1, t: '재고 선점' },
+      { a: 0, b: 2, t: '결제 요청' },
+      { a: 2, b: 0, t: 'read timeout', hot: true },
+      { a: 0, b: 1, t: '선점 취소 (보상)', hot: true },
+      { a: 0, b: 0, t: '실패로 확정', self: true },
+    ],
+  },
+  data: {
+    title: '아웃박스에서 DLQ 까지',
+    why: 'DB 쓰기와 발행을 한 트랜잭션에 못 묶는다. 그래서 같은 트랜잭션의 표에 적고 따로 흘린다.',
+    lanes: ['주문 DB', 'Relay', '소비자'],
+    msgs: [
+      { a: 0, b: 0, t: '주문 + 아웃박스 한 트랜잭션', self: true },
+      { a: 0, b: 1, t: '미발행 행을 읽는다' },
+      { a: 1, b: 2, t: '발행 (at-least-once)' },
+      { a: 2, b: 2, t: '멱등 키로 중복 무시', self: true },
+      { a: 2, b: 1, t: '세 번 실패 → DLQ', hot: true },
+    ],
+  },
+};
+
+const PATH = [
+  { entry: true, id: '__entry', x: 40, w: 148, title: '사람', sub: '브라우저',
+    glyphs: [['person', '사람'], ['browser', '브라우저']] },
+  { id: 'infra',    x: 238, w: 430, title: '들어오는 길', sub: 'Cloudflare Tunnel · Traefik · k3s',
+    role: '집 공유기에 포트를 열지 않는다. 서버가 먼저 바깥으로 연결을 만들고 그 길로만 요청을 받는다.',
+    glyphs: [['tunnel', 'Cloudflare Tunnel'], ['router', 'Traefik'], ['k8s', 'k3s']] },
+  { id: 'frontend', x: 718, w: 400, title: '화면', sub: 'Next.js · 미들웨어',
+    role: 'host 를 보고 위키와 블로그를 가른다. 사람이 보는 것과 그것이 깨지는 방식.',
+    glyphs: [['browser', 'Next.js'], ['router', '미들웨어']] },
+  { id: 'backend',  x: 1168, w: 450, title: '서버', sub: 'Spring Boot · FastAPI',
+    role: '틀리면 안 되는 일이 도는 자리. 되풀이해도 한 번만 처리되게 만드는 곳.',
+    glyphs: [['server', 'Spring Boot'], ['bolt', 'FastAPI']] },
+  { id: 'data',     x: 1668, w: 450, title: '저장', sub: 'PostgreSQL · Redis · Kafka · OpenSearch · MinIO',
+    role: '남는 것, 흐르는 것, 찾아지는 것. 지우면 못 되돌리는 유일한 자리.',
+    glyphs: [['db', 'PostgreSQL'], ['cache', 'Redis'], ['queue', 'Kafka'], ['search', 'OpenSearch'], ['bucket', 'MinIO']] },
+];
+const BANDS = [
+  { id: 'operations',   title: '보이게 만드는 일', sub: '로그 · 지표 · 추적 · 알림',
+    role: '위 길 전체를 감싼다. 사고를 「났다」가 아니라 「알았다」로 바꾸는 자리다.' },
+  { id: 'verification', title: '정말 되는지 증명하는 일', sub: '복원 리허설 · 대조 · 스모크',
+    role: '「돌았다」와 「맞다」는 다르다. 선언 대신 실제로 밟아 본 기록.' },
+  { id: 'security',     title: '막는 일', sub: '인증 · 권한 · 비밀값',
+    role: '열려 있으면 나머지가 전부 무의미해지는 자리.' },
+];
+const ASIDE = [
+  { id: 'demo',                title: '보여주는 것', sub: '시나리오 23편',
+    role: '실제로 도는 9편과 결과가 미리 적힌 14편. 그 경계를 내가 먼저 말한다.' },
+  { id: 'development-process', title: '만드는 방식', sub: 'AI 를 도구로 쓰는 경계' },
+  { id: 'content-quality',     title: '글로 남기는 방식', sub: '사실 검증 · 자산 관리' },
+  { id: 'start',               title: '들어오는 입구', sub: '처음 오는 사람이 보는 것' },
+  { id: 'interview',           title: '입으로 말하는 자리', sub: '면접 대본',
+    role: '위의 글들을 말할 수 있게 다시 쓴 것. 이 자리가 위키 전체를 가리킨다.' },
+];
+/* 배포 파이프라인. 시퀀스와 다른 그림이다 -- 시퀀스는 «누가 누구에게» 이고
+   파이프라인은 «어디까지 갔나» 다. 되감기는 분기로 그려야 그 차이가 보인다. */
+const PIPE = {
+  title: '배포 파이프라인',
+  why: 'develop → main 머지 하나가 여기까지 간다. 괄호는 소요가 아니라 넘으면 죽이는 상한이다.',
+  steps: [
+    { t: 'verify',  s: '테스트 · 시드 검사 · 크기 가드', cap: '20분' },
+    { t: 'build',   s: '이미지 두 장 · SHA 태그',        cap: '30분' },
+    { t: 'deploy',  s: '시드 반영 · rollout · 열두 단계', cap: '25분' },
+    { t: 'smoke',   s: '공개 화면 · /sync 가 404 인가',   cap: '15분' },
+    { t: 'notify',  s: '텔레그램',                        cap: '5분' },
+  ],
+  fail: { from: 2, t: '실패하면 이미지 캡처 이후 어디서든 이전 이미지로 되감긴다' },
+};
+
+/* 관통 개념. 이 아홉이 88편을 하나로 묶는다 -- 면접 문서가 「가장 강한 답변은
+   이 연결을 말하는 것」이라고 적어 둔 자리이고, 표로는 한 번에 한 줄만 읽힌다. */
+const MIND = {
+  title: '되풀이되는 아홉 가지',
+  why: '한 편에서 배운 것이 다른 편에서 그대로 다시 나온다. 이 연결이 88편을 한 덩어리로 만든다.',
+  items: [
+    ['멱등성', '제휴 API', ['상품권·쿠폰·정산', '트래픽 중복', '알림 재처리']],
+    ['조건부 UPDATE', '주문 재고', ['상품권·쿠폰', '데이터 정정', 'HPA 락']],
+    ['이중 쓰기 문제', 'Kafka 아웃박스', ['정산 체크포인트', '검색 색인', '알림']],
+    ['at-least-once → 멱등 소비', 'Kafka', ['이미지 job', '알림 재처리']],
+    ['DLQ · 사람에게 올리기', 'Kafka', ['정산 대조', 'Saga 보상 실패', '알림']],
+    ['「돌았다」 ≠ 「맞다」', '정산 대조', ['복원 리허설', '불변조건·지표 비교']],
+    ['경계 분리 ↔ 원자성 상실', '커넥션 풀', ['Saga 보상']],
+    ['synchronized 는 JVM 안에서만', '채팅 정원', ['HPA 가 이걸 깨뜨린다']],
+    ['신호 말고 시간으로 판단', '채팅 heartbeat', ['예약 만료', 'HPA', '알림 상태 추적']],
+  ],
+};
+
+const COL_X = 2178, COL_W = 470, TOP = 178, GAP = 40, BAND_W = 2080;
+
+const world = document.getElementById('world');
+const wires = document.getElementById('wires');
+const itemEls = new Map();
+
+function card(spec, x, w, cls = '') {
+  const box = document.createElement('div');
+  box.className = `card ${cls}`.trim();
+  box.style.left = `${x}px`;
+  box.style.width = `${w}px`;
+
+  const items = spec.id && !spec.entry ? nodesOf(spec.id) : [];
+  const head = document.createElement('div');
+  head.className = 'head';
+  head.innerHTML = '<h2></h2><span class="n"></span>';
+  head.querySelector('h2').textContent = spec.title;
+  head.querySelector('.n').textContent = items.length ? `${items.length}편` : '';
+  box.append(head);
+
+  if (spec.sub) {
+    const s = document.createElement('p');
+    s.className = 'sub';
+    s.textContent = spec.sub;
+    box.append(s);
+  }
+  if (spec.role) {
+    const r = document.createElement('p');
+    r.className = 'role';
+    r.textContent = spec.role;
+    box.append(r);
+  }
+  if (spec.glyphs) {
+    const g = document.createElement('div');
+    g.className = 'glyphs';
+    for (const [id, label] of spec.glyphs) {
+      const one = document.createElement('span');
+      one.className = 'glyph';
+      one.append(glyphSvg(id));
+      const t = document.createElement('span');
+      t.textContent = label;
+      one.append(t);
+      g.append(one);
+    }
+    box.append(g);
+  }
+  if (items.length) {
+    const ul = document.createElement('ul');
+    ul.className = 'items';
+    for (const n of items) {
+      const li = document.createElement('li');
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'item';
+      b.innerHTML = '<span class="tick"></span><span class="t"></span><span class="deg"></span><span class="note"></span>';
+      const k = KIND[kindOf(n)];
+      const tick = b.querySelector('.tick');
+      tick.textContent = k.tick;
+      tick.style.color = colorOf(n);
+      b.querySelector('.t').textContent = n.title;
+      const d = near.get(n.id)?.size ?? 0;
+      b.querySelector('.deg').textContent = d ? `${d}` : '';
+      b.querySelector('.note').textContent = n.note || '';
+      b.title = `${k.label} · ${n.kind === 'interview' ? n.file : n.id}`;
+      b.addEventListener('pointerenter', () => hold(n.id));
+      b.addEventListener('focus', () => hold(n.id));
+      b.addEventListener('click', () => { if (n.href) window.open(n.href, '_blank', 'noopener'); });
+      li.append(b);
+      ul.append(li);
+      itemEls.set(n.id, b);
+    }
+    box.append(ul);
+  }
+  world.append(box);
+  return box;
+}
+
+const NSVG = 'http://www.w3.org/2000/svg';
+const mkS = (t, a, txt) => {
+  const e = document.createElementNS(NSVG, t);
+  for (const k in a) e.setAttribute(k, a[k]);
+  if (txt !== undefined) e.textContent = txt;
+  return e;
+};
+/** 제목·설명·그림을 담은 도면 카드 하나. 세 그림이 같은 틀을 쓴다. */
+function figureCard(cls, x, w, title, why, svg) {
+  const box = document.createElement('div');
+  box.className = `card ${cls}`;
+  box.style.left = `${x}px`;
+  box.style.width = `${w}px`;
+  const h = document.createElement('h3');
+  h.textContent = title;
+  const p = document.createElement('p');
+  p.className = 'why';
+  p.textContent = why;
+  box.append(h, p, svg);
+  world.append(box);
+  return box;
+}
+
+/* 배포 파이프라인. 칸을 잇는 굵은 선 하나와, 아래로 갈라지는 되감기 분기. */
+function pipeSvg(width) {
+  const H = 132;
+  const svg = mkS('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': PIPE.title });
+  const n = PIPE.steps.length;
+  const gap = 16;
+  const bw = (width - gap * (n - 1)) / n;
+  PIPE.steps.forEach((st, i) => {
+    const x = i * (bw + gap);
+    svg.append(mkS('rect', { x, y: 8, width: bw, height: 48, rx: 2,
+      fill: 'var(--fill)', stroke: 'var(--line)', 'stroke-width': 1.4 }));
+    svg.append(mkS('text', { x: x + 12, y: 28, fill: 'var(--chalk)',
+      'font-family': 'var(--f-mono)', 'font-size': 13, 'font-weight': 500 }, st.t));
+    svg.append(mkS('text', { x: x + bw - 12, y: 28, 'text-anchor': 'end', fill: 'var(--chalk-3)',
+      'font-family': 'var(--f-mono)', 'font-size': 10.5 }, st.cap));
+    svg.append(mkS('text', { x: x + 12, y: 45, fill: 'var(--chalk-2)',
+      'font-family': 'var(--f-body)', 'font-size': 11 }, st.s));
+    if (i < n - 1) {
+      svg.append(mkS('line', { x1: x + bw, y1: 32, x2: x + bw + gap - 5, y2: 32,
+        stroke: 'var(--line)', 'stroke-width': 1.6 }));
+      svg.append(mkS('path', { d: `M ${x + bw + gap - 5} 28 L ${x + bw + gap} 32 L ${x + bw + gap - 5} 36 Z`,
+        fill: 'var(--line)' }));
+    }
+  });
+  // 되감기. 이 판에서 유일하게 «되돌아가는» 선이라 강조색을 준다.
+  const fx = PIPE.fail.from * (bw + gap) + bw / 2;
+  svg.append(mkS('path', {
+    d: `M ${fx} 56 V 86 H ${bw / 2} V 62`,
+    fill: 'none', stroke: 'var(--mark)', 'stroke-width': 1.6, 'stroke-dasharray': '5 4',
+  }));
+  svg.append(mkS('path', { d: `M ${bw / 2 - 4} 68 L ${bw / 2} 58 L ${bw / 2 + 4} 68 Z`, fill: 'var(--mark)' }));
+  svg.append(mkS('text', { x: fx + 12, y: 90, fill: 'var(--mark)',
+    'font-family': 'var(--f-mono)', 'font-size': 10.5 }, PIPE.fail.t));
+  return svg;
+}
+
+/* 관통 개념. 왼쪽 뿌리에서 아홉 갈래가 뻗고, 갈래마다 «다시 나오는 곳» 이 달린다. */
+function mindSvg(width) {
+  const rows = MIND.items.length;
+  const rowH = 40, top = 22;
+  const H = top + rows * rowH + 10;
+  const rootX = 26, midX = 300, leafX = 620;
+  const svg = mkS('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': MIND.title });
+  const cy = top + (rows * rowH) / 2 - rowH / 2;
+  svg.append(mkS('circle', { cx: rootX, cy, r: 7, fill: 'none', stroke: 'var(--mark)', 'stroke-width': 2 }));
+  MIND.items.forEach(([name, first, again], i) => {
+    const y = top + i * rowH;
+    svg.append(mkS('path', {
+      d: `M ${rootX + 9} ${cy} C ${(rootX + midX) / 2} ${cy}, ${(rootX + midX) / 2} ${y}, ${midX - 8} ${y}`,
+      fill: 'none', stroke: 'var(--line)', 'stroke-width': 1.2, opacity: 0.85,
+    }));
+    svg.append(mkS('text', { x: midX, y: y + 4, fill: 'var(--chalk)',
+      'font-family': 'var(--f-body)', 'font-size': 13, 'font-weight': 500 }, name));
+    svg.append(mkS('text', { x: midX, y: y + 19, fill: 'var(--chalk-3)',
+      'font-family': 'var(--f-mono)', 'font-size': 10 }, `처음: ${first}`));
+    let x = leafX;
+    for (const one of again) {
+      const w = one.length * 11 + 22;
+      svg.append(mkS('rect', { x, y: y - 11, width: w, height: 22, rx: 2,
+        fill: 'var(--fill-3)', stroke: 'var(--rule)', 'stroke-width': 1 }));
+      svg.append(mkS('text', { x: x + w / 2, y: y + 4, 'text-anchor': 'middle', fill: 'var(--chalk-2)',
+        'font-family': 'var(--f-body)', 'font-size': 11.5 }, one));
+      svg.append(mkS('line', { x1: x - 10, y1: y, x2: x, y2: y,
+        stroke: 'var(--line)', 'stroke-width': 1, opacity: 0.6 }));
+      x += w + 14;
+    }
+  });
+  return svg;
+}
+
+/* 시퀀스 한 장. 도면과 같은 언어로 긋는다 -- 생명선은 점선, 되감는 화살표만 강조색. */
+function seqSvg(spec, width) {
+  const mk = mkS;
+  const H = 46 + spec.msgs.length * 34;
+  const svg = mk('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': spec.title });
+  const lane = (i) => (width / spec.lanes.length) * (i + 0.5);
+  spec.lanes.forEach((name, i) => {
+    svg.append(mk('text', {
+      x: lane(i), y: 13, 'text-anchor': 'middle', fill: 'var(--chalk-2)',
+      'font-family': 'var(--f-mono)', 'font-size': 10.5,
+    }, name));
+    svg.append(mk('line', {
+      x1: lane(i), y1: 22, x2: lane(i), y2: H - 6,
+      stroke: 'var(--line)', 'stroke-width': 1, 'stroke-dasharray': '2 5', opacity: 0.8,
+    }));
+  });
+  spec.msgs.forEach((m, i) => {
+    const y = 44 + i * 34;
+    const col = m.hot ? 'var(--mark)' : 'var(--line)';
+    if (m.self) {
+      // 자기 자신에게 -- 그 칸 안에서 끝나는 일. 갈고리로 그린다.
+      const x = lane(m.a);
+      svg.append(mk('path', {
+        d: `M ${x} ${y - 7} h 22 v 14 h -22`, fill: 'none', stroke: col, 'stroke-width': 1.4,
+      }));
+      svg.append(mk('path', { d: `M ${x + 7} ${y + 3} L ${x} ${y + 7} L ${x + 7} ${y + 11}`, fill: 'none', stroke: col, 'stroke-width': 1.4 }));
+      svg.append(mk('text', {
+        x: x + 28, y: y + 1, fill: m.hot ? 'var(--mark)' : 'var(--chalk-3)',
+        'font-family': 'var(--f-mono)', 'font-size': 10,
+      }, m.t));
+      return;
+    }
+    const x1 = lane(m.a), x2 = lane(m.b), dir = x2 > x1 ? -1 : 1;
+    svg.append(mk('line', { x1, y1: y, x2: x2 + dir * 7, y2: y, stroke: col, 'stroke-width': m.hot ? 1.8 : 1.3 }));
+    svg.append(mk('path', { d: `M ${x2 + dir * 7} ${y - 4} L ${x2} ${y} L ${x2 + dir * 7} ${y + 4} Z`, fill: col }));
+    svg.append(mk('text', {
+      x: (x1 + x2) / 2, y: y - 7, 'text-anchor': 'middle',
+      fill: m.hot ? 'var(--mark)' : 'var(--chalk-3)',
+      'font-family': 'var(--f-mono)', 'font-size': 10,
+    }, m.t));
+  });
+  return svg;
+}
+
+function zoneLabel(text, sub, x, w) {
+  const el = document.createElement('div');
+  el.className = 'zone';
+  el.style.left = `${x}px`;
+  el.style.width = `${w}px`;
+  const a = document.createElement('span');
+  a.textContent = text;
+  const b = document.createElement('b');
+  b.textContent = sub;
+  el.append(a, b);
+  world.append(el);
+  return el;
+}
+
+const pathC  = PATH.map((s) => ({ spec: s, box: card(s, s.x, s.w, s.entry ? 'entry' : '') }));
+const bandC  = BANDS.map((s) => ({ spec: s, box: card(s, PATH[0].x, BAND_W, 'band') }));
+const asideC = ASIDE.map((s) => ({ spec: s, box: card(s, COL_X, COL_W) }));
+
+const X0 = PATH[0].x;
+const SEQ_W = (BAND_W - 2 * 20) / 3;
+const pipeBox = figureCard('pipe', X0, BAND_W, PIPE.title, PIPE.why, pipeSvg(BAND_W - 30));
+const seqBoxes = ['infra', 'backend', 'data'].map((id, i) =>
+  figureCard('seq', X0 + i * (SEQ_W + 20), SEQ_W, SEQ[id].title, SEQ[id].why, seqSvg(SEQ[id], SEQ_W - 30)));
+const mindBox = figureCard('mind', X0, BAND_W, MIND.title, MIND.why, mindSvg(BAND_W - 30));
+
+/* 도면의 주기란. 그림 옆에 붙박여 있어야 하는 글이고, 배율을 안 탄다.
+   각 줄은 «그 구역이 무엇을 말하는가» 를 두세 문장으로 적는다 -- 그림만으로는
+   왜 그렇게 그렸는지가 안 남는다. */
+const NOTES = [
+  {
+    key: 'arch', no: '01', title: '요청 하나가 지나는 길',
+    body: '집 공유기에 포트를 열지 않습니다. 서버가 먼저 Cloudflare 로 연결을 만들고 그 길로만 요청을 받으므로, 바깥에서 집 IP 로 들어오는 문이 아예 없습니다. 들어온 요청은 Traefik 을 지나 Next.js 로 가고, 거기서 host 를 보고 위키와 블로그가 갈립니다. 틀리면 안 되는 일은 그 뒤의 Spring 이 맡습니다.',
+    tally: '인프라 9 · 화면 6 · 서버 11 · 저장 11',
+  },
+  {
+    key: 'pipe', no: '02', title: '그 길을 바꾸는 유일한 방법',
+    body: '운영에 무엇을 올리는 길은 하나입니다 — develop 을 main 에 머지하는 것. 사람이 서버에 붙어 손으로 올리지 않습니다. 다섯 잡이 차례로 돌고, 이미지를 캡처한 뒤로는 어느 단계에서 깨지든 이전 이미지로 자동으로 되감깁니다. 괄호 안 숫자는 걸리는 시간이 아니라 넘으면 죽이는 상한입니다.',
+    tally: '실제 소요는 20분 안팎',
+  },
+  {
+    key: 'seq', no: '03', title: '그 길 위에서 실제로 오가는 것',
+    body: '세 장면을 골랐습니다. 배포가 실패해 되감기는 순간, 결제가 늦어 재고 선점을 되돌리는 순간, 같은 메시지가 두 번 와서 무시되는 순간입니다. 셋 다 «잘 될 때» 가 아니라 «어긋날 때» 를 그렸습니다 — 설계가 드러나는 자리가 거기이기 때문입니다.',
+    tally: '되감거나 실패하는 화살표만 강조색',
+  },
+  {
+    key: 'mind', no: '04', title: '한 편에서 배운 것이 다시 나온다',
+    body: '아홉 개의 원리가 여러 편에 걸쳐 반복됩니다. 멱등성은 제휴 API 에서 처음 나오지만 쿠폰 경합에도, 알림 재처리에도 똑같이 나타납니다. 「Kafka 써봤습니다」보다 「이중 쓰기 문제는 Kafka 에도 검색 색인에도 정산 체크포인트에도 똑같이 나타납니다」가 강한 답변인 이유입니다.',
+    tally: '아홉 갈래 · 88편을 하나로 묶는 자리',
+  },
+  {
+    key: 'band', no: '05', title: '길 전체를 감싸는 일',
+    body: '이 셋은 길의 한 칸이 아니라 길 전체에 걸립니다. 관측은 사고를 「났다」가 아니라 「알았다」로 바꾸고, 검증은 「돌았다」와 「맞다」가 다르다는 것을 실제로 밟아 확인한 기록이며, 보안은 열려 있으면 나머지가 전부 무의미해지는 자리입니다.',
+    tally: '관측 19 · 증명 10 · 방어 4',
+  },
+  {
+    key: 'side', no: '06', title: '그 바깥',
+    body: '시나리오 23편 중 실제 인프라가 도는 것은 9편이고 나머지는 결과가 미리 적힌 대본입니다. 그 경계를 제가 먼저 말하는 것이 이 프로젝트의 규칙입니다. 맨 아래 「입으로 말하는 자리」는 위의 글들을 면접에서 말할 수 있게 다시 쓴 12개 문서입니다.',
+    tally: '시연 5 · 만드는 방식 6 · 글 5 · 입구 2 · 대본 12',
+  },
+];
+
+const ZONES = {
+  arch: zoneLabel('01 · 아키텍처', '요청 하나가 지나는 길', X0, BAND_W),
+  pipe: zoneLabel('02 · 파이프라인', '그 길을 바꾸는 유일한 방법', X0, BAND_W),
+  seq:  zoneLabel('03 · 시퀀스', '그 길 위에서 실제로 오가는 것', X0, BAND_W),
+  mind: zoneLabel('04 · 되풀이되는 것', '한 편에서 배운 것이 다른 편에 다시 나온다', X0, BAND_W),
+  band: zoneLabel('05 · 길 전체를 감싸는 일', '보이게 만들고 · 증명하고 · 막는다', X0, BAND_W),
+  side: zoneLabel('06 · 그 바깥', '보여주는 것 · 만드는 방식 · 말하는 자리', COL_X, COL_W),
+};
+
+let WW = 0, WH = 0;
+/* 구역을 위에서 아래로 쌓는다. 카드 키가 단계마다 달라져서 y 를 미리 못 박는다.
+   순서 자체가 설명이다 -- 아키텍처 → 그걸 바꾸는 법 → 그 위에서 오가는 것 →
+   되풀이되는 것 → 전체를 감싸는 것. */
+const ZGAP = 30;
+function relayout() {
+  ZONES.arch.style.top = `${TOP - 30}px`;
+  for (const c of pathC) c.box.style.top = `${TOP}px`;
+  let y = TOP + Math.max(...pathC.map((c) => c.box.offsetHeight));
+  const pathBottom = y;
+
+  const place = (zone, boxes) => {
+    y += GAP + 14;
+    zone.style.top = `${y}px`;
+    y += ZGAP;
+    let tall = 0;
+    for (const b of boxes) { b.style.top = `${y}px`; tall = Math.max(tall, b.offsetHeight); }
+    y += tall;
+  };
+  place(ZONES.pipe, [pipeBox]);
+  place(ZONES.seq, seqBoxes);
+  place(ZONES.mind, [mindBox]);
+
+  y += GAP + 14;
+  ZONES.band.style.top = `${y}px`;
+  y += ZGAP;
+  const bandTop = y;
+  for (const c of bandC) { c.box.style.top = `${y}px`; y += c.box.offsetHeight + GAP; }
+
+  ZONES.side.style.top = `${TOP - 30}px`;
+  let ay = TOP;
+  for (const c of asideC) { c.box.style.top = `${ay}px`; ay += c.box.offsetHeight + GAP; }
+
+  WW = COL_X + COL_W + 56;
+  WH = Math.max(y, ay) + 40;
+  world.style.width = `${WW}px`;
+  world.style.height = `${WH}px`;
+  drawWires(pathBottom, bandTop);
+}
+
+function drawWires(pathBottom, bandTop) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const mk = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  wires.setAttribute('width', WW);
+  wires.setAttribute('height', WH);
+  wires.replaceChildren();
+
+  const y = TOP + 24;
+  for (let i = 0; i < pathC.length - 1; i += 1) {
+    const a = pathC[i].spec, b = pathC[i + 1].spec;
+    const x1 = a.x + a.w + 4, x2 = b.x - 2;
+    wires.append(mk('line', { x1, y1: y, x2: x2 - 10, y2: y, stroke: 'var(--line)', 'stroke-width': 1.6 }));
+    wires.append(mk('path', { d: `M ${x2 - 10} ${y - 5} L ${x2} ${y} L ${x2 - 10} ${y + 5} Z`, fill: 'var(--line)' }));
+    // 도면의 치수선처럼, 칸과 칸 사이에 무엇이 건너가는지 적는다.
+    const t = mk('text', {
+      x: (x1 + x2) / 2, y: y - 9, 'text-anchor': 'middle',
+      fill: 'var(--chalk-3)', 'font-family': "var(--f-mono)", 'font-size': 10,
+    });
+    t.textContent = ['HTTPS', 'SSR / BFF', 'JDBC · 큐'][i] ?? '';
+    wires.append(t);
+  }
+  // 「05 감싸는 일」이 줄기의 어느 칸에 걸리는지. 구역이 멀어서 선을 끝까지 긋지 않고
+  // 양쪽 끝에만 짧게 남긴다 -- 길게 그으면 다른 구역의 그림을 가로지른다.
+  if (bandTop) {
+    for (const c of pathC.slice(1)) {
+      const cx = c.spec.x + c.spec.w / 2;
+      wires.append(mk('line', { x1: cx, y1: pathBottom + 6, x2: cx, y2: pathBottom + 26,
+        stroke: 'var(--line)', 'stroke-width': 1.2, 'stroke-dasharray': '2 6', opacity: 0.7 }));
+      wires.append(mk('line', { x1: cx, y1: bandTop - 24, x2: cx, y2: bandTop - 4,
+        stroke: 'var(--line)', 'stroke-width': 1.2, 'stroke-dasharray': '2 6', opacity: 0.7 }));
+    }
+  }
+}
+
+/* ---------- 줌과 이동 ---------- */
+const stage = document.getElementById('stage');
+const zlabel = document.getElementById('zlabel');
+let k = 1, tx = 0, ty = 0;
+/* 적히는 양. 배율에 매달아 두면 확대하는 도중에 판이 계속 다시 짜여 답답하다.
+   그래서 두 가지를 한다 -- 올라갈 때와 내려올 때의 경계를 벌려 두고(같은 자리에서 왔다 갔다
+   하지 않는다), 손으로 아예 고정할 수 있게 한다. 고정하면 배율은 크기만 바꾼다. */
+const LOD = [
+  { cls: 'lod1', name: '뼈대만',  up: 0.70, down: 0.52 },
+  { cls: 'lod2', name: '글 제목', up: 1.30, down: 0.95 },
+  { cls: 'lod3', name: '자세히',  up: Infinity, down: Infinity },
+];
+let lodIdx = 1;      // 지금 단계
+let lodPinned = -1;  // -1 이면 배율을 따라간다
+
+function levelFor(scale) {
+  if (lodPinned >= 0) return lodPinned;
+  // 올라가려면 위 경계를, 내려가려면 아래 경계를 넘어야 한다. 그 사이에서는 안 바뀐다.
+  let i = lodIdx;
+  while (i < LOD.length - 1 && scale >= LOD[i].up) i += 1;
+  while (i > 0 && scale < LOD[i].down) i -= 1;
+  return i;
+}
+function apply() {
+  world.style.transform = `translate(${tx}px, ${ty}px) scale(${k})`;
+  // 격자도 같이 움직여야 판이 하나로 보인다. 안 그러면 상자만 미끄러진다.
+  stage.style.backgroundPosition = `${tx}px ${ty}px, ${tx}px ${ty}px, ${tx}px ${ty}px, ${tx}px ${ty}px`;
+  stage.style.backgroundSize = `auto, auto, ${28 * k}px ${28 * k}px, ${28 * k}px ${28 * k}px`;
+  const next = levelFor(k);
+  if (next !== lodIdx || !world.classList.contains(LOD[next].cls)) {
+    lodIdx = next;
+    world.classList.remove('lod1', 'lod2', 'lod3');
+    world.classList.add(LOD[next].cls);
+    paintPick();
+    relayout();
+  }
+  zlabel.textContent = `${Math.round(k * 100)}%`;
+}
+function zoomAt(f, cx, cy) {
+  const next = Math.min(2.6, Math.max(0.16, k * f));
+  if (Math.abs(next - k) < 0.0005) return;
+  tx = cx - (cx - tx) * (next / k);
+  ty = cy - (cy - ty) * (next / k);
+  k = next;
+  apply();
+}
+stage.addEventListener('wheel', (ev) => {
+  ev.preventDefault();
+  const r = stage.getBoundingClientRect();
+  zoomAt(ev.deltaY < 0 ? 1.07 : 1 / 1.07, ev.clientX - r.left, ev.clientY - r.top);
+}, { passive: false });
+
+let drag = null;
+stage.addEventListener('pointerdown', (ev) => {
+  if (ev.target.closest('.item')) return;
+  drag = { x: ev.clientX, y: ev.clientY, tx, ty };
+  stage.classList.add('dragging');
+  stage.setPointerCapture(ev.pointerId);
+});
+stage.addEventListener('pointermove', (ev) => {
+  if (!drag) return;
+  tx = drag.tx + (ev.clientX - drag.x);
+  ty = drag.ty + (ev.clientY - drag.y);
+  apply();
+});
+const stop = () => { drag = null; stage.classList.remove('dragging'); };
+stage.addEventListener('pointerup', stop);
+stage.addEventListener('pointercancel', stop);
+
+function fit() {
+  const pad = 40, bottom = 58;   // 아래 조작 막대가 판을 가리지 않게 비워 둔다
+  const w = stage.clientWidth, h = stage.clientHeight;
+  // 배율이 줌 단계를 바꾸고, 단계가 다시 판 크기를 바꾼다. 안 흔들릴 때까지 다시 잰다.
+  for (let i = 0; i < 4; i += 1) {
+    const next = Math.min(2.6, Math.max(0.16,
+      Math.min((w - pad * 2) / WW, (h - pad - bottom) / WH)));
+    if (Math.abs(next - k) < 0.001) break;
+    k = next;
+    apply();
+  }
+  tx = (w - WW * k) / 2;
+  ty = pad + (h - pad - bottom - WH * k) / 2;
+  apply();
+}
+/* 단계 고르개. 「자동」은 배율을 따라가고, 나머지 셋은 고정한다. */
+const pick = document.getElementById('lodpick');
+const PICKS = [['자동', -1], ['뼈대', 0], ['제목', 1], ['자세히', 2]];
+for (const [label, idx] of PICKS) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.dataset.idx = `${idx}`;
+  b.textContent = label;
+  b.addEventListener('click', () => {
+    lodPinned = idx;
+    if (idx >= 0) lodIdx = idx;
+    world.classList.remove('lod1', 'lod2', 'lod3');
+    world.classList.add(LOD[levelFor(k)].cls);
+    lodIdx = levelFor(k);
+    paintPick();
+    relayout();
+    apply();
+  });
+  pick.append(b);
+}
+function paintPick() {
+  for (const b of pick.children) {
+    const idx = Number(b.dataset.idx);
+    const on = lodPinned === -1 ? idx === -1 : idx === lodPinned;
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.title = idx === -1 ? `배율을 따라간다 — 지금 ${LOD[lodIdx].name}` : `${LOD[idx].name} 로 고정`;
+  }
+}
+
+/* 재료를 갈아입는다. 값만 바뀌고 규칙은 그대로다. 고른 것은 이 브라우저에만 남는다. */
+const sheetBtn = document.getElementById('sheet');
+function setSheet(blueprint) {
+  if (blueprint) document.documentElement.setAttribute('data-sheet', 'blueprint');
+  else document.documentElement.removeAttribute('data-sheet');
+  sheetBtn.textContent = blueprint ? '종이' : '청사진';
+  sheetBtn.title = blueprint ? '종이로' : '청사진으로';
+  sheetBtn.setAttribute('aria-pressed', blueprint ? 'true' : 'false');
+  try { localStorage.setItem('sheet', blueprint ? 'blueprint' : 'ivory'); } catch { /* 막혀 있어도 화면은 선다 */ }
+}
+sheetBtn.addEventListener('click', () => {
+  setSheet(document.documentElement.getAttribute('data-sheet') !== 'blueprint');
+});
+try { if (localStorage.getItem('sheet') === 'blueprint') setSheet(true); } catch { /* 무시 */ }
+
+document.getElementById('zin').addEventListener('click', () => zoomAt(1.35, stage.clientWidth / 2, stage.clientHeight / 2));
+document.getElementById('zout').addEventListener('click', () => zoomAt(1 / 1.35, stage.clientWidth / 2, stage.clientHeight / 2));
+document.getElementById('fit').addEventListener('click', fit);
+addEventListener('resize', fit);
+
+/* ---------- 손을 올린 글 ---------- */
+const read = document.getElementById('read');
+let held = null;
+function hold(id) {
+  held = id;
+  const n = byId.get(id);
+  const set = near.get(id) ?? new Set();
+  for (const [nid, e] of itemEls) {
+    e.classList.toggle('self', nid === id);
+    e.classList.toggle('hit', set.has(nid));
+    e.classList.toggle('dim', nid !== id && !set.has(nid));
+  }
+  const kk = KIND[kindOf(n)];
+  document.getElementById('rkind').innerHTML =
+    `<span class="tick" style="color:${colorOf(n)}">${kk.tick}</span>${kk.label}<span class="deg">이어진 글 ${set.size}편</span>`;
+  document.getElementById('rtitle').textContent = n.title;
+  document.getElementById('rnote').textContent = n.note || '';
+  const go = document.getElementById('rgo');
+  if (n.href) { go.hidden = false; go.href = n.href; } else { go.hidden = true; }
+  read.hidden = false;
+}
+function release() {
+  held = null;
+  for (const e of itemEls.values()) e.classList.remove('self', 'hit', 'dim');
+  read.hidden = true;
+}
+world.addEventListener('pointerleave', release);
+document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') release(); });
+
+/* ---------- 좁히기 ---------- */
+const off = new Set();
+const keys = document.getElementById('keys');
+for (const [key, meta] of Object.entries(KIND)) {
+  const count = DATA.nodes.filter((n) => kindOf(n) === key).length;
+  if (!count) continue;
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.setAttribute('aria-pressed', 'true');
+  b.innerHTML = `<span class="tick" style="color:var(${meta.v})">${meta.tick}</span><span></span><span class="n"></span>`;
+  b.children[1].textContent = meta.label;
+  b.children[2].textContent = `${count}`;
+  b.addEventListener('click', () => {
+    if (off.has(key)) off.delete(key); else off.add(key);
+    b.setAttribute('aria-pressed', off.has(key) ? 'false' : 'true');
+    narrow();
+  });
+  keys.append(b);
+}
+const q = document.getElementById('q');
+function narrow() {
+  const term = q.value.trim().toLowerCase();
+  for (const [nid, e] of itemEls) {
+    const n = byId.get(nid);
+    const ok = !off.has(kindOf(n))
+      && (!term || (`${n.title} ${n.id} ${(n.tags || []).join(' ')}`).toLowerCase().includes(term));
+    e.closest('li').hidden = !ok;
+  }
+  if (held) release();
+  relayout();
+}
+q.addEventListener('input', narrow);
+
+/* 주기란을 채운다. 누르면 그 구역이 화면 가운데로 온다 -- 읽은 것과 본 것을 잇는다. */
+const notesBody = document.getElementById('notesBody');
+for (const n of NOTES) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'note-item';
+  b.innerHTML = '<span class="no"><span></span><span class="go">보러 가기 →</span></span><h2></h2><p></p><span class="tally"></span>';
+  b.querySelector('.no span').textContent = n.no;
+  b.querySelector('h2').textContent = n.title;
+  b.querySelector('p').textContent = n.body;
+  b.querySelector('.tally').textContent = n.tally;
+  b.addEventListener('click', () => goZone(n.key));
+  notesBody.append(b);
+}
+
+/* 그 구역을 화면에 앉힌다. 가로는 구역 전체가 들어오게, 세로는 그 구역의 위쪽에 맞춘다 --
+   가운데 정렬하면 긴 구역은 머리가 잘려 어디를 보는지 모른다. */
+function goZone(key) {
+  const zone = ZONES[key];
+  const top = parseFloat(zone.style.top) || 0;
+  const left = parseFloat(zone.style.left) || 0;
+  const width = parseFloat(zone.style.width) || BAND_W;
+  const view = stage.clientWidth, viewH = stage.clientHeight;
+  k = Math.min(1.6, Math.max(0.2, (view - 96) / width));
+  lodPinned = -1;
+  tx = (view - width * k) / 2 - left * k;
+  ty = 64 - (top - 12) * k;
+  apply();
+}
+
+document.getElementById('facts').textContent =
+  `${DATA.nodes.length}편 · 글끼리 이어진 자리 ${DATA.edges.length}개 · 어디에도 안 이어진 글 0편`;
+
+world.classList.add('lod2');
+paintPick();
+relayout();
+fit();
+</script>

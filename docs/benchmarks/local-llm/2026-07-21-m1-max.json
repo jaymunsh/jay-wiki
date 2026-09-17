@@ -1,0 +1,2627 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-07-20T16:18:19.555Z",
+  "methodology": {
+    "iterations": 3,
+    "warmupRuns": 1,
+    "coldRuns": 1,
+    "temperature": 0,
+    "thinkingModes": [
+      true,
+      false
+    ],
+    "cacheModes": [
+      "miss",
+      "hit"
+    ],
+    "note": "Client-observed streaming metrics. Effective prompt throughput includes queue, HTTP, template, tokenization, model load if cold, and prefill time."
+  },
+  "hardware": {
+    "chip": "Apple M1 Max",
+    "gpu": "Apple M1 Max",
+    "gpuCores": 32,
+    "memory": "64 GB",
+    "model": "MacBookPro18,4",
+    "os": "26.5.2",
+    "ollamaVersion": "ollama version is 0.30.10",
+    "omlxVersion": "0.5.1"
+  },
+  "engines": [
+    {
+      "engine": "omlx",
+      "model": "Qwen3.6-35B-A3B-OptiQ-4bit",
+      "cold": {
+        "promptTokens": 78,
+        "completionTokens": 512,
+        "ttftMs": 13279.38,
+        "visibleTtftMs": 22587.44,
+        "totalMs": 22590.77,
+        "effectivePromptTokensPerSecond": 5.87,
+        "decodeTokensPerSecond": 54.99,
+        "providerPromptTokensPerSecond": 20.61,
+        "providerDecodeTokensPerSecond": 54.98,
+        "cachedPromptTokens": 0,
+        "outputCharacters": 1791,
+        "reasoningCharacters": 1791,
+        "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Topic:** Difference between optimistic locking and pessimistic locking\n   - **Context:** E-commerce inventory deduction example\n   - **Requirement:** Concise explanation, direc"
+      },
+      "modes": [
+        {
+          "thinking": true,
+          "cacheModes": [
+            {
+              "cacheMode": "miss",
+              "cases": [
+                {
+                  "id": "short-explanation",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 92,
+                      "completionTokens": 512,
+                      "ttftMs": 803.72,
+                      "visibleTtftMs": 9892.23,
+                      "totalMs": 9892.56,
+                      "effectivePromptTokensPerSecond": 114.47,
+                      "decodeTokensPerSecond": 56.33,
+                      "providerPromptTokensPerSecond": 115.02,
+                      "providerDecodeTokensPerSecond": 56.33,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 1666,
+                      "reasoningCharacters": 1666,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Prompt:** \"[BENCH-omlx-true-short-explanation-0] 낙관적 락과 비관적 락의 차이를 이커머스 재고 차감 사례로 간결하게 설명하라.\"\n   - **Key Requirements:**\n     - Explain the difference between Optimistic Lockin"
+                    },
+                    {
+                      "promptTokens": 92,
+                      "completionTokens": 512,
+                      "ttftMs": 760.7,
+                      "visibleTtftMs": 10042.91,
+                      "totalMs": 10043.51,
+                      "effectivePromptTokensPerSecond": 120.94,
+                      "decodeTokensPerSecond": 55.16,
+                      "providerPromptTokensPerSecond": 122.28,
+                      "providerDecodeTokensPerSecond": 55.14,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 1965,
+                      "reasoningCharacters": 1965,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Topic:** Difference between Optimistic Locking and Pessimistic Locking\n   - **Context:** E-commerce inventory deduction example\n   - **Requirement:** Concise explanation\n   - *"
+                    },
+                    {
+                      "promptTokens": 92,
+                      "completionTokens": 512,
+                      "ttftMs": 773.6,
+                      "visibleTtftMs": 10027.75,
+                      "totalMs": 10028.17,
+                      "effectivePromptTokensPerSecond": 118.93,
+                      "decodeTokensPerSecond": 55.32,
+                      "providerPromptTokensPerSecond": 119.92,
+                      "providerDecodeTokensPerSecond": 55.3,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 1578,
+                      "reasoningCharacters": 1578,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Prompt:** \"[BENCH-omlx-true-short-explanation-2] 낙관적 락과 비관적 락의 차이를 이커머스 재고 차감 사례로 간결하게 설명하라.\"\n   - **Key Concepts:** 낙관적 락 (Optimistic Locking), 비관적 락 (Pessimistic Locking), 이커"
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 779.34,
+                      "median": 773.6,
+                      "min": 760.7,
+                      "max": 803.72
+                    },
+                    "visibleTtftMs": {
+                      "mean": 9987.63,
+                      "median": 10027.75,
+                      "min": 9892.23,
+                      "max": 10042.91
+                    },
+                    "totalMs": {
+                      "mean": 9988.08,
+                      "median": 10028.17,
+                      "min": 9892.56,
+                      "max": 10043.51
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 118.11,
+                      "median": 118.93,
+                      "min": 114.47,
+                      "max": 120.94
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 55.6,
+                      "median": 55.32,
+                      "min": 55.16,
+                      "max": 56.33
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 119.07,
+                      "median": 119.92,
+                      "min": 115.02,
+                      "max": 122.28
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 55.59,
+                      "median": 55.3,
+                      "min": 55.14,
+                      "max": 56.33
+                    }
+                  }
+                },
+                {
+                  "id": "coding",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 106,
+                      "completionTokens": 512,
+                      "ttftMs": 856.58,
+                      "visibleTtftMs": 10207.27,
+                      "totalMs": 10207.57,
+                      "effectivePromptTokensPerSecond": 123.75,
+                      "decodeTokensPerSecond": 54.75,
+                      "providerPromptTokensPerSecond": 124.91,
+                      "providerDecodeTokensPerSecond": 54.73,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 2216,
+                      "reasoningCharacters": 2216,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Task:** Write a Java 21 example of an order creation service with idempotency keys.\n   - **Requirements:** Include concurrent requests, transaction boundaries, failure response"
+                    },
+                    {
+                      "promptTokens": 106,
+                      "completionTokens": 512,
+                      "ttftMs": 877.11,
+                      "visibleTtftMs": 10050.48,
+                      "totalMs": 10050.83,
+                      "effectivePromptTokensPerSecond": 120.85,
+                      "decodeTokensPerSecond": 55.81,
+                      "providerPromptTokensPerSecond": 122.35,
+                      "providerDecodeTokensPerSecond": 55.79,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 2163,
+                      "reasoningCharacters": 2163,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Framework/Version:** Java 21\n   - **Feature:** Idempotency Key (멱등성 키)\n   - **Domain:** Order Creation Service (주문 생성 서비스)\n   - **Requirements:** Include concurrent requests ha"
+                    },
+                    {
+                      "promptTokens": 106,
+                      "completionTokens": 512,
+                      "ttftMs": 949.6,
+                      "visibleTtftMs": 10269.5,
+                      "totalMs": 10269.86,
+                      "effectivePromptTokensPerSecond": 111.63,
+                      "decodeTokensPerSecond": 54.93,
+                      "providerPromptTokensPerSecond": 112.64,
+                      "providerDecodeTokensPerSecond": 54.91,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 2208,
+                      "reasoningCharacters": 2208,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Framework/Version:** Java 21\n   - **Feature:** Idempotency Key (멱등성 키)\n   - **Domain:** Order Creation Service (주문 생성 서비스)\n   - **Requirements:** Include concurrent requests ha"
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 894.43,
+                      "median": 877.11,
+                      "min": 856.58,
+                      "max": 949.6
+                    },
+                    "visibleTtftMs": {
+                      "mean": 10175.75,
+                      "median": 10207.27,
+                      "min": 10050.48,
+                      "max": 10269.5
+                    },
+                    "totalMs": {
+                      "mean": 10176.09,
+                      "median": 10207.57,
+                      "min": 10050.83,
+                      "max": 10269.86
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 118.74,
+                      "median": 120.85,
+                      "min": 111.63,
+                      "max": 123.75
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 55.16,
+                      "median": 54.93,
+                      "min": 54.75,
+                      "max": 55.81
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 119.97,
+                      "median": 122.35,
+                      "min": 112.64,
+                      "max": 124.91
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 55.14,
+                      "median": 54.91,
+                      "min": 54.73,
+                      "max": 55.79
+                    }
+                  }
+                },
+                {
+                  "id": "long-context",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 4073,
+                      "completionTokens": 512,
+                      "ttftMs": 9143.7,
+                      "visibleTtftMs": 19247.81,
+                      "totalMs": 19248.44,
+                      "effectivePromptTokensPerSecond": 445.44,
+                      "decodeTokensPerSecond": 50.67,
+                      "providerPromptTokensPerSecond": 446.86,
+                      "providerDecodeTokensPerSecond": 50.65,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 1295,
+                      "reasoningCharacters": 1295,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - Input data: A list of 180 orders, each with an ID, region, amount, and status.\n   - Task: Calculate the number of orders with status \"RETRY\" and the sum of their amounts. Also, o"
+                    },
+                    {
+                      "promptTokens": 4073,
+                      "completionTokens": 512,
+                      "ttftMs": 9900.74,
+                      "visibleTtftMs": 19911.48,
+                      "totalMs": 19911.71,
+                      "effectivePromptTokensPerSecond": 411.38,
+                      "decodeTokensPerSecond": 51.14,
+                      "providerPromptTokensPerSecond": 412.74,
+                      "providerDecodeTokensPerSecond": 51.13,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 1307,
+                      "reasoningCharacters": 1307,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Understand User Input:**\n   - The user provides a list of 180 orders, each with an ID, region, amount, and status.\n   - The task: Calculate the number of orders with status \"RETRY\" and the sum of their amo"
+                    },
+                    {
+                      "promptTokens": 4073,
+                      "completionTokens": 512,
+                      "ttftMs": 9522.24,
+                      "visibleTtftMs": 19529.22,
+                      "totalMs": 19529.5,
+                      "effectivePromptTokensPerSecond": 427.74,
+                      "decodeTokensPerSecond": 51.16,
+                      "providerPromptTokensPerSecond": 429.29,
+                      "providerDecodeTokensPerSecond": 51.15,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 1293,
+                      "reasoningCharacters": 1293,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Understand User Input:**\n   - Input: A list of 180 orders, each with an ID, region, amount, and status.\n   - Task: Calculate the count of orders with status \"RETRY\" and the sum of their amounts. Also, outp"
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 9522.23,
+                      "median": 9522.24,
+                      "min": 9143.7,
+                      "max": 9900.74
+                    },
+                    "visibleTtftMs": {
+                      "mean": 19562.84,
+                      "median": 19529.22,
+                      "min": 19247.81,
+                      "max": 19911.48
+                    },
+                    "totalMs": {
+                      "mean": 19563.22,
+                      "median": 19529.5,
+                      "min": 19248.44,
+                      "max": 19911.71
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 428.19,
+                      "median": 427.74,
+                      "min": 411.38,
+                      "max": 445.44
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 50.99,
+                      "median": 51.14,
+                      "min": 50.67,
+                      "max": 51.16
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 429.63,
+                      "median": 429.29,
+                      "min": 412.74,
+                      "max": 446.86
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 50.98,
+                      "median": 51.13,
+                      "min": 50.65,
+                      "max": 51.15
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "cacheMode": "hit",
+              "cases": [
+                {
+                  "id": "short-explanation",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 78,
+                      "completionTokens": 512,
+                      "ttftMs": 788.01,
+                      "visibleTtftMs": 10232.01,
+                      "totalMs": 10232.27,
+                      "effectivePromptTokensPerSecond": 98.98,
+                      "decodeTokensPerSecond": 54.21,
+                      "providerPromptTokensPerSecond": 99.84,
+                      "providerDecodeTokensPerSecond": 54.2,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 1791,
+                      "reasoningCharacters": 1791,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Topic:** Difference between optimistic locking and pessimistic locking\n   - **Context:** E-commerce inventory deduction example\n   - **Requirement:** Concise explanation, direc"
+                    },
+                    {
+                      "promptTokens": 78,
+                      "completionTokens": 512,
+                      "ttftMs": 829.41,
+                      "visibleTtftMs": 10240.49,
+                      "totalMs": 10241.05,
+                      "effectivePromptTokensPerSecond": 94.04,
+                      "decodeTokensPerSecond": 54.4,
+                      "providerPromptTokensPerSecond": 95.09,
+                      "providerDecodeTokensPerSecond": 54.38,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 1791,
+                      "reasoningCharacters": 1791,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Topic:** Difference between optimistic locking and pessimistic locking\n   - **Context:** E-commerce inventory deduction example\n   - **Requirement:** Concise explanation, direc"
+                    },
+                    {
+                      "promptTokens": 78,
+                      "completionTokens": 512,
+                      "ttftMs": 758.08,
+                      "visibleTtftMs": 10219.1,
+                      "totalMs": 10219.3,
+                      "effectivePromptTokensPerSecond": 102.89,
+                      "decodeTokensPerSecond": 54.12,
+                      "providerPromptTokensPerSecond": 104.01,
+                      "providerDecodeTokensPerSecond": 54.09,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 1791,
+                      "reasoningCharacters": 1791,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Topic:** Difference between optimistic locking and pessimistic locking\n   - **Context:** E-commerce inventory deduction example\n   - **Requirement:** Concise explanation, direc"
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 791.83,
+                      "median": 788.01,
+                      "min": 758.08,
+                      "max": 829.41
+                    },
+                    "visibleTtftMs": {
+                      "mean": 10230.53,
+                      "median": 10232.01,
+                      "min": 10219.1,
+                      "max": 10240.49
+                    },
+                    "totalMs": {
+                      "mean": 10230.87,
+                      "median": 10232.27,
+                      "min": 10219.3,
+                      "max": 10241.05
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 98.64,
+                      "median": 98.98,
+                      "min": 94.04,
+                      "max": 102.89
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 54.24,
+                      "median": 54.21,
+                      "min": 54.12,
+                      "max": 54.4
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 99.65,
+                      "median": 99.84,
+                      "min": 95.09,
+                      "max": 104.01
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 54.22,
+                      "median": 54.2,
+                      "min": 54.09,
+                      "max": 54.38
+                    }
+                  }
+                },
+                {
+                  "id": "coding",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 93,
+                      "completionTokens": 512,
+                      "ttftMs": 818.43,
+                      "visibleTtftMs": 10370.44,
+                      "totalMs": 10370.77,
+                      "effectivePromptTokensPerSecond": 113.63,
+                      "decodeTokensPerSecond": 53.6,
+                      "providerPromptTokensPerSecond": 114.69,
+                      "providerDecodeTokensPerSecond": 53.58,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 2076,
+                      "reasoningCharacters": 2076,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Language:** Java 21\n   - **Feature:** Idempotency Key (멱등성 키)\n   - **Service:** Order Creation Service (주문 생성 서비스)\n   - **Requirements:** Include concurrent requests handling, "
+                    },
+                    {
+                      "promptTokens": 93,
+                      "completionTokens": 512,
+                      "ttftMs": 784.05,
+                      "visibleTtftMs": 10319.4,
+                      "totalMs": 10319.67,
+                      "effectivePromptTokensPerSecond": 118.61,
+                      "decodeTokensPerSecond": 53.69,
+                      "providerPromptTokensPerSecond": 119.66,
+                      "providerDecodeTokensPerSecond": 53.68,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 2076,
+                      "reasoningCharacters": 2076,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Language:** Java 21\n   - **Feature:** Idempotency Key (멱등성 키)\n   - **Service:** Order Creation Service (주문 생성 서비스)\n   - **Requirements:** Include concurrent requests handling, "
+                    },
+                    {
+                      "promptTokens": 93,
+                      "completionTokens": 512,
+                      "ttftMs": 838.4,
+                      "visibleTtftMs": 10280.79,
+                      "totalMs": 10281.13,
+                      "effectivePromptTokensPerSecond": 110.93,
+                      "decodeTokensPerSecond": 54.22,
+                      "providerPromptTokensPerSecond": 111.91,
+                      "providerDecodeTokensPerSecond": 54.2,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 2076,
+                      "reasoningCharacters": 2076,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Language:** Java 21\n   - **Feature:** Idempotency Key (멱등성 키)\n   - **Service:** Order Creation Service (주문 생성 서비스)\n   - **Requirements:** Include concurrent requests handling, "
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 813.63,
+                      "median": 818.43,
+                      "min": 784.05,
+                      "max": 838.4
+                    },
+                    "visibleTtftMs": {
+                      "mean": 10323.54,
+                      "median": 10319.4,
+                      "min": 10280.79,
+                      "max": 10370.44
+                    },
+                    "totalMs": {
+                      "mean": 10323.86,
+                      "median": 10319.67,
+                      "min": 10281.13,
+                      "max": 10370.77
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 114.39,
+                      "median": 113.63,
+                      "min": 110.93,
+                      "max": 118.61
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 53.84,
+                      "median": 53.69,
+                      "min": 53.6,
+                      "max": 54.22
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 115.42,
+                      "median": 114.69,
+                      "min": 111.91,
+                      "max": 119.66
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 53.82,
+                      "median": 53.68,
+                      "min": 53.58,
+                      "max": 54.2
+                    }
+                  }
+                },
+                {
+                  "id": "long-context",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 4060,
+                      "completionTokens": 512,
+                      "ttftMs": 4975.02,
+                      "visibleTtftMs": 14970.18,
+                      "totalMs": 14970.49,
+                      "effectivePromptTokensPerSecond": 816.08,
+                      "decodeTokensPerSecond": 51.22,
+                      "providerPromptTokensPerSecond": 821.48,
+                      "providerDecodeTokensPerSecond": 51.21,
+                      "cachedPromptTokens": 2048,
+                      "outputCharacters": 1292,
+                      "reasoningCharacters": 1292,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Understand User Input:**\n   - Input: A list of 180 orders, each with an ID, region, amount, and status.\n   - Task: Calculate the count of orders with status \"RETRY\" and the sum of their amounts. Also, outp"
+                    },
+                    {
+                      "promptTokens": 4060,
+                      "completionTokens": 512,
+                      "ttftMs": 4839.7,
+                      "visibleTtftMs": 14927.97,
+                      "totalMs": 14928.06,
+                      "effectivePromptTokensPerSecond": 838.9,
+                      "decodeTokensPerSecond": 50.75,
+                      "providerPromptTokensPerSecond": 844.48,
+                      "providerDecodeTokensPerSecond": 50.74,
+                      "cachedPromptTokens": 2048,
+                      "outputCharacters": 1292,
+                      "reasoningCharacters": 1292,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Understand User Input:**\n   - Input: A list of 180 orders, each with an ID, region, amount, and status.\n   - Task: Calculate the count of orders with status \"RETRY\" and the sum of their amounts. Also, outp"
+                    },
+                    {
+                      "promptTokens": 4060,
+                      "completionTokens": 512,
+                      "ttftMs": 5053.23,
+                      "visibleTtftMs": 15093.87,
+                      "totalMs": 15095.96,
+                      "effectivePromptTokensPerSecond": 803.45,
+                      "decodeTokensPerSecond": 50.98,
+                      "providerPromptTokensPerSecond": 808.15,
+                      "providerDecodeTokensPerSecond": 50.97,
+                      "cachedPromptTokens": 2048,
+                      "outputCharacters": 1292,
+                      "reasoningCharacters": 1292,
+                      "outputPreview": "\nHere's a thinking process:\n\n1.  **Understand User Input:**\n   - Input: A list of 180 orders, each with an ID, region, amount, and status.\n   - Task: Calculate the count of orders with status \"RETRY\" and the sum of their amounts. Also, outp"
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 4955.98,
+                      "median": 4975.02,
+                      "min": 4839.7,
+                      "max": 5053.23
+                    },
+                    "visibleTtftMs": {
+                      "mean": 14997.34,
+                      "median": 14970.18,
+                      "min": 14927.97,
+                      "max": 15093.87
+                    },
+                    "totalMs": {
+                      "mean": 14998.17,
+                      "median": 14970.49,
+                      "min": 14928.06,
+                      "max": 15095.96
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 819.48,
+                      "median": 816.08,
+                      "min": 803.45,
+                      "max": 838.9
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 50.98,
+                      "median": 50.98,
+                      "min": 50.75,
+                      "max": 51.22
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 824.7,
+                      "median": 821.48,
+                      "min": 808.15,
+                      "max": 844.48
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 50.97,
+                      "median": 50.97,
+                      "min": 50.74,
+                      "max": 51.21
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "thinking": false,
+          "cacheModes": [
+            {
+              "cacheMode": "miss",
+              "cases": [
+                {
+                  "id": "short-explanation",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 94,
+                      "completionTokens": 106,
+                      "ttftMs": 698.43,
+                      "visibleTtftMs": 698.43,
+                      "totalMs": 2450.76,
+                      "effectivePromptTokensPerSecond": 134.59,
+                      "decodeTokensPerSecond": 60.49,
+                      "providerPromptTokensPerSecond": 136.13,
+                      "providerDecodeTokensPerSecond": 60.38,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 195,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "낙관적 락은 데이터 변경 전 충돌 여부를 확인하여 충돌 시 트랜잭션을 재시도하는 방식이며, 비관적 락은 데이터 접근 시 즉시 행을 잠가 다른 트랜잭션의 접근을 원천적으로 차단하는 방식입니다. 이커머스 재고 차감 시 낙관적 락은 높은 동시성 처리에 유리하지만 충돌 리스크가 있고, 비관적 락은 데이터 정합성을 보장하지만 동시성 처리 성능이 낮아집니다."
+                    },
+                    {
+                      "promptTokens": 94,
+                      "completionTokens": 80,
+                      "ttftMs": 812.02,
+                      "visibleTtftMs": 812.02,
+                      "totalMs": 2099.24,
+                      "effectivePromptTokensPerSecond": 115.76,
+                      "decodeTokensPerSecond": 62.15,
+                      "providerPromptTokensPerSecond": 116.84,
+                      "providerDecodeTokensPerSecond": 62,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 144,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "낙관적 락은 트랜잭션 실행 중 락을 걸지 않고, 커밋 시 재고 데이터의 변경 이력이 충돌했는지 확인하여 충돌 시 롤백하는 방식입니다. 반면 비관적 락은 재고 조회 시 즉시 행 락을 획득하여 다른 트랜잭션이 해당 데이터를 수정하지 못하도록 차단하는 방식입니다."
+                    },
+                    {
+                      "promptTokens": 94,
+                      "completionTokens": 106,
+                      "ttftMs": 690.98,
+                      "visibleTtftMs": 690.99,
+                      "totalMs": 2534.7,
+                      "effectivePromptTokensPerSecond": 136.04,
+                      "decodeTokensPerSecond": 57.49,
+                      "providerPromptTokensPerSecond": 137.55,
+                      "providerDecodeTokensPerSecond": 57.41,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 193,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "낙관적 락은 데이터 변경 전 버전(버전 번호)을 확인하여 충돌 시 재시도하는 방식이며, 비관적 락은 데이터 접근 시 즉시 행을 잠가 다른 트랜잭션의 접근을 차단하는 방식입니다. 이커머스 재고 차감 시 낙관적 락은 경쟁 상태 발생 시 재시도로 일관성을 유지하고, 비관적 락은 잠금으로 인해 동시성 처리는 낮지만 데이터 충돌을 근본적으로 방지합니다."
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 733.81,
+                      "median": 698.43,
+                      "min": 690.98,
+                      "max": 812.02
+                    },
+                    "visibleTtftMs": {
+                      "mean": 733.81,
+                      "median": 698.43,
+                      "min": 690.99,
+                      "max": 812.02
+                    },
+                    "totalMs": {
+                      "mean": 2361.57,
+                      "median": 2450.76,
+                      "min": 2099.24,
+                      "max": 2534.7
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 128.8,
+                      "median": 134.59,
+                      "min": 115.76,
+                      "max": 136.04
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 60.04,
+                      "median": 60.49,
+                      "min": 57.49,
+                      "max": 62.15
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 130.17,
+                      "median": 136.13,
+                      "min": 116.84,
+                      "max": 137.55
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 59.93,
+                      "median": 60.38,
+                      "min": 57.41,
+                      "max": 62
+                    }
+                  }
+                },
+                {
+                  "id": "coding",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 108,
+                      "completionTokens": 512,
+                      "ttftMs": 927.79,
+                      "visibleTtftMs": 927.79,
+                      "totalMs": 10402.82,
+                      "effectivePromptTokensPerSecond": 116.41,
+                      "decodeTokensPerSecond": 54.04,
+                      "providerPromptTokensPerSecond": 117.34,
+                      "providerDecodeTokensPerSecond": 54.01,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 1803,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "```java\nimport org.springframework.data.redis.core.StringRedisTemplate;\nimport org.springframework.stereotype.Service;\nimport org.springframework.transaction.annotation.Transactional;\n\nimport java.time.Duration;\nimport java.util.UUID;\nimpor"
+                    },
+                    {
+                      "promptTokens": 108,
+                      "completionTokens": 512,
+                      "ttftMs": 922.87,
+                      "visibleTtftMs": 922.87,
+                      "totalMs": 10254.5,
+                      "effectivePromptTokensPerSecond": 117.03,
+                      "decodeTokensPerSecond": 54.87,
+                      "providerPromptTokensPerSecond": 117.47,
+                      "providerDecodeTokensPerSecond": 54.87,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 2065,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "```java\nimport org.springframework.data.redis.core.StringRedisTemplate;\nimport org.springframework.stereotype.Service;\nimport org.springframework.transaction.annotation.Transactional;\n\nimport java.time.Duration;\nimport java.util.UUID;\nimpor"
+                    },
+                    {
+                      "promptTokens": 108,
+                      "completionTokens": 512,
+                      "ttftMs": 882.29,
+                      "visibleTtftMs": 882.29,
+                      "totalMs": 10323.74,
+                      "effectivePromptTokensPerSecond": 122.41,
+                      "decodeTokensPerSecond": 54.23,
+                      "providerPromptTokensPerSecond": 123.37,
+                      "providerDecodeTokensPerSecond": 54.21,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 1932,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "```java\nimport org.springframework.data.redis.core.StringRedisTemplate;\nimport org.springframework.stereotype.Service;\nimport org.springframework.transaction.annotation.Transactional;\n\nimport java.time.Duration;\nimport java.util.UUID;\nimpor"
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 910.98,
+                      "median": 922.87,
+                      "min": 882.29,
+                      "max": 927.79
+                    },
+                    "visibleTtftMs": {
+                      "mean": 910.98,
+                      "median": 922.87,
+                      "min": 882.29,
+                      "max": 927.79
+                    },
+                    "totalMs": {
+                      "mean": 10327.02,
+                      "median": 10323.74,
+                      "min": 10254.5,
+                      "max": 10402.82
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 118.62,
+                      "median": 117.03,
+                      "min": 116.41,
+                      "max": 122.41
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 54.38,
+                      "median": 54.23,
+                      "min": 54.04,
+                      "max": 54.87
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 119.39,
+                      "median": 117.47,
+                      "min": 117.34,
+                      "max": 123.37
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 54.36,
+                      "median": 54.21,
+                      "min": 54.01,
+                      "max": 54.87
+                    }
+                  }
+                },
+                {
+                  "id": "long-context",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 4075,
+                      "completionTokens": 273,
+                      "ttftMs": 9443.11,
+                      "visibleTtftMs": 9443.11,
+                      "totalMs": 14465.05,
+                      "effectivePromptTokensPerSecond": 431.53,
+                      "decodeTokensPerSecond": 54.36,
+                      "providerPromptTokensPerSecond": 433.03,
+                      "providerDecodeTokensPerSecond": 54.33,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 522,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "{\n  \"retry_count\": 30,\n  \"retry_amount_sum\": 111150,\n  \"retry_order_ids\": [\n    \"ORDER-001\",\n    \"ORDER-008\",\n    \"ORDER-015\",\n    \"ORDER-022\",\n    \"ORDER-029\",\n    \"ORDER-036\",\n    \"ORDER-043\",\n    \"ORDER-050\",\n    \"ORDER-057\",\n    \"ORDER-"
+                    },
+                    {
+                      "promptTokens": 4075,
+                      "completionTokens": 274,
+                      "ttftMs": 9482.26,
+                      "visibleTtftMs": 9482.27,
+                      "totalMs": 14794.22,
+                      "effectivePromptTokensPerSecond": 429.75,
+                      "decodeTokensPerSecond": 51.58,
+                      "providerPromptTokensPerSecond": 431.3,
+                      "providerDecodeTokensPerSecond": 51.55,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 528,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "{\n  \"retry_order_count\": 30,\n  \"retry_amount_sum\": 139500,\n  \"retry_order_ids\": [\n    \"ORDER-001\",\n    \"ORDER-008\",\n    \"ORDER-015\",\n    \"ORDER-022\",\n    \"ORDER-029\",\n    \"ORDER-036\",\n    \"ORDER-043\",\n    \"ORDER-050\",\n    \"ORDER-057\",\n    \""
+                    },
+                    {
+                      "promptTokens": 4075,
+                      "completionTokens": 274,
+                      "ttftMs": 9334.43,
+                      "visibleTtftMs": 9334.43,
+                      "totalMs": 14457.9,
+                      "effectivePromptTokensPerSecond": 436.56,
+                      "decodeTokensPerSecond": 53.48,
+                      "providerPromptTokensPerSecond": 438.21,
+                      "providerDecodeTokensPerSecond": 53.44,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 531,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "{\n  \"retry_order_count\": 30,\n  \"retry_amount_sum\": 139500,\n  \"verified_order_ids\": [\n    \"ORDER-001\",\n    \"ORDER-008\",\n    \"ORDER-015\",\n    \"ORDER-022\",\n    \"ORDER-029\",\n    \"ORDER-036\",\n    \"ORDER-043\",\n    \"ORDER-050\",\n    \"ORDER-057\",\n  "
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 9419.93,
+                      "median": 9443.11,
+                      "min": 9334.43,
+                      "max": 9482.26
+                    },
+                    "visibleTtftMs": {
+                      "mean": 9419.94,
+                      "median": 9443.11,
+                      "min": 9334.43,
+                      "max": 9482.27
+                    },
+                    "totalMs": {
+                      "mean": 14572.39,
+                      "median": 14465.05,
+                      "min": 14457.9,
+                      "max": 14794.22
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 432.61,
+                      "median": 431.53,
+                      "min": 429.75,
+                      "max": 436.56
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 53.14,
+                      "median": 53.48,
+                      "min": 51.58,
+                      "max": 54.36
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 434.18,
+                      "median": 433.03,
+                      "min": 431.3,
+                      "max": 438.21
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 53.11,
+                      "median": 53.44,
+                      "min": 51.55,
+                      "max": 54.33
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "cacheMode": "hit",
+              "cases": [
+                {
+                  "id": "short-explanation",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 80,
+                      "completionTokens": 76,
+                      "ttftMs": 637.4,
+                      "visibleTtftMs": 637.4,
+                      "totalMs": 1901.01,
+                      "effectivePromptTokensPerSecond": 125.51,
+                      "decodeTokensPerSecond": 60.14,
+                      "providerPromptTokensPerSecond": 127.05,
+                      "providerDecodeTokensPerSecond": 59.99,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 131,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "낙관적 락은 데이터베이스의 버전 번호나 타임스탬프를 비교하여 충돌 시 재시도(또는 실패)하는 방식이며, 비관적 락은 트랜잭션 시작 시 해당 재고 행을 즉시 잠금(For Update)하여 다른 트랜잭션의 접근을 원천 차단하는 방식입니다."
+                    },
+                    {
+                      "promptTokens": 80,
+                      "completionTokens": 76,
+                      "ttftMs": 711.87,
+                      "visibleTtftMs": 711.87,
+                      "totalMs": 2077.21,
+                      "effectivePromptTokensPerSecond": 112.38,
+                      "decodeTokensPerSecond": 55.66,
+                      "providerPromptTokensPerSecond": 113.64,
+                      "providerDecodeTokensPerSecond": 55.54,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 131,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "낙관적 락은 데이터베이스의 버전 번호나 타임스탬프를 비교하여 충돌 시 재시도(또는 실패)하는 방식이며, 비관적 락은 트랜잭션 시작 시 해당 재고 행을 즉시 잠금(For Update)하여 다른 트랜잭션의 접근을 원천 차단하는 방식입니다."
+                    },
+                    {
+                      "promptTokens": 80,
+                      "completionTokens": 76,
+                      "ttftMs": 814.29,
+                      "visibleTtftMs": 814.29,
+                      "totalMs": 2045.46,
+                      "effectivePromptTokensPerSecond": 98.24,
+                      "decodeTokensPerSecond": 61.73,
+                      "providerPromptTokensPerSecond": 99.26,
+                      "providerDecodeTokensPerSecond": 61.58,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 131,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "낙관적 락은 데이터베이스의 버전 번호나 타임스탬프를 비교하여 충돌 시 재시도(또는 실패)하는 방식이며, 비관적 락은 트랜잭션 시작 시 해당 재고 행을 즉시 잠금(For Update)하여 다른 트랜잭션의 접근을 원천 차단하는 방식입니다."
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 721.19,
+                      "median": 711.87,
+                      "min": 637.4,
+                      "max": 814.29
+                    },
+                    "visibleTtftMs": {
+                      "mean": 721.19,
+                      "median": 711.87,
+                      "min": 637.4,
+                      "max": 814.29
+                    },
+                    "totalMs": {
+                      "mean": 2007.89,
+                      "median": 2045.46,
+                      "min": 1901.01,
+                      "max": 2077.21
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 112.04,
+                      "median": 112.38,
+                      "min": 98.24,
+                      "max": 125.51
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 59.18,
+                      "median": 60.14,
+                      "min": 55.66,
+                      "max": 61.73
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 113.32,
+                      "median": 113.64,
+                      "min": 99.26,
+                      "max": 127.05
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 59.04,
+                      "median": 59.99,
+                      "min": 55.54,
+                      "max": 61.58
+                    }
+                  }
+                },
+                {
+                  "id": "coding",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 95,
+                      "completionTokens": 512,
+                      "ttftMs": 837.92,
+                      "visibleTtftMs": 837.92,
+                      "totalMs": 10124.38,
+                      "effectivePromptTokensPerSecond": 113.38,
+                      "decodeTokensPerSecond": 55.13,
+                      "providerPromptTokensPerSecond": 114.59,
+                      "providerDecodeTokensPerSecond": 55.11,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 2025,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "```java\nimport org.springframework.data.annotation.Id;\nimport org.springframework.data.mongodb.core.mapping.Document;\nimport org.springframework.http.HttpStatus;\nimport org.springframework.http.ResponseEntity;\nimport org.springframework.web"
+                    },
+                    {
+                      "promptTokens": 95,
+                      "completionTokens": 512,
+                      "ttftMs": 854.82,
+                      "visibleTtftMs": 854.82,
+                      "totalMs": 10271.22,
+                      "effectivePromptTokensPerSecond": 111.13,
+                      "decodeTokensPerSecond": 54.37,
+                      "providerPromptTokensPerSecond": 112.06,
+                      "providerDecodeTokensPerSecond": 54.36,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 2025,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "```java\nimport org.springframework.data.annotation.Id;\nimport org.springframework.data.mongodb.core.mapping.Document;\nimport org.springframework.http.HttpStatus;\nimport org.springframework.http.ResponseEntity;\nimport org.springframework.web"
+                    },
+                    {
+                      "promptTokens": 95,
+                      "completionTokens": 512,
+                      "ttftMs": 770.48,
+                      "visibleTtftMs": 770.48,
+                      "totalMs": 10770.81,
+                      "effectivePromptTokensPerSecond": 123.3,
+                      "decodeTokensPerSecond": 51.2,
+                      "providerPromptTokensPerSecond": 124.43,
+                      "providerDecodeTokensPerSecond": 51.22,
+                      "cachedPromptTokens": 0,
+                      "outputCharacters": 2025,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "```java\nimport org.springframework.data.annotation.Id;\nimport org.springframework.data.mongodb.core.mapping.Document;\nimport org.springframework.http.HttpStatus;\nimport org.springframework.http.ResponseEntity;\nimport org.springframework.web"
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 821.07,
+                      "median": 837.92,
+                      "min": 770.48,
+                      "max": 854.82
+                    },
+                    "visibleTtftMs": {
+                      "mean": 821.07,
+                      "median": 837.92,
+                      "min": 770.48,
+                      "max": 854.82
+                    },
+                    "totalMs": {
+                      "mean": 10388.8,
+                      "median": 10271.22,
+                      "min": 10124.38,
+                      "max": 10770.81
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 115.94,
+                      "median": 113.38,
+                      "min": 111.13,
+                      "max": 123.3
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 53.57,
+                      "median": 54.37,
+                      "min": 51.2,
+                      "max": 55.13
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 117.03,
+                      "median": 114.59,
+                      "min": 112.06,
+                      "max": 124.43
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 53.56,
+                      "median": 54.36,
+                      "min": 51.22,
+                      "max": 55.11
+                    }
+                  }
+                },
+                {
+                  "id": "long-context",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 4062,
+                      "completionTokens": 273,
+                      "ttftMs": 5686.26,
+                      "visibleTtftMs": 5686.26,
+                      "totalMs": 11049.21,
+                      "effectivePromptTokensPerSecond": 714.35,
+                      "decodeTokensPerSecond": 50.9,
+                      "providerPromptTokensPerSecond": 719.49,
+                      "providerDecodeTokensPerSecond": 50.81,
+                      "cachedPromptTokens": 2048,
+                      "outputCharacters": 527,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "{\n  \"retry_order_count\": 18,\n  \"retry_amount_sum\": 42306,\n  \"retry_order_ids\": [\n    \"ORDER-001\",\n    \"ORDER-008\",\n    \"ORDER-015\",\n    \"ORDER-022\",\n    \"ORDER-029\",\n    \"ORDER-036\",\n    \"ORDER-043\",\n    \"ORDER-050\",\n    \"ORDER-057\",\n    \"O"
+                    },
+                    {
+                      "promptTokens": 4062,
+                      "completionTokens": 273,
+                      "ttftMs": 5598.8,
+                      "visibleTtftMs": 5598.8,
+                      "totalMs": 10981.21,
+                      "effectivePromptTokensPerSecond": 725.51,
+                      "decodeTokensPerSecond": 50.72,
+                      "providerPromptTokensPerSecond": 730.04,
+                      "providerDecodeTokensPerSecond": 50.68,
+                      "cachedPromptTokens": 2048,
+                      "outputCharacters": 527,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "{\n  \"retry_order_count\": 18,\n  \"retry_amount_sum\": 42306,\n  \"retry_order_ids\": [\n    \"ORDER-001\",\n    \"ORDER-008\",\n    \"ORDER-015\",\n    \"ORDER-022\",\n    \"ORDER-029\",\n    \"ORDER-036\",\n    \"ORDER-043\",\n    \"ORDER-050\",\n    \"ORDER-057\",\n    \"O"
+                    },
+                    {
+                      "promptTokens": 4062,
+                      "completionTokens": 273,
+                      "ttftMs": 5982.46,
+                      "visibleTtftMs": 5982.47,
+                      "totalMs": 12083.74,
+                      "effectivePromptTokensPerSecond": 678.98,
+                      "decodeTokensPerSecond": 44.74,
+                      "providerPromptTokensPerSecond": 683.21,
+                      "providerDecodeTokensPerSecond": 44.73,
+                      "cachedPromptTokens": 2048,
+                      "outputCharacters": 527,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "{\n  \"retry_order_count\": 18,\n  \"retry_amount_sum\": 42306,\n  \"retry_order_ids\": [\n    \"ORDER-001\",\n    \"ORDER-008\",\n    \"ORDER-015\",\n    \"ORDER-022\",\n    \"ORDER-029\",\n    \"ORDER-036\",\n    \"ORDER-043\",\n    \"ORDER-050\",\n    \"ORDER-057\",\n    \"O"
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 5755.84,
+                      "median": 5686.26,
+                      "min": 5598.8,
+                      "max": 5982.46
+                    },
+                    "visibleTtftMs": {
+                      "mean": 5755.84,
+                      "median": 5686.26,
+                      "min": 5598.8,
+                      "max": 5982.47
+                    },
+                    "totalMs": {
+                      "mean": 11371.39,
+                      "median": 11049.21,
+                      "min": 10981.21,
+                      "max": 12083.74
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 706.28,
+                      "median": 714.35,
+                      "min": 678.98,
+                      "max": 725.51
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 48.79,
+                      "median": 50.72,
+                      "min": 44.74,
+                      "max": 50.9
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 710.91,
+                      "median": 719.49,
+                      "min": 683.21,
+                      "max": 730.04
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 48.74,
+                      "median": 50.68,
+                      "min": 44.73,
+                      "max": 50.81
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "qualityChecks": [
+        {
+          "id": "short-explanation",
+          "thinking": true,
+          "result": {
+            "promptTokens": 78,
+            "completionTokens": 1024,
+            "ttftMs": 967.41,
+            "visibleTtftMs": 23607.39,
+            "totalMs": 23607.93,
+            "effectivePromptTokensPerSecond": 80.63,
+            "decodeTokensPerSecond": 45.23,
+            "providerPromptTokensPerSecond": 81.47,
+            "providerDecodeTokensPerSecond": 45.22,
+            "cachedPromptTokens": 0,
+            "outputCharacters": 3405,
+            "reasoningCharacters": 3405,
+            "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Topic:** Difference between optimistic locking and pessimistic locking\n   - **Context:** E-commerce inventory deduction example\n   - **Requirement:** Concise explanation, direc",
+            "outputText": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Topic:** Difference between optimistic locking and pessimistic locking\n   - **Context:** E-commerce inventory deduction example\n   - **Requirement:** Concise explanation, direct answer, no unnecessary introduction, do not include the first-line experiment identifier in the answer.\n   - **Language:** Korean\n\n2.  **Identify Key Concepts:**\n   - **Optimistic Locking (낙관적 락):** Assumes conflicts are rare. Uses version numbers or timestamps. Checks for changes before updating. If conflict detected, retries or fails.\n   - **Pessimistic Locking (비관적 락):** Assumes conflicts are common. Locks the resource immediately when reading/starting transaction. Prevents others from accessing until released.\n   - **E-commerce Inventory Deduction Example:** Multiple users trying to buy the last few items simultaneously.\n\n3.  **Map Concepts to Example:**\n   - *Optimistic:* Read inventory (e.g., 1 left). Check version. When deducting, verify version hasn't changed. If another user already bought it, transaction rolls back/retries. Good for low contention.\n   - *Pessimistic:* Lock the inventory row immediately upon reading. Other users wait until the first transaction completes (success or rollback). Guarantees no overselling but causes blocking/waiting. Good for high contention.\n\n4.  **Draft Response (Mental Refinement in Korean):**\n   낙관적 락: 재고 조회 시 버전 번호를 함께 읽는다. 차감 시 버전이 변경되지 않았으면 업데이트, 변경되었으면 충돌로 간주해 롤백 또는 재시도한다. 동시성 충돌이 적을 때 유리하며, 대기 없이 빠르게 실패/재시도한다.\n   비관적 락: 재고 조회 즉시 행 락(ROW LOCK)을 걸어 다른 트랜잭션이 읽거나 수정하지 못하게 한다. 첫 트랜잭션이 완료(커밋/롤백)될 때까지 대기한다. 동시성 충돌이 빈번할 때 과다 판매를 방지하지만, 대기 시간으로 인해 처리량이 떨어진다.\n   핵심 차이: 낙관적은 '충돌을 허용하고 검증 후 처리', 비관적은 '초기부터 접근을 차단하고 대기'한다.\n\n5.  **Check Against Requirements:**\n   - Accurate and direct? Yes.\n   - No unnecessary introduction? Yes, starts directly.\n   - First-line experiment identifier excluded? Yes, none included.\n   - Concise? Yes, structured and to the point.\n   - Uses e-commerce inventory deduction example? Yes.\n\n   The draft meets all criteria. I'll polish it slightly for maximum clarity and conciseness in Korean.\n\n   Refined:\n   낙관적 락: 재고 조회 시 버전(또는 타임스탬프)을 함께 읽는다. 차감 쿼리 실행 시 버전이 변경되지 않았으면 업데이트, 변경되었으면 충돌로 간주해 롤백 또는 재시도한다. 동시 요청이 적을 때 유리하며, 대기 없이 빠르게 실패/재시도한다.\n   비관적 락: 재고 조회 즉시 행 락(ROW LOCK)을 걸어 다른 트랜잭션의 접근을 차단한다. 첫 트랜잭션이 완료(커밋/롤백)될 때까지 다른 요청은 대기한다. 동시 요청이 많을 때 과다 판매를 확실하게 방지하지만, 대기 시간으로 처리량이 감소한다.\n   핵심 차이: 낙관적은 '변경 가능성을 허용하고 검증 후 처리', 비관적은 '초기부터 접근을 차단하고 대기'한다.\n\n6.  **Final Output Generation:** (Matches the refined version)✅\n   - Direct, concise, covers both locking types with the exact example, no fluff, no experiment ID. All constraints met.✅\n   - Output matches the response. \n   - Proceed. \n   - Self-Correction/Verification during thought: \n     - Check technical accuracy: Optimistic uses version/check-then-update, pessimistic uses immediate locking. Correct.\n     - E-commerce context: Inventory deduction, overselling prevention, concurrency handling. Correct.\n     - Language: Korean, concise. Correct.\n     - Format: Direct start, no intro. Correct.\n     - All good.✅\n   - Output matches the refined version. \n   - Proceeds. \n   - [Output Generation] -> *Proceeds*\n   - *(Self-Correction/Note during drafting)*: I'll make it slightly more structured for readability while keeping it strictly concise.\n   \"낙관적 락: 재고 조회 시 버전 번호를 함께 읽는다. 차감 시 버전이 변경되지 않았으면 업데이트, 변경되었으면 충돌"
+          }
+        },
+        {
+          "id": "coding",
+          "thinking": true,
+          "result": {
+            "promptTokens": 93,
+            "completionTokens": 1024,
+            "ttftMs": 832.43,
+            "visibleTtftMs": 22413.38,
+            "totalMs": 22413.79,
+            "effectivePromptTokensPerSecond": 111.72,
+            "decodeTokensPerSecond": 47.45,
+            "providerPromptTokensPerSecond": 112.88,
+            "providerDecodeTokensPerSecond": 47.44,
+            "cachedPromptTokens": 0,
+            "outputCharacters": 4186,
+            "reasoningCharacters": 4186,
+            "outputPreview": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Language:** Java 21\n   - **Feature:** Idempotency Key (멱등성 키)\n   - **Service:** Order Creation Service (주문 생성 서비스)\n   - **Requirements:** Include concurrent requests handling, ",
+            "outputText": "\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - **Language:** Java 21\n   - **Feature:** Idempotency Key (멱등성 키)\n   - **Service:** Order Creation Service (주문 생성 서비스)\n   - **Requirements:** Include concurrent requests handling, transaction boundaries, failure responses. Code-centric answer.\n   - **Constraints:** Be accurate and direct. Omit unnecessary introductions. Do not include the first-line experiment identifier in the answer.\n\n2.  **Key Concepts to Implement:**\n   - **Idempotency Key:** A unique key provided by the client to prevent duplicate processing of the same request.\n   - **Concurrency Control:** Need to handle concurrent requests with the same idempotency key. Typically, database-level locking (SELECT FOR UPDATE) or distributed locks, or using a unique constraint on the idempotency key table.\n   - **Transaction Boundary:** Spring `@Transactional` to ensure atomicity.\n   - **Failure Response:** Return appropriate HTTP status codes (e.g., 409 Conflict for duplicate, 400 Bad Request for invalid key, 500 for internal error) and structured responses.\n   - **Java 21 Features:** While not strictly required, I can use modern Java features like records, pattern matching, or virtual threads if relevant, but the core is Spring Boot + JPA/Hibernate. I'll stick to standard Spring Boot 3.x (which supports Java 21) with JPA.\n\n3.  **Design the Solution:**\n   - **Entities:**\n     - `Order`: Represents the order.\n     - `IdempotencyKey`: Stores the key, status, and associated order ID.\n   - **Repository:**\n     - `IdempotencyKeyRepository`: To find/insert idempotency keys.\n     - `OrderRepository`: To save orders.\n   - **Service:**\n     - `OrderService`: Handles the creation logic with idempotency checks.\n   - **Controller:**\n     - `OrderController`: Exposes REST endpoint.\n   - **Concurrency Handling:** Use `@Transactional` with `ISOLATION_SERIALIZABLE` or `SELECT FOR UPDATE` on the idempotency key record. Alternatively, rely on a unique constraint on the idempotency key column and catch `DataIntegrityViolationException`. I'll use the unique constraint approach as it's simpler and robust, combined with `@Transactional` for the order creation.\n   - **Response Structure:** Use a standard response DTO or Spring's `ResponseEntity`.\n\n4.  **Draft Code (Mental Refinement):**\n\n   *IdempotencyKey Entity:*\n   ```java\n   @Entity\n   @Table(name = \"idempotency_keys\", uniqueConstraints = @UniqueConstraint(name = \"uk_idempotency_key\", columnNames = \"key\"))\n   public class IdempotencyKey {\n       @Id\n       private String key;\n       private String orderId;\n       private String status; // PENDING, SUCCESS, FAILED\n       private LocalDateTime createdAt;\n       // getters, setters, constructor\n   }\n   ```\n\n   *Order Entity:*\n   ```java\n   @Entity\n   public class Order {\n       @Id\n       private String id;\n       private String productId;\n       private int quantity;\n       private LocalDateTime createdAt;\n       // getters, setters, constructor\n   }\n   ```\n\n   *Repositories:*\n   ```java\n   public interface IdempotencyKeyRepository extends JpaRepository<IdempotencyKey, String> {\n       @Lock(LockModeType.PESSIMISTIC_WRITE)\n       @Query(\"SELECT i FROM IdempotencyKey i WHERE i.key = :key\")\n       Optional<IdempotencyKey> findByKeyForUpdate(@Param(\"key\") String key);\n   }\n\n   public interface OrderRepository extends JpaRepository<Order, String> {}\n   ```\n\n   *Service:*\n   ```java\n   @Service\n   @RequiredArgsConstructor\n   @Transactional(readOnly = true)\n   public class OrderService {\n       private final IdempotencyKeyRepository idempotencyKeyRepository;\n       private final OrderRepository orderRepository;\n       private final IdGenerator idGenerator; // e.g., UUID\n\n       @Transactional\n       public OrderResponse createOrder(CreateOrderRequest request) {\n           String idempotencyKey = request.idempotencyKey();\n           if (idempotencyKey == null || idempotencyKey.isBlank()) {\n               throw new IllegalArgumentException(\"Idempotency key is required\");\n           }\n\n           // Check existing key\n           Optional<IdempotencyKey> existing = idempotencyKeyRepository.findById(idempotencyKey);\n          "
+          }
+        },
+        {
+          "id": "long-context",
+          "thinking": true,
+          "result": {
+            "promptTokens": 4060,
+            "completionTokens": 1024,
+            "ttftMs": 5607.9,
+            "visibleTtftMs": 27324.57,
+            "totalMs": 27325.36,
+            "effectivePromptTokensPerSecond": 723.98,
+            "decodeTokensPerSecond": 47.15,
+            "providerPromptTokensPerSecond": 728.05,
+            "providerDecodeTokensPerSecond": 47.14,
+            "cachedPromptTokens": 2048,
+            "outputCharacters": 2212,
+            "reasoningCharacters": 2212,
+            "outputPreview": "\nHere's a thinking process:\n\n1.  **Understand User Input:**\n   - Input: A list of 180 orders, each with an ID, region, amount, and status.\n   - Task: Calculate the count of orders with status \"RETRY\" and the sum of their amounts. Also, outp",
+            "outputText": "\nHere's a thinking process:\n\n1.  **Understand User Input:**\n   - Input: A list of 180 orders, each with an ID, region, amount, and status.\n   - Task: Calculate the count of orders with status \"RETRY\" and the sum of their amounts. Also, output the list of order IDs with status \"RETRY\" in JSON format.\n   - Constraints: Be accurate and direct. Omit unnecessary introductions. Do not include the first line's experiment identifier in the answer.\n\n2.  **Identify RETRY Orders:**\n   I need to scan the list and pick out all orders where `status=RETRY`.\n   Let's go through the list systematically:\n   - ORDER-001: RETRY, amount=1000\n   - ORDER-008: RETRY, amount=1259\n   - ORDER-015: RETRY, amount=1518\n   - ORDER-022: RETRY, amount=1777\n   - ORDER-029: RETRY, amount=2036\n   - ORDER-036: RETRY, amount=2295\n   - ORDER-043: RETRY, amount=2554\n   - ORDER-050: RETRY, amount=2813\n   - ORDER-057: RETRY, amount=3072\n   - ORDER-064: RETRY, amount=3331\n   - ORDER-071: RETRY, amount=3590\n   - ORDER-078: RETRY, amount=3849\n   - ORDER-085: RETRY, amount=4108\n   - ORDER-092: RETRY, amount=4367\n   - ORDER-099: RETRY, amount=4626\n   - ORDER-106: RETRY, amount=4885\n   - ORDER-113: RETRY, amount=5144\n   - ORDER-120: RETRY, amount=5403\n   - ORDER-127: RETRY, amount=5662\n   - ORDER-134: RETRY, amount=5921\n   - ORDER-141: RETRY, amount=6180\n   - ORDER-148: RETRY, amount=6439\n   - ORDER-155: RETRY, amount=6698\n   - ORDER-162: RETRY, amount=6957\n   - ORDER-169: RETRY, amount=7216\n   - ORDER-176: RETRY, amount=7475\n\n   Let's verify the pattern. It looks like every 7th order starting from 1 is RETRY? Wait:\n   1, 8, 15, 22, 29, 36, 43, 50, 57, 64, 71, 78, 85, 92, 99, 106, 113, 120, 127, 134, 141, 148, 155, 162, 169, 176.\n   Yes, exactly every 7th order. Total count = 26.\n\n   Let's double-check the count: (176 - 1)/7 + 1 = 175/7 + 1 = 25 + 1 = 26. Correct.\n\n3.  **Calculate Sum of Amounts:**\n   The amounts form an arithmetic progression:\n   First term (a1) = 1000\n   Common difference (d) = 259 (1259-1000=259, 1518-1259=259, etc.)\n   Number of terms (n) = 26\n   Last term (an) = 7475\n   Sum = n/2 * (a1 + an) = 26/2 * (1000 + 7475) = 13 * 8475\n   Let's calculate 13 * 8475:\n   8475 * 10 = 84750\n   8475 * 3 = 25425\n   "
+          }
+        },
+        {
+          "id": "short-explanation",
+          "thinking": false,
+          "result": {
+            "promptTokens": 80,
+            "completionTokens": 76,
+            "ttftMs": 849.83,
+            "visibleTtftMs": 849.83,
+            "totalMs": 2376.84,
+            "effectivePromptTokensPerSecond": 94.14,
+            "decodeTokensPerSecond": 49.77,
+            "providerPromptTokensPerSecond": 94.75,
+            "providerDecodeTokensPerSecond": 49.83,
+            "cachedPromptTokens": 0,
+            "outputCharacters": 131,
+            "reasoningCharacters": 0,
+            "outputPreview": "낙관적 락은 데이터베이스의 버전 번호나 타임스탬프를 비교하여 충돌 시 재시도(또는 실패)하는 방식이며, 비관적 락은 트랜잭션 시작 시 해당 재고 행을 즉시 잠금(For Update)하여 다른 트랜잭션의 접근을 원천 차단하는 방식입니다.",
+            "outputText": "낙관적 락은 데이터베이스의 버전 번호나 타임스탬프를 비교하여 충돌 시 재시도(또는 실패)하는 방식이며, 비관적 락은 트랜잭션 시작 시 해당 재고 행을 즉시 잠금(For Update)하여 다른 트랜잭션의 접근을 원천 차단하는 방식입니다."
+          }
+        },
+        {
+          "id": "coding",
+          "thinking": false,
+          "result": {
+            "promptTokens": 95,
+            "completionTokens": 880,
+            "ttftMs": 951.11,
+            "visibleTtftMs": 951.11,
+            "totalMs": 19505.32,
+            "effectivePromptTokensPerSecond": 99.88,
+            "decodeTokensPerSecond": 47.43,
+            "providerPromptTokensPerSecond": 100.73,
+            "providerDecodeTokensPerSecond": 47.42,
+            "cachedPromptTokens": 0,
+            "outputCharacters": 3528,
+            "reasoningCharacters": 0,
+            "outputPreview": "```java\nimport org.springframework.data.annotation.Id;\nimport org.springframework.data.mongodb.core.mapping.Document;\nimport org.springframework.http.HttpStatus;\nimport org.springframework.http.ResponseEntity;\nimport org.springframework.web",
+            "outputText": "```java\nimport org.springframework.data.annotation.Id;\nimport org.springframework.data.mongodb.core.mapping.Document;\nimport org.springframework.http.HttpStatus;\nimport org.springframework.http.ResponseEntity;\nimport org.springframework.web.bind.annotation.*;\nimport org.springframework.web.server.ResponseStatusException;\n\nimport java.time.LocalDateTime;\nimport java.util.UUID;\n\n// 1. 도메인 모델 및 멱등성 키 저장소\n@Document(collection = \"orders\")\nclass Order {\n    @Id\n    private String id;\n    private String orderId;\n    private String customerId;\n    private double amount;\n    private LocalDateTime createdAt;\n\n    public Order(String orderId, String customerId, double amount) {\n        this.orderId = orderId;\n        this.customerId = customerId;\n        this.amount = amount;\n        this.createdAt = LocalDateTime.now();\n    }\n\n    // Getters\n    public String getId() { return id; }\n    public String getOrderId() { return orderId; }\n    public String getCustomerId() { return customerId; }\n    public double getAmount() { return amount; }\n    public LocalDateTime getCreatedAt() { return createdAt; }\n}\n\n// 2. 리포지토리 (멱등성 키 중복 체크 및 주문 저장)\ninterface OrderRepository {\n    // 멱등성 키로 기존 주문이 있는지 확인 (트랜잭션 내에서 원자적으로 동작해야 함)\n    Order findByOrderId(String orderId);\n    \n    // 주문 저장\n    Order save(Order order);\n}\n\n// 3. 서비스 레이어 (비즈니스 로직 및 트랜잭션 경계)\nclass OrderService {\n    private final OrderRepository orderRepository;\n\n    public OrderService(OrderRepository orderRepository) {\n        this.orderRepository = orderRepository;\n    }\n\n    /**\n     * 주문 생성 서비스\n     * @param idempotencyKey 클라이언트에서 전달한 고유 멱등성 키\n     * @param customerId 고객 ID\n     * @param amount 주문 금액\n     * @return 생성된 주문 정보\n     * @throws ResponseStatusException 중복 요청 또는 실패 시\n     */\n    @org.springframework.transaction.annotation.Transactional\n    public Order createOrder(String idempotencyKey, String customerId, double amount) {\n        // 1. 멱등성 키로 기존 주문 확인\n        Order existingOrder = orderRepository.findByOrderId(idempotencyKey);\n        \n        if (existingOrder != null) {\n            // 이미 처리된 주문이 있으면 기존 결과 반환 (멱등성 보장)\n            return existingOrder;\n        }\n\n        // 2. 주문 생성\n        Order newOrder = new Order(idempotencyKey, customerId, amount);\n        \n        try {\n            // 3. 주문 저장 (DB 트랜잭션 내에서 저장)\n            return orderRepository.save(newOrder);\n        } catch (Exception e) {\n            // 저장 실패 시 예외 던지기 (클라이언트는 실패 응답 처리)\n            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, \"주문 생성 중 오류 발생\", e);\n        }\n    }\n}\n\n// 4. 컨트롤러 (HTTP 요청 처리)\n@RestController\n@RequestMapping(\"/api/orders\")\nclass OrderController {\n    private final OrderService orderService;\n\n    public OrderController(OrderService orderService) {\n        this.orderService = orderService;\n    }\n\n    @PostMapping\n    public ResponseEntity<Order> createOrder(\n            @RequestHeader(\"X-Idempotency-Key\") String idempotencyKey,\n            @RequestParam String customerId,\n            @RequestParam double amount) {\n        \n        try {\n            Order order = orderService.createOrder(idempotencyKey, customerId, amount);\n            return ResponseEntity.status(HttpStatus.CREATED).body(order);\n        } catch (ResponseStatusException e) {\n            // 서비스 레이어에서 던진 예외 처리\n            return ResponseEntity.status(e.getStatusCode()).body(null);\n        } catch (Exception e) {\n            // 예상치 못한 예외 처리\n            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);\n        }\n    }\n}\n```"
+          }
+        },
+        {
+          "id": "long-context",
+          "thinking": false,
+          "result": {
+            "promptTokens": 4062,
+            "completionTokens": 273,
+            "ttftMs": 6248.49,
+            "visibleTtftMs": 6248.49,
+            "totalMs": 11653.1,
+            "effectivePromptTokensPerSecond": 650.08,
+            "decodeTokensPerSecond": 50.51,
+            "providerPromptTokensPerSecond": 653.59,
+            "providerDecodeTokensPerSecond": 50.49,
+            "cachedPromptTokens": 2048,
+            "outputCharacters": 527,
+            "reasoningCharacters": 0,
+            "outputPreview": "{\n  \"retry_order_count\": 18,\n  \"retry_amount_sum\": 42306,\n  \"retry_order_ids\": [\n    \"ORDER-001\",\n    \"ORDER-008\",\n    \"ORDER-015\",\n    \"ORDER-022\",\n    \"ORDER-029\",\n    \"ORDER-036\",\n    \"ORDER-043\",\n    \"ORDER-050\",\n    \"ORDER-057\",\n    \"O",
+            "outputText": "{\n  \"retry_order_count\": 18,\n  \"retry_amount_sum\": 42306,\n  \"retry_order_ids\": [\n    \"ORDER-001\",\n    \"ORDER-008\",\n    \"ORDER-015\",\n    \"ORDER-022\",\n    \"ORDER-029\",\n    \"ORDER-036\",\n    \"ORDER-043\",\n    \"ORDER-050\",\n    \"ORDER-057\",\n    \"ORDER-064\",\n    \"ORDER-071\",\n    \"ORDER-078\",\n    \"ORDER-085\",\n    \"ORDER-092\",\n    \"ORDER-099\",\n    \"ORDER-106\",\n    \"ORDER-113\",\n    \"ORDER-120\",\n    \"ORDER-127\",\n    \"ORDER-134\",\n    \"ORDER-141\",\n    \"ORDER-148\",\n    \"ORDER-155\",\n    \"ORDER-162\",\n    \"ORDER-169\",\n    \"ORDER-176\"\n  ]\n}"
+          }
+        }
+      ]
+    },
+    {
+      "engine": "ollama",
+      "model": "qwen3.6:35b-a3b-coding-nvfp4",
+      "cold": {
+        "promptTokens": 78,
+        "completionTokens": 512,
+        "ttftMs": 14628.16,
+        "visibleTtftMs": null,
+        "totalMs": 24019.63,
+        "effectivePromptTokensPerSecond": 5.33,
+        "decodeTokensPerSecond": 54.52,
+        "providerPromptTokensPerSecond": 15.45,
+        "providerDecodeTokensPerSecond": 54.5,
+        "providerLoadMs": 9561.25,
+        "outputCharacters": 0,
+        "reasoningCharacters": 1827,
+        "outputPreview": ""
+      },
+      "modes": [
+        {
+          "thinking": true,
+          "cacheModes": [
+            {
+              "cacheMode": "miss",
+              "cases": [
+                {
+                  "id": "short-explanation",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 92,
+                      "completionTokens": 512,
+                      "ttftMs": 369,
+                      "visibleTtftMs": null,
+                      "totalMs": 10648.27,
+                      "effectivePromptTokensPerSecond": 249.32,
+                      "decodeTokensPerSecond": 49.81,
+                      "providerPromptTokensPerSecond": 278.51,
+                      "providerDecodeTokensPerSecond": 49.81,
+                      "providerLoadMs": 35.69,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 1666,
+                      "outputPreview": ""
+                    },
+                    {
+                      "promptTokens": 92,
+                      "completionTokens": 512,
+                      "ttftMs": 319.56,
+                      "visibleTtftMs": null,
+                      "totalMs": 10341.76,
+                      "effectivePromptTokensPerSecond": 287.9,
+                      "decodeTokensPerSecond": 51.09,
+                      "providerPromptTokensPerSecond": 347.76,
+                      "providerDecodeTokensPerSecond": 51.02,
+                      "providerLoadMs": 39.66,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 2090,
+                      "outputPreview": ""
+                    },
+                    {
+                      "promptTokens": 92,
+                      "completionTokens": 512,
+                      "ttftMs": 304.54,
+                      "visibleTtftMs": null,
+                      "totalMs": 10286.03,
+                      "effectivePromptTokensPerSecond": 302.1,
+                      "decodeTokensPerSecond": 51.29,
+                      "providerPromptTokensPerSecond": 348.93,
+                      "providerDecodeTokensPerSecond": 51.29,
+                      "providerLoadMs": 37.83,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 1807,
+                      "outputPreview": ""
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 331.03,
+                      "median": 319.56,
+                      "min": 304.54,
+                      "max": 369
+                    },
+                    "visibleTtftMs": null,
+                    "totalMs": {
+                      "mean": 10425.35,
+                      "median": 10341.76,
+                      "min": 10286.03,
+                      "max": 10648.27
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 279.77,
+                      "median": 287.9,
+                      "min": 249.32,
+                      "max": 302.1
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 50.73,
+                      "median": 51.09,
+                      "min": 49.81,
+                      "max": 51.29
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 325.07,
+                      "median": 347.76,
+                      "min": 278.51,
+                      "max": 348.93
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 50.71,
+                      "median": 51.02,
+                      "min": 49.81,
+                      "max": 51.29
+                    }
+                  }
+                },
+                {
+                  "id": "coding",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 106,
+                      "completionTokens": 512,
+                      "ttftMs": 368.68,
+                      "visibleTtftMs": null,
+                      "totalMs": 10406.72,
+                      "effectivePromptTokensPerSecond": 287.51,
+                      "decodeTokensPerSecond": 51.01,
+                      "providerPromptTokensPerSecond": 320.03,
+                      "providerDecodeTokensPerSecond": 51,
+                      "providerLoadMs": 35.12,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 2190,
+                      "outputPreview": ""
+                    },
+                    {
+                      "promptTokens": 106,
+                      "completionTokens": 512,
+                      "ttftMs": 397.09,
+                      "visibleTtftMs": null,
+                      "totalMs": 10442.1,
+                      "effectivePromptTokensPerSecond": 266.94,
+                      "decodeTokensPerSecond": 50.97,
+                      "providerPromptTokensPerSecond": 301.79,
+                      "providerDecodeTokensPerSecond": 50.98,
+                      "providerLoadMs": 42.87,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 2150,
+                      "outputPreview": ""
+                    },
+                    {
+                      "promptTokens": 106,
+                      "completionTokens": 512,
+                      "ttftMs": 352.84,
+                      "visibleTtftMs": null,
+                      "totalMs": 11383.06,
+                      "effectivePromptTokensPerSecond": 300.42,
+                      "decodeTokensPerSecond": 46.42,
+                      "providerPromptTokensPerSecond": 336.89,
+                      "providerDecodeTokensPerSecond": 46.42,
+                      "providerLoadMs": 34.98,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 2154,
+                      "outputPreview": ""
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 372.87,
+                      "median": 368.68,
+                      "min": 352.84,
+                      "max": 397.09
+                    },
+                    "visibleTtftMs": null,
+                    "totalMs": {
+                      "mean": 10743.96,
+                      "median": 10442.1,
+                      "min": 10406.72,
+                      "max": 11383.06
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 284.96,
+                      "median": 287.51,
+                      "min": 266.94,
+                      "max": 300.42
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 49.47,
+                      "median": 50.97,
+                      "min": 46.42,
+                      "max": 51.01
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 319.57,
+                      "median": 320.03,
+                      "min": 301.79,
+                      "max": 336.89
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 49.47,
+                      "median": 50.98,
+                      "min": 46.42,
+                      "max": 51
+                    }
+                  }
+                },
+                {
+                  "id": "long-context",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 4073,
+                      "completionTokens": 512,
+                      "ttftMs": 9290.97,
+                      "visibleTtftMs": null,
+                      "totalMs": 19343.14,
+                      "effectivePromptTokensPerSecond": 438.38,
+                      "decodeTokensPerSecond": 50.93,
+                      "providerPromptTokensPerSecond": 440.25,
+                      "providerDecodeTokensPerSecond": 50.93,
+                      "providerLoadMs": 34.09,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 1176,
+                      "outputPreview": ""
+                    },
+                    {
+                      "promptTokens": 4073,
+                      "completionTokens": 512,
+                      "ttftMs": 9399.97,
+                      "visibleTtftMs": null,
+                      "totalMs": 19620.6,
+                      "effectivePromptTokensPerSecond": 433.3,
+                      "decodeTokensPerSecond": 50.09,
+                      "providerPromptTokensPerSecond": 435.68,
+                      "providerDecodeTokensPerSecond": 50.09,
+                      "providerLoadMs": 46.16,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 1296,
+                      "outputPreview": ""
+                    },
+                    {
+                      "promptTokens": 4073,
+                      "completionTokens": 512,
+                      "ttftMs": 10578.12,
+                      "visibleTtftMs": null,
+                      "totalMs": 20791.03,
+                      "effectivePromptTokensPerSecond": 385.04,
+                      "decodeTokensPerSecond": 50.13,
+                      "providerPromptTokensPerSecond": 387.01,
+                      "providerDecodeTokensPerSecond": 50.12,
+                      "providerLoadMs": 46.1,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 1300,
+                      "outputPreview": ""
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 9756.35,
+                      "median": 9399.97,
+                      "min": 9290.97,
+                      "max": 10578.12
+                    },
+                    "visibleTtftMs": null,
+                    "totalMs": {
+                      "mean": 19918.26,
+                      "median": 19620.6,
+                      "min": 19343.14,
+                      "max": 20791.03
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 418.91,
+                      "median": 433.3,
+                      "min": 385.04,
+                      "max": 438.38
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 50.38,
+                      "median": 50.13,
+                      "min": 50.09,
+                      "max": 50.93
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 420.98,
+                      "median": 435.68,
+                      "min": 387.01,
+                      "max": 440.25
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 50.38,
+                      "median": 50.12,
+                      "min": 50.09,
+                      "max": 50.93
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "cacheMode": "hit",
+              "cases": [
+                {
+                  "id": "short-explanation",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 78,
+                      "completionTokens": 512,
+                      "ttftMs": 75.09,
+                      "visibleTtftMs": null,
+                      "totalMs": 10074.94,
+                      "effectivePromptTokensPerSecond": 1038.81,
+                      "decodeTokensPerSecond": 51.2,
+                      "providerPromptTokensPerSecond": 2122.56,
+                      "providerDecodeTokensPerSecond": 51.2,
+                      "providerLoadMs": 35.56,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 1788,
+                      "outputPreview": ""
+                    },
+                    {
+                      "promptTokens": 78,
+                      "completionTokens": 512,
+                      "ttftMs": 73,
+                      "visibleTtftMs": null,
+                      "totalMs": 10073.29,
+                      "effectivePromptTokensPerSecond": 1068.52,
+                      "decodeTokensPerSecond": 51.2,
+                      "providerPromptTokensPerSecond": 2262.41,
+                      "providerDecodeTokensPerSecond": 51.2,
+                      "providerLoadMs": 35.49,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 1788,
+                      "outputPreview": ""
+                    },
+                    {
+                      "promptTokens": 78,
+                      "completionTokens": 512,
+                      "ttftMs": 74.92,
+                      "visibleTtftMs": null,
+                      "totalMs": 10064.56,
+                      "effectivePromptTokensPerSecond": 1041.06,
+                      "decodeTokensPerSecond": 51.25,
+                      "providerPromptTokensPerSecond": 2164.5,
+                      "providerDecodeTokensPerSecond": 51.25,
+                      "providerLoadMs": 35.97,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 1788,
+                      "outputPreview": ""
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 74.34,
+                      "median": 74.92,
+                      "min": 73,
+                      "max": 75.09
+                    },
+                    "visibleTtftMs": null,
+                    "totalMs": {
+                      "mean": 10070.93,
+                      "median": 10073.29,
+                      "min": 10064.56,
+                      "max": 10074.94
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 1049.46,
+                      "median": 1041.06,
+                      "min": 1038.81,
+                      "max": 1068.52
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 51.22,
+                      "median": 51.2,
+                      "min": 51.2,
+                      "max": 51.25
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 2183.16,
+                      "median": 2164.5,
+                      "min": 2122.56,
+                      "max": 2262.41
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 51.22,
+                      "median": 51.2,
+                      "min": 51.2,
+                      "max": 51.25
+                    }
+                  }
+                },
+                {
+                  "id": "coding",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 93,
+                      "completionTokens": 512,
+                      "ttftMs": 115.67,
+                      "visibleTtftMs": null,
+                      "totalMs": 10076.44,
+                      "effectivePromptTokensPerSecond": 804.04,
+                      "decodeTokensPerSecond": 51.4,
+                      "providerPromptTokensPerSecond": 1203.41,
+                      "providerDecodeTokensPerSecond": 51.4,
+                      "providerLoadMs": 34.23,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 2207,
+                      "outputPreview": ""
+                    },
+                    {
+                      "promptTokens": 93,
+                      "completionTokens": 512,
+                      "ttftMs": 74.72,
+                      "visibleTtftMs": null,
+                      "totalMs": 10920.35,
+                      "effectivePromptTokensPerSecond": 1244.59,
+                      "decodeTokensPerSecond": 47.21,
+                      "providerPromptTokensPerSecond": 2562.88,
+                      "providerDecodeTokensPerSecond": 47.2,
+                      "providerLoadMs": 34.2,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 2207,
+                      "outputPreview": ""
+                    },
+                    {
+                      "promptTokens": 93,
+                      "completionTokens": 512,
+                      "ttftMs": 76.12,
+                      "visibleTtftMs": null,
+                      "totalMs": 10283.1,
+                      "effectivePromptTokensPerSecond": 1221.76,
+                      "decodeTokensPerSecond": 50.16,
+                      "providerPromptTokensPerSecond": 2607.74,
+                      "providerDecodeTokensPerSecond": 50.16,
+                      "providerLoadMs": 37.17,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 2207,
+                      "outputPreview": ""
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 88.84,
+                      "median": 76.12,
+                      "min": 74.72,
+                      "max": 115.67
+                    },
+                    "visibleTtftMs": null,
+                    "totalMs": {
+                      "mean": 10426.63,
+                      "median": 10283.1,
+                      "min": 10076.44,
+                      "max": 10920.35
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 1090.13,
+                      "median": 1221.76,
+                      "min": 804.04,
+                      "max": 1244.59
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 49.59,
+                      "median": 50.16,
+                      "min": 47.21,
+                      "max": 51.4
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 2124.68,
+                      "median": 2562.88,
+                      "min": 1203.41,
+                      "max": 2607.74
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 49.59,
+                      "median": 50.16,
+                      "min": 47.2,
+                      "max": 51.4
+                    }
+                  }
+                },
+                {
+                  "id": "long-context",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 4060,
+                      "completionTokens": 512,
+                      "ttftMs": 162.15,
+                      "visibleTtftMs": null,
+                      "totalMs": 11235.42,
+                      "effectivePromptTokensPerSecond": 25038.99,
+                      "decodeTokensPerSecond": 46.24,
+                      "providerPromptTokensPerSecond": 33854.85,
+                      "providerDecodeTokensPerSecond": 46.24,
+                      "providerLoadMs": 37.95,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 1283,
+                      "outputPreview": ""
+                    },
+                    {
+                      "promptTokens": 4060,
+                      "completionTokens": 512,
+                      "ttftMs": 81.8,
+                      "visibleTtftMs": null,
+                      "totalMs": 11146.59,
+                      "effectivePromptTokensPerSecond": 49633.02,
+                      "decodeTokensPerSecond": 46.27,
+                      "providerPromptTokensPerSecond": 105505.93,
+                      "providerDecodeTokensPerSecond": 46.26,
+                      "providerLoadMs": 34.38,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 1283,
+                      "outputPreview": ""
+                    },
+                    {
+                      "promptTokens": 4060,
+                      "completionTokens": 512,
+                      "ttftMs": 88.12,
+                      "visibleTtftMs": null,
+                      "totalMs": 10706.65,
+                      "effectivePromptTokensPerSecond": 46074.04,
+                      "decodeTokensPerSecond": 48.22,
+                      "providerPromptTokensPerSecond": 107440.92,
+                      "providerDecodeTokensPerSecond": 48.22,
+                      "providerLoadMs": 44.54,
+                      "outputCharacters": 0,
+                      "reasoningCharacters": 1283,
+                      "outputPreview": ""
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 110.69,
+                      "median": 88.12,
+                      "min": 81.8,
+                      "max": 162.15
+                    },
+                    "visibleTtftMs": null,
+                    "totalMs": {
+                      "mean": 11029.55,
+                      "median": 11146.59,
+                      "min": 10706.65,
+                      "max": 11235.42
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 40248.68,
+                      "median": 46074.04,
+                      "min": 25038.99,
+                      "max": 49633.02
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 46.91,
+                      "median": 46.27,
+                      "min": 46.24,
+                      "max": 48.22
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 82267.23,
+                      "median": 105505.93,
+                      "min": 33854.85,
+                      "max": 107440.92
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 46.91,
+                      "median": 46.26,
+                      "min": 46.24,
+                      "max": 48.22
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "thinking": false,
+          "cacheModes": [
+            {
+              "cacheMode": "miss",
+              "cases": [
+                {
+                  "id": "short-explanation",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 94,
+                      "completionTokens": 83,
+                      "ttftMs": 343.56,
+                      "visibleTtftMs": 343.56,
+                      "totalMs": 1912.51,
+                      "effectivePromptTokensPerSecond": 273.6,
+                      "decodeTokensPerSecond": 52.9,
+                      "providerPromptTokensPerSecond": 316.14,
+                      "providerDecodeTokensPerSecond": 52.89,
+                      "providerLoadMs": 37.4,
+                      "outputCharacters": 157,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "낙관적 락은 재고 차감 시 데이터의 변경 여부를 확인하여 충돌 시 재시도하는 방식으로, 충돌이 적을 때 성능이 우수합니다. 반면 비관적 락은 재고 차감 전 해당 레코드를 잠금 처리하여 다른 트랜잭션의 접근을 원천적으로 차단하므로, 충돌이 빈번한 환경에서 데이터 무결성을 보장합니다."
+                    },
+                    {
+                      "promptTokens": 94,
+                      "completionTokens": 113,
+                      "ttftMs": 332.99,
+                      "visibleTtftMs": 332.99,
+                      "totalMs": 2519.98,
+                      "effectivePromptTokensPerSecond": 282.29,
+                      "decodeTokensPerSecond": 51.67,
+                      "providerPromptTokensPerSecond": 322.53,
+                      "providerDecodeTokensPerSecond": 51.7,
+                      "providerLoadMs": 33.62,
+                      "outputCharacters": 211,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "낙관적 락은 데이터베이스의 기본 잠금 메커니즘을 활용하여, 트랜잭션이 실행되는 동안 해당 레코드에 대한 읽기/쓰기 잠금을 유지함으로써 다른 트랜잭션이 동시에 수정하지 못하게 차단하는 방식입니다. 반면, 비관적 락은 재고 차감 전 미리 재고 수량을 확인하고, 이미 다른 트랜잭션이 수정 중이거나 잠금 상태라면 즉시 실패하거나 대기하도록 처리하여 충돌을 사전에 방지하는 방식입니다."
+                    },
+                    {
+                      "promptTokens": 94,
+                      "completionTokens": 80,
+                      "ttftMs": 314.75,
+                      "visibleTtftMs": 314.75,
+                      "totalMs": 1861.25,
+                      "effectivePromptTokensPerSecond": 298.65,
+                      "decodeTokensPerSecond": 51.73,
+                      "providerPromptTokensPerSecond": 343.03,
+                      "providerDecodeTokensPerSecond": 51.71,
+                      "providerLoadMs": 36.35,
+                      "outputCharacters": 169,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "낙관적 락(Optimistic Locking)은 재고 조회 시 버전 번호를 함께 가져온 후, 업데이트 시 버전이 변경되지 않았는지 확인하여 충돌 시 재시도하는 방식이며, 비관적 락(Pessimistic Locking)은 재고 조회 시 즉시 행을 잠가 다른 트랜잭션이 접근하지 못하게 차단하는 방식입니다."
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 330.43,
+                      "median": 332.99,
+                      "min": 314.75,
+                      "max": 343.56
+                    },
+                    "visibleTtftMs": {
+                      "mean": 330.43,
+                      "median": 332.99,
+                      "min": 314.75,
+                      "max": 343.56
+                    },
+                    "totalMs": {
+                      "mean": 2097.91,
+                      "median": 1912.51,
+                      "min": 1861.25,
+                      "max": 2519.98
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 284.85,
+                      "median": 282.29,
+                      "min": 273.6,
+                      "max": 298.65
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 52.1,
+                      "median": 51.73,
+                      "min": 51.67,
+                      "max": 52.9
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 327.23,
+                      "median": 322.53,
+                      "min": 316.14,
+                      "max": 343.03
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 52.1,
+                      "median": 51.71,
+                      "min": 51.7,
+                      "max": 52.89
+                    }
+                  }
+                },
+                {
+                  "id": "coding",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 108,
+                      "completionTokens": 512,
+                      "ttftMs": 459.5,
+                      "visibleTtftMs": 459.5,
+                      "totalMs": 11246.11,
+                      "effectivePromptTokensPerSecond": 235.04,
+                      "decodeTokensPerSecond": 47.47,
+                      "providerPromptTokensPerSecond": 262.49,
+                      "providerDecodeTokensPerSecond": 47.46,
+                      "providerLoadMs": 43.92,
+                      "outputCharacters": 2042,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "```java\nimport org.springframework.http.ResponseEntity;\nimport org.springframework.web.bind.annotation.*;\nimport org.springframework.transaction.annotation.Transactional;\nimport org.springframework.dao.DuplicateKeyException;\n\nimport java.ut"
+                    },
+                    {
+                      "promptTokens": 108,
+                      "completionTokens": 512,
+                      "ttftMs": 398.12,
+                      "visibleTtftMs": 398.12,
+                      "totalMs": 10532.02,
+                      "effectivePromptTokensPerSecond": 271.27,
+                      "decodeTokensPerSecond": 50.52,
+                      "providerPromptTokensPerSecond": 299.18,
+                      "providerDecodeTokensPerSecond": 50.52,
+                      "providerLoadMs": 34.47,
+                      "outputCharacters": 1768,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "```java\nimport org.springframework.http.ResponseEntity;\nimport org.springframework.web.bind.annotation.*;\nimport org.springframework.transaction.annotation.Transactional;\n\nimport java.util.Map;\nimport java.util.UUID;\nimport java.util.concur"
+                    },
+                    {
+                      "promptTokens": 108,
+                      "completionTokens": 494,
+                      "ttftMs": 370.27,
+                      "visibleTtftMs": 370.27,
+                      "totalMs": 10252.55,
+                      "effectivePromptTokensPerSecond": 291.68,
+                      "decodeTokensPerSecond": 49.99,
+                      "providerPromptTokensPerSecond": 325.15,
+                      "providerDecodeTokensPerSecond": 49.99,
+                      "providerLoadMs": 34.89,
+                      "outputCharacters": 1916,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "```java\nimport org.springframework.data.redis.core.StringRedisTemplate;\nimport org.springframework.stereotype.Service;\nimport org.springframework.transaction.annotation.Transactional;\n\nimport java.time.Duration;\nimport java.util.UUID;\nimpor"
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 409.3,
+                      "median": 398.12,
+                      "min": 370.27,
+                      "max": 459.5
+                    },
+                    "visibleTtftMs": {
+                      "mean": 409.3,
+                      "median": 398.12,
+                      "min": 370.27,
+                      "max": 459.5
+                    },
+                    "totalMs": {
+                      "mean": 10676.89,
+                      "median": 10532.02,
+                      "min": 10252.55,
+                      "max": 11246.11
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 266,
+                      "median": 271.27,
+                      "min": 235.04,
+                      "max": 291.68
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 49.33,
+                      "median": 49.99,
+                      "min": 47.47,
+                      "max": 50.52
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 295.61,
+                      "median": 299.18,
+                      "min": 262.49,
+                      "max": 325.15
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 49.32,
+                      "median": 49.99,
+                      "min": 47.46,
+                      "max": 50.52
+                    }
+                  }
+                },
+                {
+                  "id": "long-context",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 4075,
+                      "completionTokens": 218,
+                      "ttftMs": 10324.37,
+                      "visibleTtftMs": 10324.37,
+                      "totalMs": 14703.93,
+                      "effectivePromptTokensPerSecond": 394.7,
+                      "decodeTokensPerSecond": 49.78,
+                      "providerPromptTokensPerSecond": 397.18,
+                      "providerDecodeTokensPerSecond": 49.78,
+                      "providerLoadMs": 53.67,
+                      "outputCharacters": 404,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "RETRY 상태인 주문 수: 18\namount 합계: 24,666\n검산 가능한 주문 ID 목록:\n```json\n[\"ORDER-001\", \"ORDER-008\", \"ORDER-015\", \"ORDER-022\", \"ORDER-029\", \"ORDER-036\", \"ORDER-043\", \"ORDER-050\", \"ORDER-057\", \"ORDER-064\", \"ORDER-071\", \"ORDER-078\", \"ORDER-085\", \"ORDER-0"
+                    },
+                    {
+                      "promptTokens": 4075,
+                      "completionTokens": 218,
+                      "ttftMs": 11286.92,
+                      "visibleTtftMs": 11286.92,
+                      "totalMs": 15674.82,
+                      "effectivePromptTokensPerSecond": 361.04,
+                      "decodeTokensPerSecond": 49.68,
+                      "providerPromptTokensPerSecond": 362.42,
+                      "providerDecodeTokensPerSecond": 49.69,
+                      "providerLoadMs": 35.14,
+                      "outputCharacters": 404,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "RETRY 상태인 주문 수: 18\namount 합계: 24,666\n검산 가능한 주문 ID 목록:\n```json\n[\"ORDER-001\", \"ORDER-008\", \"ORDER-015\", \"ORDER-022\", \"ORDER-029\", \"ORDER-036\", \"ORDER-043\", \"ORDER-050\", \"ORDER-057\", \"ORDER-064\", \"ORDER-071\", \"ORDER-078\", \"ORDER-085\", \"ORDER-0"
+                    },
+                    {
+                      "promptTokens": 4075,
+                      "completionTokens": 220,
+                      "ttftMs": 10648.19,
+                      "visibleTtftMs": 10648.19,
+                      "totalMs": 14894.9,
+                      "effectivePromptTokensPerSecond": 382.69,
+                      "decodeTokensPerSecond": 51.8,
+                      "providerPromptTokensPerSecond": 384.37,
+                      "providerDecodeTokensPerSecond": 51.79,
+                      "providerLoadMs": 39.38,
+                      "outputCharacters": 412,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "RETRY 상태인 주문 수: 18\namount 합계: 23,320\n\n검산 가능한 주문 ID 목록 (JSON):\n```json\n[\"ORDER-001\", \"ORDER-008\", \"ORDER-015\", \"ORDER-022\", \"ORDER-029\", \"ORDER-036\", \"ORDER-043\", \"ORDER-050\", \"ORDER-057\", \"ORDER-064\", \"ORDER-071\", \"ORDER-078\", \"ORDER-085\", "
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 10753.16,
+                      "median": 10648.19,
+                      "min": 10324.37,
+                      "max": 11286.92
+                    },
+                    "visibleTtftMs": {
+                      "mean": 10753.16,
+                      "median": 10648.19,
+                      "min": 10324.37,
+                      "max": 11286.92
+                    },
+                    "totalMs": {
+                      "mean": 15091.22,
+                      "median": 14894.9,
+                      "min": 14703.93,
+                      "max": 15674.82
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 379.48,
+                      "median": 382.69,
+                      "min": 361.04,
+                      "max": 394.7
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 50.42,
+                      "median": 49.78,
+                      "min": 49.68,
+                      "max": 51.8
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 381.32,
+                      "median": 384.37,
+                      "min": 362.42,
+                      "max": 397.18
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 50.42,
+                      "median": 49.78,
+                      "min": 49.69,
+                      "max": 51.79
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "cacheMode": "hit",
+              "cases": [
+                {
+                  "id": "short-explanation",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 80,
+                      "completionTokens": 100,
+                      "ttftMs": 127.55,
+                      "visibleTtftMs": 127.55,
+                      "totalMs": 2234.36,
+                      "effectivePromptTokensPerSecond": 627.21,
+                      "decodeTokensPerSecond": 47.47,
+                      "providerPromptTokensPerSecond": 904.38,
+                      "providerDecodeTokensPerSecond": 47.46,
+                      "providerLoadMs": 34.71,
+                      "outputCharacters": 214,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "낙관적 락(Optimistic Locking)은 재고 차감 시 데이터의 버전 번호나 수정 시각을 비교하여, 다른 트랜잭션이 변경하지 않았다면 바로 업데이트하는 방식입니다. 반면, 비관적 락(Pessimistic Locking)은 재고 데이터를 조회할 때 즉시 행 잠금(For Update)을 걸어 다른 트랜잭션이 수정하지 못하도록 차단한 후, 차감 처리를 완료하고 잠금을 해제합니다."
+                    },
+                    {
+                      "promptTokens": 80,
+                      "completionTokens": 100,
+                      "ttftMs": 82.28,
+                      "visibleTtftMs": 82.28,
+                      "totalMs": 2092.37,
+                      "effectivePromptTokensPerSecond": 972.24,
+                      "decodeTokensPerSecond": 49.75,
+                      "providerPromptTokensPerSecond": 2105.21,
+                      "providerDecodeTokensPerSecond": 49.78,
+                      "providerLoadMs": 40.46,
+                      "outputCharacters": 214,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "낙관적 락(Optimistic Locking)은 재고 차감 시 데이터의 버전 번호나 수정 시각을 비교하여, 다른 트랜잭션이 변경하지 않았다면 바로 업데이트하는 방식입니다. 반면, 비관적 락(Pessimistic Locking)은 재고 데이터를 조회할 때 즉시 행 잠금(For Update)을 걸어 다른 트랜잭션이 수정하지 못하도록 차단한 후, 차감 처리를 완료하고 잠금을 해제합니다."
+                    },
+                    {
+                      "promptTokens": 80,
+                      "completionTokens": 100,
+                      "ttftMs": 89.26,
+                      "visibleTtftMs": 89.26,
+                      "totalMs": 1988.34,
+                      "effectivePromptTokensPerSecond": 896.25,
+                      "decodeTokensPerSecond": 52.66,
+                      "providerPromptTokensPerSecond": 1761.2,
+                      "providerDecodeTokensPerSecond": 52.57,
+                      "providerLoadMs": 33.34,
+                      "outputCharacters": 214,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "낙관적 락(Optimistic Locking)은 재고 차감 시 데이터의 버전 번호나 수정 시각을 비교하여, 다른 트랜잭션이 변경하지 않았다면 바로 업데이트하는 방식입니다. 반면, 비관적 락(Pessimistic Locking)은 재고 데이터를 조회할 때 즉시 행 잠금(For Update)을 걸어 다른 트랜잭션이 수정하지 못하도록 차단한 후, 차감 처리를 완료하고 잠금을 해제합니다."
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 99.7,
+                      "median": 89.26,
+                      "min": 82.28,
+                      "max": 127.55
+                    },
+                    "visibleTtftMs": {
+                      "mean": 99.7,
+                      "median": 89.26,
+                      "min": 82.28,
+                      "max": 127.55
+                    },
+                    "totalMs": {
+                      "mean": 2105.02,
+                      "median": 2092.37,
+                      "min": 1988.34,
+                      "max": 2234.36
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 831.9,
+                      "median": 896.25,
+                      "min": 627.21,
+                      "max": 972.24
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 49.96,
+                      "median": 49.75,
+                      "min": 47.47,
+                      "max": 52.66
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 1590.26,
+                      "median": 1761.2,
+                      "min": 904.38,
+                      "max": 2105.21
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 49.94,
+                      "median": 49.78,
+                      "min": 47.46,
+                      "max": 52.57
+                    }
+                  }
+                },
+                {
+                  "id": "coding",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 95,
+                      "completionTokens": 512,
+                      "ttftMs": 122.26,
+                      "visibleTtftMs": 122.26,
+                      "totalMs": 10383.64,
+                      "effectivePromptTokensPerSecond": 777.04,
+                      "decodeTokensPerSecond": 49.9,
+                      "providerPromptTokensPerSecond": 1251.93,
+                      "providerDecodeTokensPerSecond": 49.88,
+                      "providerLoadMs": 35.23,
+                      "outputCharacters": 2100,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "```java\nimport org.springframework.data.redis.core.StringRedisTemplate;\nimport org.springframework.stereotype.Service;\nimport org.springframework.transaction.annotation.Transactional;\n\nimport java.util.UUID;\nimport java.util.concurrent.Time"
+                    },
+                    {
+                      "promptTokens": 95,
+                      "completionTokens": 512,
+                      "ttftMs": 75.82,
+                      "visibleTtftMs": 75.82,
+                      "totalMs": 10329.24,
+                      "effectivePromptTokensPerSecond": 1253,
+                      "decodeTokensPerSecond": 49.93,
+                      "providerPromptTokensPerSecond": 2696.28,
+                      "providerDecodeTokensPerSecond": 49.92,
+                      "providerLoadMs": 34.96,
+                      "outputCharacters": 2100,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "```java\nimport org.springframework.data.redis.core.StringRedisTemplate;\nimport org.springframework.stereotype.Service;\nimport org.springframework.transaction.annotation.Transactional;\n\nimport java.util.UUID;\nimport java.util.concurrent.Time"
+                    },
+                    {
+                      "promptTokens": 95,
+                      "completionTokens": 512,
+                      "ttftMs": 80.38,
+                      "visibleTtftMs": 80.38,
+                      "totalMs": 10297.41,
+                      "effectivePromptTokensPerSecond": 1181.89,
+                      "decodeTokensPerSecond": 50.11,
+                      "providerPromptTokensPerSecond": 2661.16,
+                      "providerDecodeTokensPerSecond": 50.1,
+                      "providerLoadMs": 37.01,
+                      "outputCharacters": 2100,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "```java\nimport org.springframework.data.redis.core.StringRedisTemplate;\nimport org.springframework.stereotype.Service;\nimport org.springframework.transaction.annotation.Transactional;\n\nimport java.util.UUID;\nimport java.util.concurrent.Time"
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 92.82,
+                      "median": 80.38,
+                      "min": 75.82,
+                      "max": 122.26
+                    },
+                    "visibleTtftMs": {
+                      "mean": 92.82,
+                      "median": 80.38,
+                      "min": 75.82,
+                      "max": 122.26
+                    },
+                    "totalMs": {
+                      "mean": 10336.76,
+                      "median": 10329.24,
+                      "min": 10297.41,
+                      "max": 10383.64
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 1070.64,
+                      "median": 1181.89,
+                      "min": 777.04,
+                      "max": 1253
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 49.98,
+                      "median": 49.93,
+                      "min": 49.9,
+                      "max": 50.11
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 2203.12,
+                      "median": 2661.16,
+                      "min": 1251.93,
+                      "max": 2696.28
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 49.97,
+                      "median": 49.92,
+                      "min": 49.88,
+                      "max": 50.1
+                    }
+                  }
+                },
+                {
+                  "id": "long-context",
+                  "maxTokens": 512,
+                  "warm": [
+                    {
+                      "promptTokens": 4062,
+                      "completionTokens": 218,
+                      "ttftMs": 313.01,
+                      "visibleTtftMs": 313.01,
+                      "totalMs": 5011.96,
+                      "effectivePromptTokensPerSecond": 12977.34,
+                      "decodeTokensPerSecond": 46.39,
+                      "providerPromptTokensPerSecond": 15317.36,
+                      "providerDecodeTokensPerSecond": 46.39,
+                      "providerLoadMs": 42.9,
+                      "outputCharacters": 405,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "RETRY 상태인 주문 수: 18\namount 합계: 24,666\n\n검산 가능한 주문 ID 목록:\n```json\n[\"ORDER-001\", \"ORDER-008\", \"ORDER-015\", \"ORDER-022\", \"ORDER-029\", \"ORDER-036\", \"ORDER-043\", \"ORDER-050\", \"ORDER-057\", \"ORDER-064\", \"ORDER-071\", \"ORDER-078\", \"ORDER-085\", \"ORDER-"
+                    },
+                    {
+                      "promptTokens": 4062,
+                      "completionTokens": 218,
+                      "ttftMs": 88.95,
+                      "visibleTtftMs": 88.95,
+                      "totalMs": 4789.66,
+                      "effectivePromptTokensPerSecond": 45667.37,
+                      "decodeTokensPerSecond": 46.38,
+                      "providerPromptTokensPerSecond": 105648.61,
+                      "providerDecodeTokensPerSecond": 46.37,
+                      "providerLoadMs": 45.04,
+                      "outputCharacters": 405,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "RETRY 상태인 주문 수: 18\namount 합계: 24,666\n\n검산 가능한 주문 ID 목록:\n```json\n[\"ORDER-001\", \"ORDER-008\", \"ORDER-015\", \"ORDER-022\", \"ORDER-029\", \"ORDER-036\", \"ORDER-043\", \"ORDER-050\", \"ORDER-057\", \"ORDER-064\", \"ORDER-071\", \"ORDER-078\", \"ORDER-085\", \"ORDER-"
+                    },
+                    {
+                      "promptTokens": 4062,
+                      "completionTokens": 218,
+                      "ttftMs": 80,
+                      "visibleTtftMs": 80,
+                      "totalMs": 4771.35,
+                      "effectivePromptTokensPerSecond": 50774.05,
+                      "decodeTokensPerSecond": 46.47,
+                      "providerPromptTokensPerSecond": 108925.51,
+                      "providerDecodeTokensPerSecond": 46.44,
+                      "providerLoadMs": 34.88,
+                      "outputCharacters": 405,
+                      "reasoningCharacters": 0,
+                      "outputPreview": "RETRY 상태인 주문 수: 18\namount 합계: 24,666\n\n검산 가능한 주문 ID 목록:\n```json\n[\"ORDER-001\", \"ORDER-008\", \"ORDER-015\", \"ORDER-022\", \"ORDER-029\", \"ORDER-036\", \"ORDER-043\", \"ORDER-050\", \"ORDER-057\", \"ORDER-064\", \"ORDER-071\", \"ORDER-078\", \"ORDER-085\", \"ORDER-"
+                    }
+                  ],
+                  "summary": {
+                    "ttftMs": {
+                      "mean": 160.65,
+                      "median": 88.95,
+                      "min": 80,
+                      "max": 313.01
+                    },
+                    "visibleTtftMs": {
+                      "mean": 160.65,
+                      "median": 88.95,
+                      "min": 80,
+                      "max": 313.01
+                    },
+                    "totalMs": {
+                      "mean": 4857.66,
+                      "median": 4789.66,
+                      "min": 4771.35,
+                      "max": 5011.96
+                    },
+                    "effectivePromptTokensPerSecond": {
+                      "mean": 36472.92,
+                      "median": 45667.37,
+                      "min": 12977.34,
+                      "max": 50774.05
+                    },
+                    "decodeTokensPerSecond": {
+                      "mean": 46.41,
+                      "median": 46.39,
+                      "min": 46.38,
+                      "max": 46.47
+                    },
+                    "providerPromptTokensPerSecond": {
+                      "mean": 76630.49,
+                      "median": 105648.61,
+                      "min": 15317.36,
+                      "max": 108925.51
+                    },
+                    "providerDecodeTokensPerSecond": {
+                      "mean": 46.4,
+                      "median": 46.39,
+                      "min": 46.37,
+                      "max": 46.44
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "qualityChecks": [
+        {
+          "id": "short-explanation",
+          "thinking": true,
+          "result": {
+            "promptTokens": 78,
+            "completionTokens": 1024,
+            "ttftMs": 74.92,
+            "visibleTtftMs": 20384.16,
+            "totalMs": 22847.44,
+            "effectivePromptTokensPerSecond": 1041.06,
+            "decodeTokensPerSecond": 44.97,
+            "providerPromptTokensPerSecond": 2089.35,
+            "providerDecodeTokensPerSecond": 44.97,
+            "providerLoadMs": 33.92,
+            "outputCharacters": 228,
+            "reasoningCharacters": 2836,
+            "outputPreview": "**낙관적 락**: 재고 조회 시 잠금 없이 버전 번호만 읽음. 차감 업데이트 시 버전이 일치하면 성공, 불일치하면 충돌 감지 후 재시도 또는 실패. 높은 동시성 보장, 충돌 시 재시도/재고 부족 예외 처리 필요.\n\n**비관적 락**: 재고 조회 즉시 행 잠금. 다른 트랜잭션은 잠금 해제까지 대기. 충돌을 사전에 차단하지만 동시성 저하 및 대기 지연 발생.\n\n**핵심 차이**: 충돌 처리 시점(업데이트 시",
+            "outputText": "**낙관적 락**: 재고 조회 시 잠금 없이 버전 번호만 읽음. 차감 업데이트 시 버전이 일치하면 성공, 불일치하면 충돌 감지 후 재시도 또는 실패. 높은 동시성 보장, 충돌 시 재시도/재고 부족 예외 처리 필요.\n\n**비관적 락**: 재고 조회 즉시 행 잠금. 다른 트랜잭션은 잠금 해제까지 대기. 충돌을 사전에 차단하지만 동시성 저하 및 대기 지연 발생.\n\n**핵심 차이**: 충돌 처리 시점(업데이트 시"
+          }
+        },
+        {
+          "id": "coding",
+          "thinking": true,
+          "result": {
+            "promptTokens": 93,
+            "completionTokens": 1024,
+            "ttftMs": 94.34,
+            "visibleTtftMs": null,
+            "totalMs": 20819.3,
+            "effectivePromptTokensPerSecond": 985.79,
+            "decodeTokensPerSecond": 49.41,
+            "providerPromptTokensPerSecond": 1656.83,
+            "providerDecodeTokensPerSecond": 49.41,
+            "providerLoadMs": 35.44,
+            "outputCharacters": 0,
+            "reasoningCharacters": 4153,
+            "outputPreview": "",
+            "outputText": ""
+          }
+        },
+        {
+          "id": "long-context",
+          "thinking": true,
+          "result": {
+            "promptTokens": 4060,
+            "completionTokens": 1024,
+            "ttftMs": 422.76,
+            "visibleTtftMs": null,
+            "totalMs": 21768.18,
+            "effectivePromptTokensPerSecond": 9603.61,
+            "decodeTokensPerSecond": 47.97,
+            "providerPromptTokensPerSecond": 10766.9,
+            "providerDecodeTokensPerSecond": 47.97,
+            "providerLoadMs": 36.28,
+            "outputCharacters": 0,
+            "reasoningCharacters": 2130,
+            "outputPreview": "",
+            "outputText": ""
+          }
+        },
+        {
+          "id": "short-explanation",
+          "thinking": false,
+          "result": {
+            "promptTokens": 80,
+            "completionTokens": 100,
+            "ttftMs": 117.92,
+            "visibleTtftMs": 117.92,
+            "totalMs": 2036.09,
+            "effectivePromptTokensPerSecond": 678.41,
+            "decodeTokensPerSecond": 52.13,
+            "providerPromptTokensPerSecond": 1133.75,
+            "providerDecodeTokensPerSecond": 52.05,
+            "providerLoadMs": 40.22,
+            "outputCharacters": 214,
+            "reasoningCharacters": 0,
+            "outputPreview": "낙관적 락(Optimistic Locking)은 재고 차감 시 데이터의 버전 번호나 수정 시각을 비교하여, 다른 트랜잭션이 변경하지 않았다면 바로 업데이트하는 방식입니다. 반면, 비관적 락(Pessimistic Locking)은 재고 데이터를 조회할 때 즉시 행 잠금(For Update)을 걸어 다른 트랜잭션이 수정하지 못하도록 차단한 후, 차감 처리를 완료하고 잠금을 해제합니다.",
+            "outputText": "낙관적 락(Optimistic Locking)은 재고 차감 시 데이터의 버전 번호나 수정 시각을 비교하여, 다른 트랜잭션이 변경하지 않았다면 바로 업데이트하는 방식입니다. 반면, 비관적 락(Pessimistic Locking)은 재고 데이터를 조회할 때 즉시 행 잠금(For Update)을 걸어 다른 트랜잭션이 수정하지 못하도록 차단한 후, 차감 처리를 완료하고 잠금을 해제합니다."
+          }
+        },
+        {
+          "id": "coding",
+          "thinking": false,
+          "result": {
+            "promptTokens": 95,
+            "completionTokens": 595,
+            "ttftMs": 94.25,
+            "visibleTtftMs": 94.25,
+            "totalMs": 11847.14,
+            "effectivePromptTokensPerSecond": 1008.01,
+            "decodeTokensPerSecond": 50.63,
+            "providerPromptTokensPerSecond": 1715.18,
+            "providerDecodeTokensPerSecond": 50.63,
+            "providerLoadMs": 34.9,
+            "outputCharacters": 2392,
+            "reasoningCharacters": 0,
+            "outputPreview": "```java\nimport org.springframework.data.redis.core.StringRedisTemplate;\nimport org.springframework.stereotype.Service;\nimport org.springframework.transaction.annotation.Transactional;\n\nimport java.util.UUID;\nimport java.util.concurrent.Time",
+            "outputText": "```java\nimport org.springframework.data.redis.core.StringRedisTemplate;\nimport org.springframework.stereotype.Service;\nimport org.springframework.transaction.annotation.Transactional;\n\nimport java.util.UUID;\nimport java.util.concurrent.TimeUnit;\n\n@Service\npublic class OrderService {\n\n    private final StringRedisTemplate redisTemplate;\n    private final OrderRepository orderRepository;\n\n    public OrderService(StringRedisTemplate redisTemplate, OrderRepository orderRepository) {\n        this.redisTemplate = redisTemplate;\n        this.orderRepository = orderRepository;\n    }\n\n    /**\n     * 멱등성 키를 사용하여 동시 요청 처리 및 중복 주문 방지\n     * @param idempotencyKey 클라이언트가 생성한 고유 요청 ID\n     * @param orderRequest 주문 정보\n     * @return 생성된 주문 결과\n     */\n    @Transactional\n    public OrderResponse createOrder(String idempotencyKey, OrderRequest orderRequest) {\n        // 1. Redis 분산 락 또는 SETNX를 통한 동시 요청 제어\n        // key: idempotency_key:{idempotencyKey}, value: \"LOCK\", expire: 5초\n        Boolean isLocked = redisTemplate.opsForValue()\n                .setIfAbsent(\"idempotency_key:\" + idempotencyKey, \"LOCK\", 5, TimeUnit.SECONDS);\n\n        if (Boolean.FALSE.equals(isLocked)) {\n            // 이미 처리 중인 요청이거나 중복 요청\n            throw new DuplicateRequestException(\"요청이 이미 처리 중이거나 중복 요청입니다.\");\n        }\n\n        try {\n            // 2. DB에서 이미 존재하는지 확인 (이중 체크 패턴 보완)\n            Order existingOrder = orderRepository.findByIdempotencyKey(idempotencyKey);\n            if (existingOrder != null) {\n                return new OrderResponse(existingOrder.getId(), \"SUCCESS\", existingOrder.getStatus());\n            }\n\n            // 3. 주문 생성 로직\n            Order newOrder = Order.builder()\n                    .idempotencyKey(idempotencyKey)\n                    .productId(orderRequest.getProductId())\n                    .quantity(orderRequest.getQuantity())\n                    .status(OrderStatus.PENDING)\n                    .build();\n\n            orderRepository.save(newOrder);\n\n            // 4. 성공 시 Redis 키 삭제 (선택적: 상태 저장 시 유지 가능)\n            redisTemplate.delete(\"idempotency_key:\" + idempotencyKey);\n\n            return new OrderResponse(newOrder.getId(), \"SUCCESS\", newOrder.getStatus());\n\n        } catch (Exception e) {\n            // 트랜잭션 롤백 시 Redis 락도 해제해야 함 (자동 해제됨)\n            // 실패 응답 처리\n            throw new OrderCreationFailedException(\"주문 생성에 실패했습니다.\", e);\n        }\n    }\n}\n```"
+          }
+        },
+        {
+          "id": "long-context",
+          "thinking": false,
+          "result": {
+            "promptTokens": 4062,
+            "completionTokens": 218,
+            "ttftMs": 117.9,
+            "visibleTtftMs": 117.9,
+            "totalMs": 5238.61,
+            "effectivePromptTokensPerSecond": 34452.43,
+            "decodeTokensPerSecond": 42.57,
+            "providerPromptTokensPerSecond": 53835.7,
+            "providerDecodeTokensPerSecond": 42.57,
+            "providerLoadMs": 36.51,
+            "outputCharacters": 405,
+            "reasoningCharacters": 0,
+            "outputPreview": "RETRY 상태인 주문 수: 18\namount 합계: 24,666\n\n검산 가능한 주문 ID 목록:\n```json\n[\"ORDER-001\", \"ORDER-008\", \"ORDER-015\", \"ORDER-022\", \"ORDER-029\", \"ORDER-036\", \"ORDER-043\", \"ORDER-050\", \"ORDER-057\", \"ORDER-064\", \"ORDER-071\", \"ORDER-078\", \"ORDER-085\", \"ORDER-",
+            "outputText": "RETRY 상태인 주문 수: 18\namount 합계: 24,666\n\n검산 가능한 주문 ID 목록:\n```json\n[\"ORDER-001\", \"ORDER-008\", \"ORDER-015\", \"ORDER-022\", \"ORDER-029\", \"ORDER-036\", \"ORDER-043\", \"ORDER-050\", \"ORDER-057\", \"ORDER-064\", \"ORDER-071\", \"ORDER-078\", \"ORDER-085\", \"ORDER-092\", \"ORDER-099\", \"ORDER-106\", \"ORDER-113\", \"ORDER-120\", \"ORDER-127\", \"ORDER-134\", \"ORDER-141\", \"ORDER-148\", \"ORDER-155\", \"ORDER-162\", \"ORDER-169\", \"ORDER-176\"]\n```"
+          }
+        }
+      ]
+    }
+  ]
+}

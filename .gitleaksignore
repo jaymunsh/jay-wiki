@@ -1,0 +1,7 @@
+# Exact historical examples reviewed during the 2026-09-07 audit.
+# Documentation Idempotency-Key example and isolated Testcontainers TOTP fixtures.
+c16c392761bbbf084e7da840f1e98d230ef78c83:docs/interview/02-분산-연동.md:generic-api-key:114
+04516c1a4217f97521659b7cb875e765d9e84f63:spring/jaywiki/src/test/java/cloud/leneu/jaywiki/AdminTotpIntegrationTest.java:generic-api-key:22
+04516c1a4217f97521659b7cb875e765d9e84f63:spring/jaywiki/src/test/java/cloud/leneu/jaywiki/AdminTotpIntegrationTest.java:generic-api-key:26
+# JwtAudienceTest의 폐기 가능한 단위 테스트 키를 generic-api-key로 본 오탐이다.
+a2c17a883f48768bd6c0666e6f019af4a7e6a19b:spring/src/test/java/cloud/leneu/jaywiki/auth/JwtAudienceTest.java:generic-api-key:13

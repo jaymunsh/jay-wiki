@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ornith oQ6 MTP 전체 실측</title>
+  <style>
+    :root { color-scheme: light; --ink:#18202b; --muted:#667085; --line:#dfe5ec; --blue:#2463eb; --green:#117a4b; --bg:#f6f8fb; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--bg); font:16px/1.65 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; }
+    main { max-width:980px; margin:0 auto; padding:48px 22px 72px; }
+    .eyebrow { color:var(--blue); font-weight:700; letter-spacing:.08em; text-transform:uppercase; font-size:13px; }
+    h1 { margin:8px 0 10px; font-size:clamp(28px,5vw,46px); line-height:1.15; letter-spacing:-.04em; }
+    h2 { margin:38px 0 12px; font-size:24px; letter-spacing:-.03em; }
+    p { margin:10px 0; }
+    .lead { color:#3d4858; font-size:18px; max-width:760px; }
+    .hero, .card { background:#fff; border:1px solid var(--line); border-radius:18px; box-shadow:0 8px 28px rgba(35,55,80,.05); }
+    .hero { padding:28px; margin-top:24px; }
+    .hero strong { color:var(--green); }
+    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:22px; }
+    .stat { padding:17px; background:#f8fafc; border-radius:12px; }
+    .stat b { display:block; font-size:27px; line-height:1.2; }
+    .stat span { color:var(--muted); font-size:13px; }
+    table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+    th, td { padding:13px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { background:#f2f5f9; font-size:13px; color:#4e5b6d; }
+    tr:last-child td { border-bottom:0; }
+    .num { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+    .current { background:#eef8f2; }
+    code { padding:2px 5px; border-radius:5px; background:#eef1f5; font: .92em ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .note { padding:16px 18px; border-left:4px solid var(--blue); background:#eef4ff; border-radius:8px; color:#334155; }
+    .warn { border-left-color:#c17b00; background:#fff8e8; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .card { padding:20px; }
+    .card h3 { margin:0 0 10px; font-size:17px; }
+    .card ul { margin:8px 0 0; padding-left:20px; }
+    footer { color:var(--muted); font-size:13px; margin-top:34px; }
+    @media (max-width:700px) { .stats,.grid { grid-template-columns:1fr 1fr; } th,td { padding:10px 9px; font-size:14px; } .num { white-space:normal; } }
+    @media (max-width:430px) { .stats { grid-template-columns:1fr 1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Local LLM / oMLX 0.6.4</div>
+  <h1>Ornith oQ6 MTP 전체 실측</h1>
+  <p class="lead">M1 Max 64GB에서 <code>Ornith-1.5-35B-A3B-oQ6-gs128-mtp-vision</code>을 웹 생성·한국어·코드·하네스·도구 호출 항목으로 나누어 측정했다. 기존 컨텍스트 비교 결과와 함께 현재 MTP 프로필의 강점과 남은 검증 과제를 정리한 실험이다.</p>
+
+  <section class="hero">
+    <p><strong>정정된 장문 결과: 44,000토큰 입력에서 cold 42.91 tok/s, warm 41.41 tok/s.</strong> 지난번 90,171토큰 입력에서 약 29.3 tok/s였던 결과보다 숫자는 좋지만, 입력 길이와 모델 양자화가 함께 달라 직접적인 1:1 속도 비교는 아니다.</p>
+    <div class="stats">
+      <div class="stat"><b>42.91</b><span>tok/s · 장문 cold</span></div>
+      <div class="stat"><b>41.41</b><span>tok/s · 장문 warm</span></div>
+      <div class="stat"><b>85.26s</b><span>TTFT · 44k 입력 cold</span></div>
+      <div class="stat"><b>44,000</b><span>입력 토큰 · 49,152 ctx</span></div>
+    </div>
+  </section>
+
+  <h2>이번 장문 측정</h2>
+  <table>
+    <thead><tr><th>항목</th><th>값</th><th>의미</th></tr></thead>
+    <tbody>
+      <tr class="current"><td>모델</td><td><code>RukaRat/Ornith-1.5-35B-A3B-oQ6-gs128-mtp-vision</code></td><td>VLM 모델이지만 이번 요청에는 이미지 없음</td></tr>
+      <tr><td>컨텍스트 상한</td><td class="num">49,152</td><td>기존 96k(98,304)의 절반</td></tr>
+      <tr><td>최대 생성 토큰</td><td class="num">4,096</td><td>컨텍스트 상한과 별개의 값</td></tr>
+      <tr><td>요청</td><td><code>ctx-96k</code> 절반 버전</td><td>같은 요약 작업·같은 문서 앞부분, 입력 44,000 tokens</td></tr>
+      <tr><td>컨텍스트 상한</td><td class="num">49,152</td><td>입력과 3,000 출력 토큰이 함께 들어가도록 설정</td></tr>
+      <tr><td>cold</td><td class="num"><strong>42.91 tok/s</strong></td><td>TTFT 85.261s, 생성 4.800s, 출력 206 tokens</td></tr>
+      <tr><td>warm</td><td class="num"><strong>41.41 tok/s</strong></td><td>TTFT 8.383s, 생성 4.975s, 출력 206 tokens</td></tr>
+    </tbody>
+  </table>
+
+  <h2>랜딩 페이지 생성은 별도 속도로 기록했다</h2>
+  <table>
+    <thead><tr><th>항목</th><th>값</th><th>의미</th></tr></thead>
+    <tbody>
+      <tr><td>요청</td><td><code>web-landing</code></td><td>입력 51 tokens, HTML 생성</td></tr>
+      <tr><td>컨텍스트 / 최대 생성</td><td class="num">49,152 / 4,096</td><td>짧은 입력이라 컨텍스트 창을 채우지 않음</td></tr>
+      <tr><td>속도</td><td class="num"><strong>47.23 tok/s</strong></td><td>TTFT 0.510s, 생성 8,468 tokens</td></tr>
+      <tr><td>종료</td><td class="num">179.809s</td><td>자연 종료, 자동 구조 점수 1.0</td></tr>
+      <tr><td>생성 HTML</td><td><code>bench/out/web-landing__Ornith-1.5-35B-A3B-oQ6-gs128-mtp-vision__warm__beed950e.html</code></td><td>실제 모델 출력 완성본 · MTP off</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Native Lightning MTP를 켜고 다시 측정했다</h2>
+  <table>
+    <thead><tr><th>항목</th><th>값</th><th>의미</th></tr></thead>
+    <tbody>
+      <tr><td>Lightning MTP</td><td class="num"><strong>활성</strong></td><td>모델 내장 MTP head 사용</td></tr>
+      <tr><td>실제 MTP 로그</td><td class="num">80.5% accept · 2.60 tok/cycle</td><td>4075/5063 draft 토큰 승인</td></tr>
+      <tr><td>속도</td><td class="num"><strong>53.59 tok/s</strong></td><td>TTFT 0.789s, 생성 6,629 tokens</td></tr>
+      <tr><td>종료</td><td class="num">124.477s</td><td>자연 종료, 자동 구조 점수 1.0</td></tr>
+      <tr><td>생성 HTML</td><td><code>bench/out/web-landing__Ornith-1.5-35B-A3B-oQ6-gs128-mtp-vision__warm__5c848d18.html</code></td><td>실제 모델 출력 완성본 · MTP on</td></tr>
+    </tbody>
+  </table>
+  <p class="note">같은 프롬프트·같은 sampling 설정의 단일 실행 비교에서 MTP on이 MTP off보다 약 13.5% 빨랐다. 출력 길이가 달라졌으므로 최종 결론은 반복 측정 중앙값으로 확인하는 편이 안전하다.</p>
+
+  <h2>전체 벤치마크를 MTP 활성 상태에서 다시 돌렸다</h2>
+  <p>측정 조건은 Apple M1 Max 64GB, oMLX 0.6.4, <code>temperature=0.1</code>, <code>top_p=0.95</code>, <code>top_k=20</code>, thinking off, warm 실행이다. 자동 점수는 정답·형식·완결성 관문이며, 산문 품질을 대신하지 않는다.</p>
+  <table>
+    <thead><tr><th>테스트</th><th class="num">속도</th><th class="num">TTFT</th><th>결과</th></tr></thead>
+    <tbody>
+      <tr class="current"><td>제품 소개 페이지</td><td class="num"><strong>54.47 tok/s</strong></td><td class="num">0.618s</td><td>자동 1.0 · 한국어 지시 보정판</td></tr>
+      <tr class="current"><td>단일 파일 갤러그</td><td class="num"><strong>56.92 tok/s</strong></td><td class="num">0.613s</td><td>7,208 tokens · 자동 1.0 · <code>b50dd32e</code></td></tr>
+      <tr><td>단일 파일 테트리스</td><td class="num"><strong>60.34 tok/s</strong></td><td class="num">0.563s</td><td>4,210 tokens · 자동 1.0</td></tr>
+      <tr><td>모래 물리 샌드박스</td><td class="num"><strong>55.32 tok/s</strong></td><td class="num">0.700s</td><td>5,652 tokens · 자동 1.0</td></tr>
+      <tr><td>HTML 노이즈 내성</td><td class="num">53.38 tok/s</td><td class="num">3.047s</td><td>자동 1.0</td></tr>
+      <tr><td>Java 버그 찾기</td><td class="num">52.93 tok/s</td><td class="num">2.766s</td><td>6/6 버그 탐지 · 자동 1.0</td></tr>
+      <tr><td>Java 리팩터</td><td class="num">53.05 tok/s</td><td class="num">2.852s</td><td>전체 코드 출력 · 수동 검토 대상</td></tr>
+      <tr><td>JSON only</td><td class="num">85.17 tok/s</td><td class="num">0.642s</td><td>자동 1.0</td></tr>
+      <tr><td>한국어 3줄 제한</td><td class="num">50.45 tok/s</td><td class="num">0.646s</td><td>자동 0.0 · 줄 수/형식 실패</td></tr>
+      <tr><td>한→영 번역</td><td class="num">65.55 tok/s</td><td class="num">0.610s</td><td>자동 1.0</td></tr>
+      <tr><td>짧은 대화</td><td class="num">53.43 tok/s</td><td class="num">0.521s</td><td>정상 종료 · 수동 품질 검토</td></tr>
+      <tr><td>한국어 기술 블로그 개요</td><td class="num">48.39 tok/s</td><td class="num">1.103s</td><td>자동 5/6 · 문체 일관성 실패</td></tr>
+      <tr><td>에이전트 첫 툴콜</td><td class="num">—</td><td class="num">2.051s</td><td><code>read</code> 호출 · 자동 1.0</td></tr>
+      <tr><td>에이전트 3턴 루프</td><td class="num">26.15 tok/s</td><td class="num">0.821s</td><td><code>read → edit</code> · 자동 1.0</td></tr>
+      <tr><td>툴 결과 충실도</td><td class="num">57.91 tok/s</td><td class="num">2.228s</td><td><code>REQUEST_TIMEOUT_SEC=30</code> 반영 · 자동 1.0</td></tr>
+      <tr><td>서울 날씨 웹검색 하네스</td><td class="num">43.78 tok/s</td><td class="num">10.376s</td><td><code>webfetch</code> 호출 · 결과는 스텁 주입</td></tr>
+    </tbody>
+  </table>
+  <p class="note">웹 생성 결과는 <a href="bench/out/web-galaga__Ornith-1.5-35B-A3B-oQ6-gs128-mtp-vision__warm__b50dd32e.html">갤러그 완성본</a>처럼 별도 HTML로 남겼다. 언어 검사에서는 아랍어·중국어·일본어 혼입이 발견되지 않았지만, 블로그 개요와 3줄 제한에서는 각각 문체·형식 문제가 확인됐다.</p>
+
+  <h2>컨텍스트 항목은 현재 상한 때문에 별도로 남겼다</h2>
+  <p><code>ctx-64k</code>와 <code>ctx-96k</code>는 모델 프로필의 <code>max_context_window=49152</code>보다 입력이 크다. 실행을 계속하면 유효한 속도 비교가 아니라 긴 프리필 대기만 발생하므로 이번 전체 스위트에서는 중단했다. 49,152 이상을 실제로 측정하려면 모델 프로필 상한을 먼저 올리고 재부팅한 뒤 다시 실행해야 한다.</p>
+
+  <h2>이전 결과와 비교</h2>
+  <table>
+    <thead><tr><th>측정</th><th class="num">속도</th><th class="num">컨텍스트</th><th>비교 의미</th></tr></thead>
+    <tbody>
+      <tr class="current"><td>Ornith oQ6 · 장문 cold</td><td class="num"><strong>42.91</strong></td><td class="num">49,152</td><td>44,000 입력, ctx-96k 작업의 절반 버전</td></tr>
+      <tr class="current"><td>Ornith oQ6 · 장문 warm</td><td class="num"><strong>41.41</strong></td><td class="num">49,152</td><td>같은 nonce 재요청, TTFT 8.383s</td></tr>
+      <tr><td>Ornith MLX 6bit · 96k cold</td><td class="num">29.32</td><td class="num">98,304</td><td>90,171 입력, 기존 장문 테스트</td></tr>
+      <tr><td>Ornith MLX 6bit · 96k warm</td><td class="num">29.88</td><td class="num">98,304</td><td>90,171 입력, 같은 문서 재요청</td></tr>
+      <tr><td>Ornith oQ6 · 짧은 랜딩 · MTP on</td><td class="num"><strong>53.59</strong></td><td class="num">49,152</td><td>입력 51 tokens, accept 80.5%, 2.60 tok/cycle</td></tr>
+      <tr><td>Ornith oQ6 · 짧은 랜딩 · MTP off</td><td class="num">47.23</td><td class="num">49,152</td><td>입력 51 tokens, 8,468 tokens 자연 종료</td></tr>
+      <tr><td>Ornith MLX 6bit · 짧은 입력</td><td class="num">52.4</td><td class="num">—</td><td>기존 벤치 중앙값</td></tr>
+      <tr><td>Qwen3.8-27B 4bit + DFlash2</td><td class="num">16.52</td><td class="num">—</td><td>dense 27B라 구조가 다름</td></tr>
+    </tbody>
+  </table>
+
+  <div class="grid">
+    <section class="card">
+      <h3>현재 안정 설정</h3>
+      <ul>
+        <li>VLM MTP: 끔</li>
+        <li>Lightning MTP: 켬</li>
+        <li>VLM MTP / DFlash: 끔</li>
+        <li>SpecPrefill / TurboQuant: 끔</li>
+        <li>Thinking: 프로필은 켬, 속도 측정 요청은 끔</li>
+        <li>컨텍스트: 49,152</li>
+        <li>Max tokens: 4,096</li>
+      </ul>
+    </section>
+    <section class="card">
+      <h3>해석할 때 주의할 점</h3>
+      <ul>
+        <li>컨텍스트 상한은 입력 길이가 아니다.</li>
+        <li>짧은 입력에서는 49k와 82k의 디코드 속도가 거의 같다.</li>
+        <li>49k 설정에서는 90k 입력을 그대로 넣을 수 없어, 같은 자료의 44k 토큰 버전을 측정했다.</li>
+        <li>장문 cold 속도는 프리필 대기와 분리된 생성 속도이며, TTFT는 별도로 봐야 한다.</li>
+        <li>oQ6의 속도 향상보다 Ornith의 A3B MoE 구조 효과가 크다.</li>
+      </ul>
+    </section>
+  </div>
+
+  <p class="note warn"><strong>정확한 1:1 비교의 한계:</strong> 지난번 29.32 tok/s는 90,171토큰 입력과 MLX 6bit 모델이었다. 이번 장문 측정은 같은 작업과 문서 앞부분을 사용했지만 44,000토큰 입력과 oQ6 모델이므로, 개선 폭 전체를 양자화나 context 절반의 효과로 귀속할 수 없다. 장문 테스트는 MTP off로 먼저 측정했으므로, MTP의 장문 효과는 아직 별도 검증이 필요하다.</p>
+  <p class="note warn"><strong>VLM MTP 호환성:</strong> Qwen3.8-27B-MTP-4bit를 drafter로 연결하면 RMSNorm 차원 불일치가 발생했다. 타깃 모델 hidden size는 2048, drafter는 5120이므로 이 조합은 사용하지 않는다.</p>
+  <footer>측정일: 2026-08-31 · 장비: Apple M1 Max 64GB · 서버: oMLX 0.6.4 · 이번 전체 스위트는 Native Lightning MTP 활성, VLM MTP·DFlash·Thinking off, temperature 0.1, warm 1회다. 최종 비교에는 2~3회 반복 중앙값이 더 적합하다.</footer>
+</main>
+</body>
+</html>

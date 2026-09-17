@@ -1,0 +1,77 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: jaywiki-portfolio-stack-assets-
+  namespace: data
+  labels:
+    app: jaywiki-portfolio-stack-assets
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 180
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app: jaywiki-portfolio-stack-assets
+    spec:
+      restartPolicy: Never
+      volumes:
+        - name: assets
+          emptyDir: {}
+      initContainers:
+        - name: download-icons
+          image: curlimages/curl:8.12.1
+          command: ["sh", "-ec"]
+          args:
+            - |
+              mkdir -p /assets
+              while IFS=: read -r key icon; do
+                curl --fail --location --retry 3 --silent --show-error \
+                  "https://cdn.simpleicons.org/${icon}" \
+                  --output "/assets/${key}.svg"
+              done <<'ASSETS'
+              cloudflare:cloudflare
+              google:google
+              googlechrome:googlechrome
+              opentelemetry:opentelemetry
+              githubactions:githubactions
+              github:github
+              nextjs:nextdotjs
+              spring:Spring
+              fastapi:fastapi
+              postgresql:postgresql
+              redis:redis
+              kafka:apachekafka
+              kubernetes:kubernetes
+              opensearch:opensearch
+              minio:minio
+              prometheus:prometheus
+              grafana:grafana
+              ASSETS
+          volumeMounts:
+            - name: assets
+              mountPath: /assets
+      containers:
+        - name: upload-icons
+          image: minio/mc:RELEASE.2025-04-08T15-39-49Z
+          command: ["sh", "-ec"]
+          args:
+            - |
+              mc alias set local http://minio.data.svc.cluster.local:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" >/dev/null
+              mc mb --ignore-existing local/wiki-assets >/dev/null
+              mc cp /assets/*.svg local/wiki-assets/portfolio/stack/
+              mc stat local/wiki-assets/portfolio/stack/kubernetes.svg >/dev/null
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: minio
+                  key: rootUser
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minio
+                  key: rootPassword
+          volumeMounts:
+            - name: assets
+              mountPath: /assets

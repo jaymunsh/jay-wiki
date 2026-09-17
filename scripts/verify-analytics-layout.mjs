@@ -1,0 +1,27 @@
+import { mkdir } from 'node:fs/promises';
+import { createRequire } from 'node:module';
+const require = createRequire(new URL('../web/package.json', import.meta.url));
+const { chromium } = require('@playwright/test');
+import { writeFile } from 'node:fs/promises';
+await mkdir('.local-backups/analytics-v2', { recursive: true });
+const browser=await chromium.launch();
+const ctx=await browser.newContext({viewport:{width:1440,height:1100}});
+const login=await ctx.request.post('http://admin.localhost:3000/api/bff/auth/admin-login',{headers:{'origin':'http://admin.localhost:3000'},data:{username:'admin',password:'admin1234'}});
+console.log('login',login.status());
+const page=await ctx.newPage();
+const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto('http://admin.localhost:3000/stats?site=blog&days=30');
+
+await page.getByRole('heading',{name:/방문과 읽기/}).waitFor();
+await page.screenshot({path:'.local-backups/analytics-v2/desktop.png',fullPage:true});
+const check=async()=>page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,heading:document.querySelector('h1')?.textContent}));
+console.log('desktop',await check());
+await page.setViewportSize({width:390,height:844});
+await page.screenshot({path:'.local-backups/analytics-v2/mobile.png',fullPage:true});
+const mobile = await check(); console.log('mobile', mobile);
+await page.setViewportSize({width:1440,height:1100});
+await page.evaluate(()=>document.documentElement.dataset.theme='dark');
+await page.screenshot({path:'.local-backups/analytics-v2/dark.png',fullPage:true});
+console.log('errors',errors);
+await writeFile('.local-backups/analytics-v2/ui-check.json',JSON.stringify({errors,mobile},null,2));
+await browser.close();

@@ -1,0 +1,229 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Select affected checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      spring: ${{ steps.scope.outputs.spring }}
+      web: ${{ steps.scope.outputs.web }}
+      node: ${{ steps.scope.outputs.node }}
+      payment: ${{ steps.scope.outputs.payment }}
+      shipping: ${{ steps.scope.outputs.shipping }}
+      images: ${{ steps.scope.outputs.images }}
+      python: ${{ steps.scope.outputs.python }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - name: Test scope selection
+        run: python3 scripts/test-ci-scope.py
+      - id: scope
+        run: python3 scripts/ci-scope.py
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
+  docs:
+    name: Documentation consistency
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "22"
+
+      - name: Check local links and stale current claims
+        run: node scripts/check-docs.mjs
+
+      - name: Check generated test documentation and wiki source
+        run: |
+          python3 scripts/update-test-summary.py --check docs
+          node --test scripts/lib/wiki-source.test.mjs
+
+  spring:
+    needs: changes
+    if: needs.changes.outputs.spring == 'true'
+    name: Spring tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: spring
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up JDK
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Run tests
+        run: SPRING_PROFILES_ACTIVE=local ./gradlew test
+
+      - name: Check reported test count
+        run: python3 ../scripts/update-test-summary.py --check spring
+
+  web:
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    name: Web lint, type-check and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Test
+        run: npm test -- --reporter=json --outputFile=/tmp/vitest.json
+
+      - name: Check reported test count
+        run: python3 ../scripts/update-test-summary.py --check web --report /tmp/vitest.json
+
+      - name: Build
+        run: npm run build
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser smoke test
+        run: npm run test:browser
+
+      - name: Set up JDK for isolated editorial backend
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Browser editorial workflow with real Spring and disposable databases
+        run: npm run test:editorial
+
+      - name: Upload browser test artifacts
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: web-browser-test-results
+          retention-days: 7
+          path: web/test-results
+          if-no-files-found: ignore
+
+  payment-api:
+    needs: changes
+    if: needs.changes.outputs.payment == 'true'
+    name: Payment API tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: services/payment-api
+    # 결제가 자기 데이터를 들기로 하면서 테스트도 DB 를 요구하게 됐다.
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: portfolio
+          POSTGRES_PASSWORD: changeme
+          POSTGRES_DB: payment_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U portfolio -d payment_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Type check
+        run: uv run basedpyright
+
+      - name: Test
+        env:
+          PAYMENT_DB_DSN: postgresql://portfolio:changeme@127.0.0.1:5432/payment_test
+        run: uv run pytest
+
+  shipping-api:
+    needs: changes
+    if: needs.changes.outputs.shipping == 'true'
+    name: Shipping API tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: services/shipping-api
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: portfolio
+          POSTGRES_PASSWORD: changeme
+          POSTGRES_DB: shipping_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U portfolio -d shipping_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Type check
+        run: uv run basedpyright
+
+      - name: Test
+        env:
+          SHIPPING_DB_DSN: postgresql://portfolio:changeme@127.0.0.1:5432/shipping_test
+        run: uv run pytest

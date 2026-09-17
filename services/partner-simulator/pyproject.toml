@@ -1,0 +1,42 @@
+[project]
+name = "jaywiki-partner-simulator"
+version = "0.1.0"
+description = "Controlled external partner failures for the jay-wiki WebClient rehearsal"
+requires-python = ">=3.12"
+dependencies = [
+    "anyio>=4.9.0",
+    "fastapi>=0.116.0",
+    "httpx2[http2,brotli,zstd]>=2.12.0",
+    "pydantic>=2.11.0",
+    "uvicorn[standard]>=0.35.0",
+]
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.31.0",
+    "httpx>=0.28.0",
+    "pytest>=8.4.0",
+    "ruff>=0.12.0",
+]
+
+[tool.basedpyright]
+typeCheckingMode = "all"
+pythonVersion = "3.12"
+include = ["src", "tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["COM812", "D100", "D101", "D102", "D103", "D104", "D203", "D213", "S104"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["D", "PLR2004", "S101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = ["-ra", "--strict-config", "--strict-markers"]

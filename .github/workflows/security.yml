@@ -1,0 +1,156 @@
+name: Security
+
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 21 * * 0'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Select affected checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      spring: ${{ steps.scope.outputs.spring }}
+      web: ${{ steps.scope.outputs.web }}
+      node: ${{ steps.scope.outputs.node }}
+      payment: ${{ steps.scope.outputs.payment }}
+      shipping: ${{ steps.scope.outputs.shipping }}
+      images: ${{ steps.scope.outputs.images }}
+      python: ${{ steps.scope.outputs.python }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - name: Test scope selection
+        run: python3 scripts/test-ci-scope.py
+      - id: scope
+        run: python3 scripts/ci-scope.py
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
+  public-boundary:
+    name: Public HTTP security boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - run: python3 scripts/check-public-security-boundary.py
+
+  images:
+    needs: changes
+    if: needs.changes.outputs.images != '[]'
+    name: Runtime image (${{ matrix.context }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        context: ${{ fromJSON(needs.changes.outputs.images) }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Build and identify the runtime image
+        env:
+          CONTEXT: ${{ matrix.context }}
+        run: |
+          mkdir -p scan-results
+          docker build --pull -t security-runtime "$CONTEXT"
+          docker image inspect security-runtime > scan-results/image.json
+          docker save security-runtime -o scan-results/runtime.tar
+      - name: Keep all findings, including vendor-unfixed vulnerabilities
+        run: |
+          docker run --rm -v "$PWD/scan-results:/scan" aquasec/trivy:0.74.0 image \
+            --input /scan/runtime.tar --scanners vuln --list-all-pkgs \
+            --severity HIGH,CRITICAL --format json --output /scan/report.json
+          node -e 'const r=require("./scan-results/report.json"); if (!r.Results?.some(x=>x.Packages?.length)) throw Error("Scanner inspected no packages")'
+      - name: Block fixable high and critical vulnerabilities
+        run: |
+          docker run --rm -v "$PWD/scan-results:/scan:ro" aquasec/trivy:0.74.0 image \
+            --input /scan/runtime.tar --scanners vuln --ignore-unfixed \
+            --severity HIGH,CRITICAL --exit-code 1
+      - name: Name the report artifact
+        if: always()
+        id: report
+        env:
+          CONTEXT: ${{ matrix.context }}
+        run: echo "name=${CONTEXT//\//-}" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: security-${{ steps.report.outputs.name }}-${{ github.sha }}
+          path: scan-results/*.json
+          retention-days: ${{ github.event_name == 'pull_request' && 7 || 30 }}
+          if-no-files-found: warn
+
+  node:
+    needs: changes
+    if: needs.changes.outputs.node == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '22'
+      - run: npm audit --audit-level=high
+        working-directory: web
+
+  python:
+    needs: changes
+    if: needs.changes.outputs.python != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJSON(needs.changes.outputs.python) }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+      - name: Audit locked runtime dependencies
+        working-directory: services/${{ matrix.service }}
+        run: |
+          uv export --frozen --no-dev --no-emit-project --output-file /tmp/requirements-audit.txt > /dev/null
+          uvx pip-audit -r /tmp/requirements-audit.txt --no-deps --disable-pip
+
+  java:
+    needs: changes
+    if: needs.changes.outputs.spring == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - run: ./gradlew bootJar
+        working-directory: spring
+      # rootfs scans packaged JARs; fs only scans supported manifests here.
+      - name: Audit the actual runtime JAR
+        run: >-
+          docker run --rm -v "$PWD/spring/build/libs:/scan:ro"
+          aquasec/trivy:0.74.0 rootfs --scanners vuln
+          --severity HIGH,CRITICAL --exit-code 1 /scan
+
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - name: Scan history with redacted output
+        run: >-
+          docker run --rm -v "$PWD:/repo:ro" -w /repo
+          ghcr.io/gitleaks/gitleaks:v8.30.1 git --redact --no-banner

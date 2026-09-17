@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>모래 물리 샌드박스</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #12141c;
+    color: #cfd2dc;
+    font-family: "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 12px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  h1 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 6px 0 10px;
+    letter-spacing: 1px;
+    color: #e6e9f0;
+  }
+  #toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    max-width: 900px;
+  }
+  .group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #1c1f2b;
+    padding: 5px 8px;
+    border-radius: 8px;
+    border: 1px solid #2a2e3d;
+  }
+  .group label { font-size: 12px; color: #9aa0b4; }
+  .mat-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: #232735;
+    border: 1px solid #333849;
+    color: #cfd2dc;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.12s;
+  }
+  .mat-btn:hover { background: #2c3142; }
+  .mat-btn.active { border-color: #6c7bb0; background: #333a52; color: #fff; box-shadow: 0 0 0 1px #6c7bb0 inset; }
+  .swatch {
+    width: 14px; height: 14px; border-radius: 3px; display: inline-block;
+  }
+  button.action {
+    background: #2a2f42;
+    border: 1px solid #3a4159;
+    color: #dfe2ee;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.12s;
+  }
+  button.action:hover { background: #363d56; }
+  button.action.on { background: #3d5a2e; border-color: #6a9140; color: #e8f5d8; }
+  input[type=range] { width: 90px; accent-color: #7a89c0; cursor: pointer; }
+  .val { font-size: 12px; color: #9aa0b4; min-width: 22px; text-align: center; }
+  #stats {
+    display: flex; gap: 14px; font-size: 12px; color: #8b90a4;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 8px;
+  }
+  #stats b { color: #c6f0d2; font-weight: 600; }
+  #fps b { color: #f0d0c6; }
+  #canvas-wrap {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #2a2e3d;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    line-height: 0;
+  }
+  canvas { display: block; cursor: crosshair; image-rendering: pixelated; }
+  .hint { font-size: 11px; color: #5c6175; margin-top: 10px; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>🏖 모래 물리 샌드박스</h1>
+  <div id="toolbar">
+    <div class="group" id="matGroup"></div>
+    <div class="group">
+      <label>브러시</label>
+      <input type="range" id="sizeRange" min="1" max="30" value="6">
+      <span class="val" id="sizeVal">6</span>
+    </div>
+    <button class="action" id="pauseBtn">⏸ 일시정지</button>
+    <button class="action" id="clearBtn">🗑 초기화</button>
+  </div>
+  <div id="stats">
+    <span>입자 수: <b id="countVal">0</b></span>
+    <span id="fps">FPS: <b id="fpsVal">0</b></span>
+  </div>
+  <div id="canvas-wrap">
+    <canvas id="c"></canvas>
+  </div>
+  <div class="hint">좌클릭/드래그: 그리기 · 우클릭: 지우기 · 키보드 1~4: 재료 선택 · P: 정지 · C: 초기화</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- 설정 ----------
+  const GW = 200, GH = 150;          // 시뮬레이션 그리드 크기
+  const CELL = 5;                     // 각 셀 표시 픽셀 크기
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  canvas.width = GW * CELL;
+  canvas.height = GH * CELL;
+
+  // ---------- 재료 ----------
+  const EMPTY = 0, SAND = 1, WATER = 2, WALL = 3, ROCK = 4;
+
+  const MATS = {
+    [SAND]:  { name: "모래", color: "#e6c85a", sw: "#d4af3c" },
+    [WATER]: { name: "물",   color: "#3a7bd5", sw: "#2f6bc0" },
+    [WALL]:  { name: "벽",  color: "#6b6f7d", sw: "#565a66" },
+    [ROCK]:  { name: "산",   color: "#8a6a4a", sw: "#6f5136" },
+  };
+
+  // ---------- 상태 ----------
+  let grid = new Uint8Array(GW * GH);      // 재료 타입
+  let col  = new Uint8Array(GW * GH);      // 색상 변형 (RGB 인덱스)
+  let updated = new Uint8Array(GW * GH);   // 프레임별 이동 플래그
+  let current = SAND;
+  let brushSize = 6;
+  let paused = false;
+
+  function idx(x, y) { return y * GW + x; }
+  function inb(x, y) { return x >= 0 && x < GW && y >= 0 && y < GH; }
+
+  function reset() {
+    grid.fill(EMPTY);
+    col.fill(0);
+    updated.fill(0);
+  }
+
+  // ---------- 색상 초기화 ----------
+  function initColor(i, type) {
+    if (type === SAND)  col[i] = 150 + (Math.random() * 40 | 0);
+    else if (type === WATER) col[i] = 200 + (Math.random() * 20 | 0);
+    else if (type === WALL) col[i] = 60 + (Math.random() * 20 | 0);
+    else if (type === ROCK) col[i] = 120 + (Math.random() * 30 | 0);
+  }
+
+  // 색상 팔레트 (각 재료마다 약간의 변종)
+  const SAND_PALETTE = [];
+  for (let i = 0; i < 40; i++) {
+    const v = 200 + (Math.random() * 40 | 0);
+    SAND_PALETTE.push([v, v * 0.80 | 0, v * 0.38 | 0]);
+  }
+  const WATER_PALETTE = [];
+  for (let i = 0; i < 20; i++) {
+    const v = 150 + (Math.random() * 40 | 0);
+    WATER_PALETTE.push([v * 0.30 | 0, v * 0.55 | 0, v | 0]);
+  }
+  const WALL_PALETTE = [];
+  for (let i = 0; i < 20; i++) {
+    const v = 70 + (Math.random() * 30 | 0);
+    WALL_PALETTE.push([v, v, v + 4]);
+  }
+  const ROCK_PALETTE = [];
+  for (let i = 0; i < 30; i++) {
+    const v = 90 + (Math.random() * 50 | 0);
+    ROCK_PALETTE.push([v * 0.72 | 0, v * 0.55 | 0, v * 0.38 | 0]);
+  }
+
+  function applyColor(i, type) {
+    let pal;
+    if (type === SAND) pal = SAND_PALETTE;
+    else if (type === WATER) pal = WATER_PALETTE;
+    else if (type === WALL) pal = WALL_PALETTE;
+    else if (type === ROCK) pal = ROCK_PALETTE;
+    else return;
+    const c = pal[col[i] % pal.length];
+    grid[i] = type;
+    col[i] = c[0] * 10000 + c[1] * 100 + c[2];
+  }
+
+  // ---------- 그리기 ----------
+  let drawing = false, drawMode = 0, lastGX = -1, lastGY = -1;
+
+  function paint(gx, gy) {
+    const r = brushSize;
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (dx * dx + dy * dy > r * r) continue;
+        const x = gx + dx, y = gy + dy;
+        if (!inb(x, y)) continue;
+        const i = idx(x, y);
+        if (drawMode === 0) {
+          // 지우기: 빈 공간
+          if (grid[i] !== EMPTY) { grid[i] = EMPTY; col[i] = 0; }
+        } else {
+          if (grid[i] === EMPTY || grid[i] === drawMode) {
+            // 약간의 퍼짐 (물/모래는 더 넓게)
+            if (grid[i] !== EMPTY) continue;
+            applyColor(i, drawMode);
+          }
+        }
+      }
+    }
+  }
+
+  function paintLine(x0, y0, x1, y1) {
+    const dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0);
+    const sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+    let err = dx - dy;
+    while (true) {
+      paint(x0, y0);
+      if (x0 === x1 && y0 === y1) break;
+      const e2 = 2 * err;
+      if (e2 > -dx) { err -= dy; x0 += sx; }
+      if (e2 < dy) { err += dx; y0 += sy; }
+    }
+  }
+
+  // ---------- 시뮬레이션 ----------
+  function isPowder(t) { return t === SAND || t === ROCK; }
+  function isLiquid(t) { return t === WATER; }
+
+  function swap(i1, i2) {
+    const t = grid[i1]; grid[i1] = grid[i2]; grid[i2] = t;
+    const c = col[i1]; col[i1] = col[i2]; col[i2] = c;
+    updated[i1] = 1; updated[i2] = 1;
+  }
+
+  function canDisplace(src, dst) {
+    const dt = grid[dst];
+    if (dt === EMPTY) return true;
+    if (dt === WALL || dt === ROCK) return false;
+    // 분말은 액체 위, 액체는 분말 아래로
+    if (isPowder(src) && isLiquid(dt)) return true;
+    if (isLiquid(src) && isPowder(dt)) return false;
+    return false;
+  }
+
+  function moveDown(x, y, i) {
+    if (!inb(x, y + 1)) return false;
+    const b = idx(x, y + 1);
+    if (canDisplace(grid[i], grid[b])) { swap(i, b); return true; }
+    return false;
+  }
+
+  function tryFall(x, y, i) {
+    if (moveDown(x, y, i)) return true;
+    const dir = Math.random() < 0.5 ? -1 : 1;
+    for (let d = 0; d < 2; d++) {
+      const nx = x + dir * (d === 0 ? 1 : -1) * ((d) ? 1 : 1);
+      const dd = (d === 0) ? dir : -dir;
+      const cx = x + dd;
+      if (!inb(cx, y + 1)) continue;
+      const bl = idx(cx, y + 1);
+      if (canDisplace(grid[i], grid[bl])) { swap(i, bl); return true; }
+    }
+    return false;
+  }
+
+  function trySink(x, y, i) {
+    // 수평 이동 + 아래로 잠김 (액체)
+    const dir = Math.random() < 0.5 ? -1 : 1;
+    for (let d = 0; d < 2; d++) {
+      const cx = x + (d === 0 ? dir : -dir);
+      if (!inb(cx, y)) continue;
+      const h = idx(cx, y);
+      if (canDisplace(grid[i], grid[h])) { swap(i, h); return true; }
+    }
+    // 수평 이동 후 아래로
+    for (let d = 0; d < 2; d++) {
+      const cx = x + (d === 0 ? dir : -dir);
+      if (!inb(cx, y + 1)) continue;
+      const bl = idx(cx, y + 1);
+      if (canDisplace(grid[i], grid[bl])) { swap(i, bl); return true; }
+    }
+    return false;
+  }
+
+  function update() {
+    updated.fill(0);
+    // 아래에서 위로 스캔. 매 프레임 좌우 방향 교대 (난류 방지)
+    const leftToRight = Math.random() < 0.5;
+    for (let y = GH - 2; y >= 0; y--) {
+      const startX = leftToRight ? 0 : GW - 1;
+      const endX = leftToRight ? GW : -1;
+      const stepX = leftToRight ? 1 : -1;
+      for (let x = startX; x !== endX; x += stepX) {
+        const i = idx(x, y);
+        const t = grid[i];
+        if (t === EMPTY || t === WALL || t === ROCK) continue;
+        if (updated[i]) continue;
+
+        if (t === SAND) {
+          if (!tryFall(x, y, i)) updated[i] = 1;
+        } else if (t === WATER) {
+          if (!trySink(x, y, i)) updated[i] = 1;
+        } else if (t === ROCK) {
+          // 산: 고정. 아래가 비어있으면 무너져 모래처럼 처리
+          const b = idx(x, y + 1);
+          if (inb(x, y + 1) && canDisplace(grid[i], grid[b])) {
+            swap(i, b);
+          } else {
+            grid[i] = SAND;
+            updated[i] = 1;
+          }
+        }
+      }
+    }
+  }
+
+  // ---------- 렌더링 ----------
+  const imgData = ctx.createImageData(GW, GH);
+  const data = imgData.data;
+
+  function render() {
+    for (let i = 0; i < GW * GH; i++) {
+      const p = i * 4;
+      if (grid[i] === EMPTY) {
+        data[p] = 18; data[p+1] = 20; data[p+2] = 28; data[p+3] = 255;
+        continue;
+      }
+      const c = col[i];
+      const r = (c / 10000) | 0;
+      const g = (c / 100) % 100;
+      const b = c % 100;
+      data[p] = r; data[p+1] = g; data[p+2] = b; data[p+3] = 255;
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    // 스케일
+    ctx.imageSmoothingEnabled = false;
+    const tmp = document.createElement("canvas");
+    tmp.width = GW; tmp.height = GH;
+    const tctx = tmp.getContext("2d");
+    tctx.putImageData(imgData, 0, 0);
+
+    // 브러시 미리보기
+    // (간소화: 그리기 시에만 표시)
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(tmp, 0, 0, canvas.width, canvas.height);
+  }
+
+  // ---------- 입력 ----------
+  function canvasToGrid(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width * GW;
+    const y = (e.clientY - rect.top) / rect.height * GH;
+    return { gx: x | 0, gy: y | 0 };
+  }
+
+  canvas.addEventListener("mousedown", function (e) {
+    e.preventDefault();
+    const { gx, gy } = canvasToGrid(e);
+    drawing = true;
+    if (e.button === 2) { drawMode = EMPTY; }
+    else { drawMode = current; }
+    lastGX = gx; lastGY = gy;
+    paint(gx, gy);
+  });
+
+  canvas.addEventListener("mousemove", function (e) {
+    if (!drawing) return;
+    const { gx, gy } = canvasToGrid(e);
+    if (gx !== lastGX || gy !== lastGY) {
+      paintLine(lastGX, lastGY, gx, gy);
+      lastGX = gx; lastGY = gy;
+    }
+  });
+
+  window.addEventListener("mouseup", function () { drawing = false; });
+  canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+
+  // 터치
+  canvas.addEventListener("touchstart", function (e) {
+    e.preventDefault();
+    const t = e.touches[0];
+    const { gx, gy } = canvasToGrid(t);
+    drawing = true; drawMode = current;
+    lastGX = gx; lastGY = gy;
+    paint(gx, gy);
+  }, { passive: false });
+  canvas.addEventListener("touchmove", function (e) {
+    e.preventDefault();
+    if (!drawing) return;
+    const t = e.touches[0];
+    const { gx, gy } = canvasToGrid(t);
+    if (gx !== lastGX || gy !== lastGY) {
+      paintLine(lastGX, lastGY, gx, gy);
+      lastGX = gx; lastGY = gy;
+    }
+  }, { passive: false });
+  canvas.addEventListener("touchend", function (e) { e.preventDefault(); drawing = false; }, { passive: false });
+
+  // ---------- UI ----------
+  const matGroup = document.getElementById("matGroup");
+  const order = [SAND, WATER, WALL, ROCK];
+  order.forEach((type) => {
+    const btn = document.createElement("button");
+    btn.className = "mat-btn" + (type === current ? " active" : "");
+    btn.dataset.type = type;
+    btn.innerHTML = '<span class="swatch" style="background:' + MATS[type].sw + '"></span>' + MATS[type].name;
+    btn.addEventListener("click", function () {
+      current = type;
+      document.querySelectorAll(".mat-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+    matGroup.appendChild(btn);
+  });
+
+  const sizeRange = document.getElementById("sizeRange");
+  const sizeVal = document.getElementById("sizeVal");
+  sizeRange.addEventListener("input", function () {
+    brushSize = +sizeRange.value;
+    sizeVal.textContent = brushSize;
+  });
+
+  const pauseBtn = document.getElementById("pauseBtn");
+  pauseBtn.addEventListener("click", function () {
+    paused = !paused;
+    pauseBtn.textContent = paused ? "▶ 계속" : "⏸ 일시정지";
+    pauseBtn.classList.toggle("on", paused);
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", reset);
+
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "1") selectMat(SAND);
+    else if (e.key === "2") selectMat(WATER);
+    else if (e.key === "3") selectMat(WALL);
+    else if (e.key === "4") selectMat(ROCK);
+    else if (e.key === "p" || e.key === "P") pauseBtn.click();
+    else if (e.key === "c" || e.key === "C") reset();
+  });
+
+  function selectMat(type) {
+    current = type;
+    document.querySelectorAll(".mat-btn").forEach(b => {
+      b.classList.toggle("active", +b.dataset.type === type);
+    });
+  }
+
+  // ---------- 초기 장면 ----------
+  function initScene() {
+    // 바닥 벽
+    for (let x = 0; x < GW; x++) {
+      const i = idx(x, GH - 1);
+      applyColor(i, WALL);
+    }
+    // 양쪽 벽
+    for (let y = 0; y < GH; y++) {
+      applyColor(idx(0, y), WALL);
+      applyColor(idx(GW - 1, y), WALL);
+    }
+    // 가운데 산 두 개
+    makeMountain(45, 0.7);
+    makeMountain(150, 0.55);
+    // 물 통
+    for (let y = GH - 30; y < GH - 3; y++) {
+      for (let x = 80; x < 110; x++) {
+        if (grid[idx(x, y)] === EMPTY) applyColor(idx(x, y), WATER);
+      }
+    }
+  }
+
+  function makeMountain(cx, frac) {
+    const baseY = GH - 1;
+    const height = Math.floor((GH - 3) * frac);
+    for (let y = 0; y < height; y++) {
+      const rowW = Math.ceil((1 - y / height) * 26) + 2;
+      const rowType = (y < height - 4) ? ROCK : SAND;
+      for (let x = cx - rowW; x <= cx + rowW; x++) {
+        if (!inb(x, baseY - y)) continue;
+        const i = idx(x, baseY - y);
+        if (grid[i] === EMPTY) applyColor(i, rowType);
+      }
+    }
+  }
+
+  // ---------- 통계 ----------
+  let frameCount = 0, accTime = 0, fps = 0, lastT = performance.now();
+  const countVal = document.getElementById("countVal");
+  const fpsVal = document.getElementById("fpsVal");
+
+  function countParticles() {
+    let n = 0;
+    for (let i = 0; i < grid.length; i++) if (grid[i] !== EMPTY && grid[i] !== WALL) n++;
+    return n;
+  }
+
+  // ---------- 메인 루프 ----------
+  function loop(now) {
+    const dt = now - lastT;
+    lastT = now;
+    accTime += dt;
+    frameCount++;
+    if (accTime >= 500) {
+      fps = Math.round(frameCount * 1000 / accTime);
+      frameCount = 0; accTime = 0;
+      fpsVal.textContent = fps;
+      countVal.textContent = countParticles();
+    }
+
+    if (!paused) update();
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  initScene();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

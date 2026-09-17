@@ -1,0 +1,29 @@
+# bitnami/postgresql — 위키 본문과 게시판의 Source of Truth.
+#
+#   helm upgrade -i pg bitnami/postgresql -n data \
+#     -f infra/k8s/data/postgres-values.yaml \
+#     --set auth.password="${POSTGRES_PASSWORD}"
+#
+# 비밀번호는 이 파일에 적지 않는다. 설치 시 --set 으로 주입하고,
+# 애플리케이션과 backup CronJob 은 Secret(jaywiki-secrets, jaywiki-db-backup)에서 읽는다.
+auth:
+  username: portfolio
+  database: portfolio
+
+primary:
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 200m
+    limits:
+      memory: 1Gi
+      cpu: 1000m
+  persistence:
+    size: 20Gi
+  # miniPC 한 대의 메모리 예산에 맞춘 값. shared_buffers 는 물리 메모리의 25% 선.
+  extendedConfiguration: |
+    shared_buffers = 256MB
+    effective_cache_size = 768MB
+    max_connections = 80
+    work_mem = 8MB
+    log_min_duration_statement = 500ms

@@ -1,0 +1,264 @@
+name: Build release images
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "content/wiki/**"
+      - ".github/workflows/release.yml"
+      - "infra/k8s/**"
+      - "infra/opensearch/**"
+      - "scripts/**"
+      - "services/payment-api/**"
+      - "services/shipping-api/**"
+      - "services/partner-simulator/**"
+      - "spring/**"
+      - "web/**"
+  workflow_dispatch:
+
+concurrency:
+  group: jaywiki-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE: ghcr.io/jaymunsh/jay-wiki-backend
+  WEB_IMAGE: ghcr.io/jaymunsh/jay-wiki-web
+  PAYMENT_IMAGE: ghcr.io/jaymunsh/jay-wiki-payment-api
+  SHIPPING_IMAGE: ghcr.io/jaymunsh/jay-wiki-shipping-api
+  PARTNER_IMAGE: ghcr.io/jaymunsh/jay-wiki-partner-simulator
+  OPENSEARCH_IMAGE: ghcr.io/jaymunsh/jay-wiki-opensearch
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify application
+    if: github.repository == 'jaymunsh/jay-wiki' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # payment-api 테스트는 진짜 postgres 를 쓴다. 아웃박스를 같은 트랜잭션에 쓰는지,
+    # for update skip locked 선점이 도는지는 가짜로는 확인이 안 된다.
+    # 계정·비밀번호·DB 이름을 tests/conftest.py 의 기본 DSN 과 맞춰 둔다.
+    services:
+      payment-db:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: portfolio
+          POSTGRES_PASSWORD: changeme
+          POSTGRES_DB: payment_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U portfolio -d payment_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up JDK
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Run Spring tests
+        working-directory: spring
+        run: SPRING_PROFILES_ACTIVE=local ./gradlew test
+
+      - name: Set up Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install web dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Lint web
+        working-directory: web
+        run: npm run lint
+
+      - name: Type check web
+        working-directory: web
+        run: npm run type-check
+
+      - name: Test web
+        working-directory: web
+        run: npm test
+
+      - name: Build web
+        working-directory: web
+        run: npm run build
+
+      # 시드 안에서 끝나는 검사만 돈다. 운영 대조(유령 글·탭)는 배포로만 지워지는 상태라
+      # 배포 전 검사에 넣으면 배포 자체를 막는다 — 그건 docs/deploy-runbook.md 의 사람 절차다.
+      - name: Check wiki seed consistency
+        run: node scripts/check-wiki-consistency.mjs --seed-only
+
+      - name: Check blog internal links
+        run: node scripts/check-blog-links.mjs
+
+      # Blog drafts use a bounded exec transfer bundle; wiki still uses a compressed ConfigMap.
+      - name: Check blog transfer bundle size
+        run: scripts/check-blog-draft-size.sh
+
+      # 위키 시드도 같은 짐칸을 쓴다. 이쪽은 한 파일이 통째로 들어가 원문만 816KB 다.
+      - name: Check wiki seed fits in a ConfigMap
+        run: scripts/check-wiki-seed-size.sh
+
+      # export 는 시드에서 기계로 뽑는 파생물이다. 사람이 안 돌리면 조용히 낡는다 —
+      # 실제로 파서가 깨진 채 49편에서 20편이 빠져 있었고 아무도 몰랐다.
+      - name: Check wiki markdown export is current
+        run: |
+          node scripts/export-portfolio-wiki.mjs
+          git diff --exit-code -- posts/jay-wiki
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+
+      - name: Lint payment API
+        working-directory: services/payment-api
+        run: uv run ruff check .
+
+      - name: Type check payment API
+        working-directory: services/payment-api
+        run: uv run basedpyright
+
+      - name: Test payment API
+        working-directory: services/payment-api
+        run: uv run pytest
+
+      # 서비스 컨테이너는 DB 를 하나만 만든다. shipping 테스트용은 여기서 만든다.
+      # 이미지는 서비스 컨테이너가 이미 받아 둔 것을 그대로 쓴다.
+      - name: Create shipping test database
+        run: |
+          docker run --rm --network host -e PGPASSWORD=changeme postgres:18-alpine \
+            psql -h 127.0.0.1 -U portfolio -d payment_test -c 'create database shipping_test'
+
+      - name: Lint shipping API
+        working-directory: services/shipping-api
+        run: uv run ruff check .
+
+      - name: Type check shipping API
+        working-directory: services/shipping-api
+        run: uv run basedpyright
+
+      - name: Test shipping API
+        working-directory: services/shipping-api
+        run: uv run pytest
+
+      - name: Verify partner simulator
+        working-directory: services/partner-simulator
+        run: |
+          uv run ruff check .
+          uv run basedpyright
+          uv run pytest
+
+  build:
+    permissions:
+      contents: read
+      packages: write
+    name: Build and push images
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: verify
+    outputs:
+      backend-image: ${{ steps.images.outputs.backend-image }}
+      web-image: ${{ steps.images.outputs.web-image }}
+      payment-image: ${{ steps.images.outputs.payment-image }}
+      shipping-image: ${{ steps.images.outputs.shipping-image }}
+      partner-image: ${{ steps.images.outputs.partner-image }}
+      opensearch-image: ${{ steps.images.outputs.opensearch-image }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Export image tags
+        id: images
+        run: |
+          echo "backend-image=${BACKEND_IMAGE}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "web-image=${WEB_IMAGE}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "payment-image=${PAYMENT_IMAGE}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "shipping-image=${SHIPPING_IMAGE}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "partner-image=${PARTNER_IMAGE}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "opensearch-image=${OPENSEARCH_IMAGE}:3.7.0-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: spring
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+            ${{ env.BACKEND_IMAGE }}:main
+
+      - name: Build and push web
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: web
+          platforms: linux/amd64
+          push: true
+          build-args: |
+            NEXT_DEPLOYMENT_ID=${{ github.sha }}
+          tags: |
+            ${{ env.WEB_IMAGE }}:${{ github.sha }}
+            ${{ env.WEB_IMAGE }}:main
+
+      - name: Build and push payment API
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: services/payment-api
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.PAYMENT_IMAGE }}:${{ github.sha }}
+            ${{ env.PAYMENT_IMAGE }}:main
+
+      - name: Build and push shipping API
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: services/shipping-api
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.SHIPPING_IMAGE }}:${{ github.sha }}
+            ${{ env.SHIPPING_IMAGE }}:main
+
+      - name: Build and push partner simulator
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: services/partner-simulator
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.PARTNER_IMAGE }}:${{ github.sha }}
+            ${{ env.PARTNER_IMAGE }}:main
+
+      - name: Build and push OpenSearch nori
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: infra/opensearch
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.OPENSEARCH_IMAGE }}:3.7.0-${{ github.sha }}
+            ${{ env.OPENSEARCH_IMAGE }}:3.7.0-main

@@ -1,0 +1,548 @@
+<title>요청이 지나는 길</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --ground:   #edeeec;
+    --surface:  #fcfcfb;
+    --sunk:     #f3f3f0;
+    --ink:      #0b0b0b;
+    --ink-2:    #52514e;
+    --ink-3:    #86857e;
+    --line:     #d8d6d0;
+    --line-2:   #e7e5e0;
+    --accent:   #2a78d6;
+    --adr:      #2a78d6;
+    --pm:       #eb6834;
+    --iv:       #1baf7a;
+    --plain:    #9a9990;
+    --hit:      #fff3d6;
+    --hit-line: #eda100;
+    --flow:     #a9a7a0;
+    --font-display: 'Gothic A1', 'Apple SD Gothic Neo', system-ui, sans-serif;
+    --font-body:    'IBM Plex Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif;
+    --font-mono:    'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground: #0f0f0f; --surface: #1a1a19; --sunk: #161615;
+      --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8d8c83;
+      --line: #33332e; --line-2: #272723; --accent: #3987e5;
+      --adr: #3987e5; --pm: #d95926; --iv: #199e70; --plain: #75746c;
+      --hit: #33290f; --hit-line: #c98500; --flow: #4d4c46;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground: #0f0f0f; --surface: #1a1a19; --sunk: #161615;
+    --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8d8c83;
+    --line: #33332e; --line-2: #272723; --accent: #3987e5;
+    --adr: #3987e5; --pm: #d95926; --iv: #199e70; --plain: #75746c;
+    --hit: #33290f; --hit-line: #c98500; --flow: #4d4c46;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--font-body); font-size: 14px; line-height: 1.5;
+    overflow: hidden; -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: 3px; }
+
+  /* ---------- 캔버스 ---------- */
+  #stage { position: fixed; inset: 0; overflow: hidden; cursor: grab; touch-action: none; }
+  #stage.dragging { cursor: grabbing; }
+  #world { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+  #wires { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
+
+  .card {
+    position: absolute;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 13px 15px 12px;
+  }
+  .card.band { background: var(--sunk); }
+  .card.entry {
+    display: flex; flex-direction: column; justify-content: center;
+    text-align: center; border-style: dashed;
+  }
+
+  .card > .head { display: flex; align-items: baseline; gap: 9px; margin-bottom: 3px; }
+  .card > .head h2 {
+    font-family: var(--font-display); font-weight: 800; font-size: 19px;
+    margin: 0; letter-spacing: -0.01em;
+  }
+  .card > .head .n {
+    margin-left: auto; font-family: var(--font-mono); font-size: 11px;
+    color: var(--ink-3); font-variant-numeric: tabular-nums;
+  }
+  .card > .sub {
+    margin: 0 0 4px; font-family: var(--font-mono); font-size: 11px;
+    color: var(--ink-3); letter-spacing: 0.01em;
+  }
+  .card > .role { margin: 0 0 10px; font-size: 12.5px; color: var(--ink-2); }
+
+  .items { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  .band .items { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px 18px; }
+
+  .item {
+    display: grid; grid-template-columns: 12px minmax(0, 1fr) auto;
+    align-items: baseline; gap: 8px;
+    width: 100%; padding: 4px 6px; margin: 0;
+    background: none; border: 0; border-radius: 5px;
+    font: inherit; font-size: 13px; line-height: 1.4;
+    color: var(--ink-2); text-align: left; cursor: pointer;
+  }
+  .item .dot { width: 8px; height: 8px; border-radius: 50%; transform: translateY(-1px); }
+  .item .t { overflow-wrap: anywhere; }
+  .item .deg {
+    font-family: var(--font-mono); font-size: 10px; color: var(--ink-3);
+    font-variant-numeric: tabular-nums; opacity: 0.8;
+  }
+  .item .note {
+    grid-column: 2 / -1; display: none;
+    font-size: 11.5px; color: var(--ink-3); line-height: 1.45;
+    margin-top: 2px; padding-bottom: 2px;
+  }
+  .item:hover { background: var(--line-2); color: var(--ink); }
+  .item.dim { opacity: 0.2; }
+  .item.hit { background: var(--hit); box-shadow: inset 2px 0 0 var(--hit-line); color: var(--ink); }
+  .item.self { background: var(--line-2); color: var(--ink); font-weight: 600; box-shadow: inset 2px 0 0 var(--accent); }
+
+  /* ---------- 줌 단계 ---------- */
+  /* 멀리: 뼈대만. 무엇으로 되어 있고 어디에 몇 편이 걸렸는지 */
+  .lod1 .items, .lod1 .role { display: none; }
+  .lod1 .card > .head h2 { font-size: 26px; }
+  /* 중간: 글 제목 */
+  .lod2 .item .note { display: none; }
+  /* 가까이: 그 글이 답하는 질문까지 */
+  .lod3 .item .note { display: block; }
+
+  /* ---------- 조작 ---------- */
+  .hud {
+    position: fixed; z-index: 20;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  }
+  .hud.top { top: 14px; left: 14px; padding: 13px 16px 14px; max-width: min(430px, calc(100vw - 28px)); }
+  .hud.top .eyebrow {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 5px;
+  }
+  .hud.top h1 {
+    font-family: var(--font-display); font-weight: 800; font-size: 20px;
+    margin: 0 0 6px; line-height: 1.25; letter-spacing: -0.015em;
+  }
+  .hud.top p { margin: 0 0 6px; font-size: 12.5px; color: var(--ink-2); }
+  .hud.top .facts {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    font-variant-numeric: tabular-nums; margin: 8px 0 0;
+  }
+  .hud.top input {
+    width: 100%; margin-top: 10px; padding: 7px 9px;
+    background: var(--ground); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 6px; font: inherit; font-size: 12.5px;
+  }
+  .keys { display: flex; flex-wrap: wrap; gap: 13px; margin-top: 10px; }
+  .keys button {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: none; border: 0; padding: 0; font: inherit; font-size: 12px;
+    color: var(--ink-2); cursor: pointer;
+  }
+  .keys button[aria-pressed="false"] { opacity: 0.35; }
+  .keys i { width: 9px; height: 9px; border-radius: 50%; }
+  .keys .n { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-3); }
+
+  .hud.zoom {
+    left: 14px; bottom: 14px; padding: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .hud.zoom button {
+    height: 30px; min-width: 30px; padding: 0 9px;
+    background: none; border: 0; border-radius: 6px;
+    color: var(--ink-2); font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .hud.zoom button:hover { background: var(--line-2); color: var(--ink); }
+  .hud.zoom .wide { font-size: 12px; }
+  .hud.zoom .z {
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+    min-width: 92px; text-align: center; font-variant-numeric: tabular-nums;
+  }
+
+  .hud.read {
+    right: 14px; bottom: 14px; width: min(390px, calc(100vw - 28px)); padding: 14px 16px;
+  }
+  .hud.read[hidden] { display: none; }
+  .hud.read .kind {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-3);
+    display: flex; align-items: center; gap: 6px; margin-bottom: 5px;
+  }
+  .hud.read .kind i { width: 9px; height: 9px; border-radius: 50%; }
+  .hud.read .kind .deg { margin-left: auto; letter-spacing: 0; text-transform: none; }
+  .hud.read h3 { font-family: var(--font-display); font-weight: 700; font-size: 15px; margin: 0 0 5px; line-height: 1.3; }
+  .hud.read p { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+  .hud.read a { display: inline-block; margin-top: 9px; font-size: 12px; color: var(--accent); text-decoration: none; }
+  .hud.read a:hover { text-decoration: underline; }
+
+  @media (max-width: 720px) {
+    .hud.top { max-width: calc(100vw - 28px); }
+    .hud.read { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div id="stage">
+  <div id="world">
+    <svg id="wires" aria-hidden="true"></svg>
+  </div>
+</div>
+
+<div class="hud top">
+  <p class="eyebrow">portfolio.leneu.cloud</p>
+  <h1>요청이 지나는 길</h1>
+  <p>사람이 누른 순간부터 저장소에 닿기까지가 줄기이고, 그 길의 각 자리를 적은 글이 그 아래 매달려 있습니다.</p>
+  <p><strong>확대할수록 더 적힙니다</strong> — 멀리서는 뼈대만, 중간에서는 글 제목, 가까이에서는 그 글이 답하는 질문까지.</p>
+  <input id="q" type="search" placeholder="제목 · slug · 태그로 좁히기" aria-label="글 좁히기" autocomplete="off">
+  <div class="keys" id="keys"></div>
+  <p class="facts" id="facts"></p>
+</div>
+
+<div class="hud zoom">
+  <button type="button" id="zout" aria-label="축소">－</button>
+  <span class="z" id="zlabel"></span>
+  <button type="button" id="zin" aria-label="확대">＋</button>
+  <button type="button" id="fit" class="wide">전체</button>
+</div>
+
+<div class="hud read" id="read" hidden>
+  <span class="kind" id="rkind"></span>
+  <h3 id="rtitle"></h3>
+  <p id="rnote"></p>
+  <a id="rgo" href="#" target="_blank" rel="noopener">위키에서 열기 ↗</a>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+const KIND = {
+  adr:        { label: '설계 결정', v: '--adr' },
+  postmortem: { label: '사고 기록', v: '--pm' },
+  interview:  { label: '면접 문서', v: '--iv' },
+  wiki:       { label: '일반 글',   v: '--plain' },
+};
+const kindOf = (n) => (n.kind === 'interview' ? 'interview' : (KIND[n.doc] ? n.doc : 'wiki'));
+const colorOf = (n) => `var(${KIND[kindOf(n)].v})`;
+
+const byId = new Map(DATA.nodes.map((n) => [n.id, n]));
+const nodesOf = (gid) => DATA.nodes.filter((n) => n.tab === gid);
+const titleOf = new Map(DATA.groups.map((g) => [g.id, g.title]));
+
+const near = new Map();
+const link = (a, b) => { if (!near.has(a)) near.set(a, new Set()); near.get(a).add(b); };
+for (const e of DATA.edges) { link(e.from, e.to); link(e.to, e.from); }
+
+/* ------------------------------------------------------------------ *
+ * 캔버스의 뼈대. 위키 탭을 그대로 안 쓴다 -- 탭은 글을 넣어 두는 서랍이고,
+ * 여기 가로줄은 «요청 하나가 실제로 지나는 순서» 다.
+ *
+ * x 만 정해 둔다. y 는 그린 뒤에 실제 높이를 재서 다시 앉힌다 -- 줌 단계마다
+ * 카드 키가 달라져서(요약이 붙는다) 좌표를 고정해 두면 겹친다.
+ * ------------------------------------------------------------------ */
+const PATH = [
+  { kind: 'entry', id: '__entry', x: 40, w: 150, title: '사람', sub: '브라우저' },
+  { id: 'infra',    x: 240,  w: 430, title: '들어오는 길', sub: 'Cloudflare Tunnel · Traefik · k3s',
+    role: '집 공유기에 포트를 열지 않는다. 서버가 먼저 바깥으로 연결을 만들고 그 길로만 요청을 받는다.' },
+  { id: 'frontend', x: 720,  w: 400, title: '화면', sub: 'Next.js · 미들웨어',
+    role: 'host 를 보고 위키와 블로그를 가른다. 사람이 실제로 보는 것과, 그것이 깨지는 방식.' },
+  { id: 'backend',  x: 1170, w: 450, title: '서버', sub: 'Spring Boot · FastAPI',
+    role: '주문·정산·큐처럼 틀리면 안 되는 일이 도는 자리. 되풀이해도 한 번만 처리되게 만드는 곳.' },
+  { id: 'data',     x: 1670, w: 450, title: '저장', sub: 'PostgreSQL · Redis · Kafka · OpenSearch · MinIO',
+    role: '남는 것, 흐르는 것, 찾아지는 것. 지우면 못 되돌리는 유일한 자리.' },
+];
+
+const BANDS = [
+  { id: 'operations',   title: '보이게 만드는 일', sub: '로그 · 지표 · 추적 · 알림',
+    role: '위 길 전체를 감싼다. 사고를 「났다」가 아니라 「알았다」로 바꾸는 자리다.' },
+  { id: 'verification', title: '정말 되는지 증명하는 일', sub: '복원 리허설 · 대조 · 스모크',
+    role: '「돌았다」와 「맞다」는 다르다. 선언 대신 실제로 밟아 본 기록.' },
+  { id: 'security',     title: '막는 일', sub: '인증 · 권한 · 비밀값',
+    role: '열려 있으면 나머지가 전부 무의미해지는 자리.' },
+];
+
+const ASIDE = [
+  { id: 'demo',                title: '보여주는 것', sub: '시나리오 23편',
+    role: '실제로 도는 9편과 결과가 미리 적힌 14편. 그 경계를 내가 먼저 말한다.' },
+  { id: 'development-process', title: '만드는 방식', sub: 'AI 를 도구로 쓰는 경계' },
+  { id: 'content-quality',     title: '글로 남기는 방식', sub: '사실 검증 · 자산 관리' },
+  { id: 'start',               title: '들어오는 입구', sub: '처음 오는 사람이 보는 것' },
+  { id: 'interview',           title: '입으로 말하는 자리', sub: '면접 대본',
+    role: '위의 글들을 말할 수 있게 다시 쓴 것. 이 자리가 위키 전체를 가리킨다.' },
+];
+
+const COL_X = 2180, COL_W = 470;
+const TOP = 150, GAP = 40;
+
+/* ---------- 카드를 만든다 ---------- */
+const world = document.getElementById('world');
+const wires = document.getElementById('wires');
+const itemEls = new Map();
+const cards = [];
+
+function makeCard(spec, x, w, cls = '') {
+  const box = document.createElement('div');
+  box.className = `card ${cls}`.trim();
+  box.style.left = `${x}px`;
+  box.style.width = `${w}px`;
+
+  const head = document.createElement('div');
+  head.className = 'head';
+  head.innerHTML = '<h2></h2><span class="n"></span>';
+  head.querySelector('h2').textContent = spec.title;
+  const items = spec.id && spec.id !== '__entry' ? nodesOf(spec.id) : [];
+  head.querySelector('.n').textContent = items.length ? `${items.length}편` : '';
+  box.append(head);
+
+  if (spec.sub) {
+    const s = document.createElement('p');
+    s.className = 'sub';
+    s.textContent = spec.sub;
+    box.append(s);
+  }
+  if (spec.role) {
+    const r = document.createElement('p');
+    r.className = 'role';
+    r.textContent = spec.role;
+    box.append(r);
+  }
+
+  if (items.length) {
+    const ul = document.createElement('ul');
+    ul.className = 'items';
+    for (const n of items) {
+      const li = document.createElement('li');
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'item';
+      b.dataset.id = n.id;
+      b.innerHTML = '<span class="dot"></span><span class="t"></span><span class="deg"></span><span class="note"></span>';
+      b.querySelector('.dot').style.background = colorOf(n);
+      b.querySelector('.t').textContent = n.title;
+      const d = near.get(n.id)?.size ?? 0;
+      b.querySelector('.deg').textContent = d ? `${d}` : '';
+      b.querySelector('.note').textContent = n.note || '';
+      b.title = n.kind === 'interview' ? n.file : n.id;
+      b.addEventListener('pointerenter', () => hold(n.id));
+      b.addEventListener('focus', () => hold(n.id));
+      b.addEventListener('click', () => { if (n.href) window.open(n.href, '_blank', 'noopener'); });
+      li.append(b);
+      ul.append(li);
+      itemEls.set(n.id, b);
+    }
+    box.append(ul);
+  }
+
+  world.append(box);
+  cards.push({ box, spec, x, w });
+  return box;
+}
+
+const pathCards = PATH.map((s) => ({ spec: s, box: makeCard(s, s.x, s.w, s.kind === 'entry' ? 'entry' : '') }));
+const bandCards = BANDS.map((s) => ({ spec: s, box: makeCard(s, PATH[0].x, 2080, 'band') }));
+const asideCards = ASIDE.map((s) => ({ spec: s, box: makeCard(s, COL_X, COL_W) }));
+
+/* ---------- 그린 뒤에 앉힌다 ---------- */
+let WORLD_W = 0, WORLD_H = 0;
+
+function relayout() {
+  // 줄기: 카드마다 키가 달라도 머리는 같은 줄에 선다.
+  for (const c of pathCards) c.box.style.top = `${TOP}px`;
+  const pathBottom = TOP + Math.max(...pathCards.map((c) => c.box.offsetHeight));
+  if (pathCards[0]) pathCards[0].box.style.height = `${Math.max(96, pathCards[1].box.offsetHeight * 0.34)}px`;
+
+  let y = pathBottom + GAP + 24;
+  for (const c of bandCards) {
+    c.box.style.top = `${y}px`;
+    y += c.box.offsetHeight + GAP;
+  }
+
+  let ay = TOP;
+  for (const c of asideCards) {
+    c.box.style.top = `${ay}px`;
+    ay += c.box.offsetHeight + GAP;
+  }
+
+  WORLD_W = COL_X + COL_W + 60;
+  WORLD_H = Math.max(y, ay) + 40;
+  world.style.width = `${WORLD_W}px`;
+  world.style.height = `${WORLD_H}px`;
+  drawWires(pathBottom);
+}
+
+// 줄기의 화살표와, 띠가 그 길 전체를 감싼다는 표시.
+function drawWires(pathBottom) {
+  wires.setAttribute('width', WORLD_W);
+  wires.setAttribute('height', WORLD_H);
+  wires.replaceChildren();
+  const NS = 'http://www.w3.org/2000/svg';
+  const mk = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
+
+  const midY = TOP + 26;
+  for (let i = 0; i < pathCards.length - 1; i += 1) {
+    const a = pathCards[i], b = pathCards[i + 1];
+    const x1 = a.spec.x + a.spec.w, x2 = b.spec.x;
+    wires.append(mk('line', { x1: x1 + 4, y1: midY, x2: x2 - 12, y2: midY, stroke: 'var(--flow)', 'stroke-width': 2 }));
+    wires.append(mk('path', {
+      d: `M ${x2 - 12} ${midY - 6} L ${x2 - 2} ${midY} L ${x2 - 12} ${midY + 6} Z`, fill: 'var(--flow)',
+    }));
+  }
+  // 띠 쪽으로 내려가는 점선. 「이 길 전체를 감싼다」를 선으로 말한다.
+  const bandTop = pathBottom + GAP + 24;
+  for (const c of pathCards.slice(1)) {
+    const cx = c.spec.x + c.spec.w / 2;
+    wires.append(mk('line', {
+      x1: cx, y1: pathBottom + 6, x2: cx, y2: bandTop - 6,
+      stroke: 'var(--flow)', 'stroke-width': 1.5, 'stroke-dasharray': '3 5', opacity: 0.75,
+    }));
+  }
+}
+
+/* ---------- 줌과 이동 ---------- */
+const stage = document.getElementById('stage');
+const zlabel = document.getElementById('zlabel');
+let k = 1, tx = 0, ty = 0;
+
+const LOD = [
+  { at: 0.62, cls: 'lod1', name: '뼈대만' },
+  { at: 1.05, cls: 'lod2', name: '글 제목' },
+  { at: Infinity, cls: 'lod3', name: '질문까지' },
+];
+function apply() {
+  world.style.transform = `translate(${tx}px, ${ty}px) scale(${k})`;
+  const step = LOD.find((l) => k < l.at) ?? LOD[LOD.length - 1];
+  if (!world.classList.contains(step.cls)) {
+    world.classList.remove('lod1', 'lod2', 'lod3');
+    world.classList.add(step.cls);
+    relayout();
+  }
+  zlabel.textContent = `${Math.round(k * 100)}% · ${step.name}`;
+}
+function zoomAt(factor, cx, cy) {
+  const next = Math.min(2.6, Math.max(0.16, k * factor));
+  tx = cx - (cx - tx) * (next / k);
+  ty = cy - (cy - ty) * (next / k);
+  k = next;
+  apply();
+}
+stage.addEventListener('wheel', (ev) => {
+  ev.preventDefault();
+  zoomAt(ev.deltaY < 0 ? 1.13 : 1 / 1.13, ev.clientX, ev.clientY);
+}, { passive: false });
+
+let drag = null;
+stage.addEventListener('pointerdown', (ev) => {
+  if (ev.target.closest('.item')) return;
+  drag = { x: ev.clientX, y: ev.clientY, tx, ty };
+  stage.classList.add('dragging');
+  stage.setPointerCapture(ev.pointerId);
+});
+stage.addEventListener('pointermove', (ev) => {
+  if (!drag) return;
+  tx = drag.tx + (ev.clientX - drag.x);
+  ty = drag.ty + (ev.clientY - drag.y);
+  apply();
+});
+const stop = () => { drag = null; stage.classList.remove('dragging'); };
+stage.addEventListener('pointerup', stop);
+stage.addEventListener('pointercancel', stop);
+
+function fit() {
+  // 배율을 정하면 줌 단계가 바뀌고, 단계가 바뀌면 카드 키가 달라져 판의 크기도 바뀐다.
+  // 한 번에 재면 그 사이에서 어긋나므로, 값이 안 흔들릴 때까지 몇 번 다시 잰다.
+  const pad = 56;
+  for (let i = 0; i < 4; i += 1) {
+    const next = Math.min(2.6, Math.max(0.16,
+      Math.min((innerWidth - pad * 2) / WORLD_W, (innerHeight - pad * 2) / WORLD_H)));
+    if (Math.abs(next - k) < 0.001) break;
+    k = next;
+    apply();
+  }
+  tx = (innerWidth - WORLD_W * k) / 2;
+  ty = (innerHeight - WORLD_H * k) / 2;
+  apply();
+}
+document.getElementById('zin').addEventListener('click', () => zoomAt(1.35, innerWidth / 2, innerHeight / 2));
+document.getElementById('zout').addEventListener('click', () => zoomAt(1 / 1.35, innerWidth / 2, innerHeight / 2));
+document.getElementById('fit').addEventListener('click', fit);
+addEventListener('resize', () => apply());
+
+/* ---------- 손을 올린 글 ---------- */
+const read = document.getElementById('read');
+let held = null;
+function hold(id) {
+  held = id;
+  const n = byId.get(id);
+  const set = near.get(id) ?? new Set();
+  for (const [nid, e] of itemEls) {
+    e.classList.toggle('self', nid === id);
+    e.classList.toggle('hit', set.has(nid));
+    e.classList.toggle('dim', nid !== id && !set.has(nid));
+  }
+  document.getElementById('rkind').innerHTML =
+    `<i style="background:${colorOf(n)}"></i>${KIND[kindOf(n)].label}<span class="deg">이어진 글 ${set.size}편</span>`;
+  document.getElementById('rtitle').textContent = n.title;
+  document.getElementById('rnote').textContent = n.note || '';
+  const go = document.getElementById('rgo');
+  if (n.href) { go.hidden = false; go.href = n.href; } else { go.hidden = true; }
+  read.hidden = false;
+}
+function release() {
+  held = null;
+  for (const e of itemEls.values()) e.classList.remove('self', 'hit', 'dim');
+  read.hidden = true;
+}
+world.addEventListener('pointerleave', release);
+document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') release(); });
+
+/* ---------- 좁히기 ---------- */
+const hidden = new Set();
+const keys = document.getElementById('keys');
+for (const [key, meta] of Object.entries(KIND)) {
+  const count = DATA.nodes.filter((n) => kindOf(n) === key).length;
+  if (!count) continue;
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.setAttribute('aria-pressed', 'true');
+  b.innerHTML = `<i style="background:var(${meta.v})"></i><span></span><span class="n"></span>`;
+  b.children[1].textContent = meta.label;
+  b.children[2].textContent = `${count}`;
+  b.addEventListener('click', () => {
+    if (hidden.has(key)) hidden.delete(key); else hidden.add(key);
+    b.setAttribute('aria-pressed', hidden.has(key) ? 'false' : 'true');
+    narrow();
+  });
+  keys.append(b);
+}
+const q = document.getElementById('q');
+function narrow() {
+  const term = q.value.trim().toLowerCase();
+  for (const [nid, e] of itemEls) {
+    const n = byId.get(nid);
+    const okKind = !hidden.has(kindOf(n));
+    const okTerm = !term || (`${n.title} ${n.id} ${(n.tags || []).join(' ')}`).toLowerCase().includes(term);
+    e.closest('li').hidden = !(okKind && okTerm);
+  }
+  if (held) release();
+  relayout();
+}
+q.addEventListener('input', narrow);
+
+document.getElementById('facts').textContent =
+  `${DATA.nodes.length}편 · 글끼리 이어진 자리 ${DATA.edges.length}개 · 어디에도 안 이어진 글 0편`;
+
+/* ---------- 처음 ---------- */
+world.classList.add('lod2');
+relayout();
+fit();
+</script>

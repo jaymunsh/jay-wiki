@@ -1,0 +1,770 @@
+/* ============================================================
+   블로그 (blog.leneu.cloud)
+   레이아웃 정본: 설계 문서의 레이아웃 샘플 아티팩트.
+   색·크기·모서리는 tokens.css 값만 쓴다. 새 값을 만들지 않는다.
+   ============================================================ */
+
+/* 블로그의 Mermaid는 작은 화면에서도 먼저 전체 구조를 보여 준다. prose 공통 규칙은
+   글자 크기를 지키려고 SVG를 680px로 넓히지만, 블로그에서는 클릭 확대가 가능하다. */
+@media (max-width: 640px) {
+  .blog-art-body .mermaid { overflow-x: hidden; }
+  .blog-art-body .mermaid svg { width: 100%; min-width: 0; max-width: 100%; height: auto; }
+}
+
+/* 스크롤바를 숨기되 스크롤은 살린다 */
+.blog-hush { scrollbar-width: none; -ms-overflow-style: none; }
+.blog-hush::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+.blog-grid {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  min-height: 100vh;
+  /* 사이트의 나머지(위키·포트폴리오)와 같은 규칙을 쓴다 — 바닥은 bg-0, 읽는 면은 bg-1.
+     전에는 레일과 본문이 둘 다 bg-1 이라 1px 선 하나로만 나뉘어서 레일이 본문에
+     붙어 보였다. 다크에서도 방향이 같다(레일이 본문보다 어둡다). */
+  background: var(--bg-0);
+}
+
+/* home.css 의 `main { max-width: 1320px; margin: 0 auto; padding: … }` 는 요소 선택자라
+   블로그의 <main> 까지 잡는다. 그대로 두면 본문이 1320px 로 좁아진 채 가운데 놓여
+   칸의 남은 폭에 바닥색(bg-0)이 좌우로 드러나고, 안쪽 padding 과도 겹친다.
+   블로그 본문은 칸을 꽉 채우고 여백은 .blog-main-inner 가 전담한다. */
+.blog-main { min-width: 0; position: relative; background: var(--bg-1); max-width: none; padding: 0; }
+/* 아티팩트의 프레임은 max-width 1180px 이고 레일 250px 을 빼면 본문이 약 900px 이다.
+   폭을 풀어두면 넓은 화면에서 본문 문단(prose 가 자체 max-width 를 건다)은 좁은데
+   태그 줄·이전다음·댓글 폼만 화면 끝까지 늘어나 한 덩어리로 읽히지 않는다. */
+.blog-main-inner { max-width: 900px; margin: 0 auto; padding: 26px 30px 44px; }
+
+/* ---- 좌측 레일: 헤더가 여기에만 있다 ---- */
+/* display: contents 로 레일·본문이 .blog-grid 의 칸에 직접 놓인다. */
+.blog-shell { display: contents; }
+
+.blog-rail {
+  /* 모바일에서 fixed 드로어가 되므로 바닥색을 물려받지 못한다. 직접 지정한다. */
+  border-right: 1px solid var(--border); background: var(--bg-0);
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; align-self: start;
+  height: 100vh; overflow-y: auto; overscroll-behavior: contain;
+}
+.blog-rail-brand {
+  padding: 18px 16px 14px; display: flex; flex-direction: column; gap: 3px;
+  border-bottom: 1px solid var(--border);
+}
+.blog-rail-brand .row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.blog-rail-brand .row > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.blog-rail-brand .icon-btn { width: 30px; height: 30px; flex: none; }
+.blog-rail-brand .icon-btn svg { width: 14px; height: 14px; }
+.blog-rail-brand b {
+  font-size: var(--fs-lg); letter-spacing: -.01em;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.blog-rail-brand b img { display: block; flex: none; }
+.blog-rail-brand a.brand-home { color: inherit; text-decoration: none; align-self: flex-start; }
+.blog-rail-brand a.brand-home:hover b { color: var(--accent); }
+.blog-rail-brand .host { font-family: var(--mono); font-size: var(--fs-2xs); color: var(--text-mute); }
+.blog-rail-brand a.back { margin-top: 7px; font-size: var(--fs-xs); color: var(--accent); text-decoration: none; }
+.blog-rail-brand a.back:hover { text-decoration: underline; }
+.blog-rail-body { padding: 14px 16px 18px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+
+.blog-prof { display: flex; flex-direction: column; gap: 9px; padding-bottom: 12px; }
+.blog-prof-id { display: flex; align-items: center; gap: 10px; }
+.blog-avatar {
+  width: 38px; height: 38px; border-radius: 50%; flex: none;
+  object-fit: cover; background: var(--bg-2);
+}
+.blog-prof-id b { display: block; font-size: var(--fs-md); }
+.blog-prof-id a {
+  display: block; font-size: var(--fs-2xs); color: var(--text-mute); font-family: var(--mono);
+  text-decoration: none;
+}
+.blog-prof-id a:hover { color: var(--accent); }
+.blog-prof-bio { font-size: var(--fs-xs); color: var(--text-dim); margin: 0; line-height: 1.6; }
+.blog-prof-stat { display: flex; gap: 14px; font-variant-numeric: tabular-nums; }
+.blog-prof-stat div { display: flex; flex-direction: column; }
+.blog-prof-stat b { font-size: var(--fs-lg); line-height: 1.2; }
+.blog-prof-stat span { font-size: var(--fs-2xs); color: var(--text-mute); }
+
+.blog-rail-sec { padding: 14px 0; border-top: 1px solid var(--border); }
+.blog-rail-sec:first-of-type { border-top: 0; padding-top: 0; }
+.blog-rail-sec > h4 { margin: 0 0 8px; font-size: var(--fs-md); font-weight: 700; letter-spacing: -.01em; }
+.blog-rail-sec > h4 .n { font-family: var(--mono); font-size: var(--fs-xs); color: var(--text-mute); font-weight: 500; }
+
+.blog-cats, .blog-subcats { list-style: none; margin: 0; padding: 0; }
+.blog-subcats { padding: 0 0 4px 14px; }
+.blog-cat-row {
+  display: flex; align-items: center; gap: 7px; padding: 7px 4px;
+  text-decoration: none; color: var(--text-dim); font-size: var(--fs-sm); border-radius: var(--r-xs);
+}
+/* 레일 바닥이 bg-0 이라 --hover 로는 라이트에서 거의 안 보인다(#eff1f6 대 #f4f5f8).
+   한 단계 진한 값을 써야 두 테마 모두에서 hover 가 읽힌다. */
+.blog-cat-row:hover { background: var(--hover-strong); color: var(--text); }
+.blog-cat-row[aria-current='page'] { color: var(--accent); font-weight: 600; }
+.blog-cat-row .n { font-family: var(--mono); font-size: var(--fs-2xs); color: var(--text-mute); margin-left: auto; }
+/* 작업물 표식. 브랜드 색을 그대로 쓰되 라이트 테마에서도 읽히도록 한 단계 낮춘 금색이다.
+   flex: none 이 없으면 긴 제목이 아이콘을 눌러 찌그러뜨린다. */
+.blog-work-mark { width: 15px; height: 15px; flex: none; fill: #c9a24d; }
+/* lucide 아이콘은 stroke 로 그린다. 위의 fill 을 그대로 두면 윤곽선이 덩어리가 된다. */
+.blog-work-mark--line { fill: none; color: #c9a24d; }
+.blog-subcats .blog-cat-row { font-size: var(--fs-xs); }
+.blog-subcats .blog-cat-row::before { content: '›'; font-family: var(--mono); color: var(--text-mute); }
+
+.blog-pop { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+.blog-pop a { display: flex; gap: 9px; text-decoration: none; color: inherit; }
+.blog-pop .t { flex: 1; min-width: 0; font-size: var(--fs-xs); color: var(--text-dim); line-height: 1.4; }
+.blog-pop .t > span {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.blog-pop a:hover .t { color: var(--accent); }
+.blog-pop time { display: block; font-family: var(--mono); font-size: var(--fs-2xs); color: var(--text-mute); margin-top: 3px; }
+/* 상자 크기는 그대로 두고 원본 비율로 넣는다. cover 로 잘라내면 표지는 제목이
+   날아가고 가로 캡처는 가운데 한 줄만 남는다. 썸네일 비율이 0.67~2.33 으로
+   흩어져 있어 어떤 상자를 잡아도 한쪽은 잘린다. 남는 여백은 레일과 같은 색이라
+   상자가 이미지가 아니라 액자로 읽힌다. */
+.blog-pop .th {
+  flex: none; width: 52px; height: 39px; border-radius: var(--r-xs);
+  border: 1px solid var(--border); overflow: hidden; background: var(--bg-0);
+}
+.blog-pop .th img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+.blog-taglist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.blog-taglist a {
+  display: flex; align-items: baseline; gap: 8px; padding: 4px; text-decoration: none;
+  color: var(--text-dim); font-size: var(--fs-sm); border-radius: var(--r-xs);
+}
+/* 이름은 왼쪽, 글 수는 오른쪽 끝. 이름이 길면 이름만 줄인다. */
+.blog-taglist a > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.blog-taglist a > em {
+  margin-left: auto; font-style: normal; font-family: var(--mono);
+  font-size: var(--fs-2xs); font-variant-numeric: tabular-nums; color: var(--text-mute);
+}
+.blog-taglist a:hover { background: var(--hover-strong); color: var(--accent); }
+/* flex 라 이 가상 요소도 칸 하나다. 사이는 gap 이 벌리므로 margin 은 준다. */
+.blog-taglist a::before { content: '#'; color: var(--text-mute); margin-right: -2px; }
+
+.blog-rail-foot { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border); }
+.blog-rail-foot a { font-size: var(--fs-2xs); color: var(--text-mute); text-decoration: none; }
+.blog-rail-foot a:hover { color: var(--accent); text-decoration: underline; }
+
+/* ---- 우측 본문 위의 스크롤 바 ---- */
+/* 스크롤하면 서서히 나타난다. 자리를 차지하지 않도록 음수 margin 으로 상쇄한다. */
+.blog-stickybar {
+  position: sticky; top: 0; z-index: 4;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 22px; height: 48px; margin-bottom: -48px;
+  background: color-mix(in srgb, var(--bg-1) 72%, transparent);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--border);
+  opacity: 0; transform: translateY(-6px); pointer-events: none;
+  transition: opacity .22s ease, transform .22s ease;
+}
+.blog-stickybar.on { opacity: 1; transform: none; pointer-events: auto; }
+.blog-stickybar b {
+  font-size: var(--fs-sm); font-weight: 600; letter-spacing: -.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; text-align: center;
+}
+.blog-stickybar .sb-cat { font-size: var(--fs-2xs); color: var(--accent-2); font-weight: 600; flex: none; }
+.blog-stickybar .sb-top {
+  font-family: var(--mono); font-size: var(--fs-2xs); color: var(--text-mute);
+  background: none; border: 0; cursor: pointer; flex: none; padding: 4px 6px; border-radius: var(--r-xs);
+}
+.blog-stickybar .sb-top:hover { background: var(--hover); color: var(--text); }
+
+/* ---- 목록 ---- */
+.blog-list-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; margin-bottom: 18px; flex-wrap: wrap;
+}
+.blog-list-head h1 { font-size: var(--fs-2xl); margin: 0; letter-spacing: -.02em; }
+.blog-list-head .blog-search-query { font-weight: 800; }
+.blog-list-head .blog-search-label { display: inline-block; margin-left: .24em; font-size: var(--fs-lg); font-weight: 450; color: var(--text-dim); }
+.blog-list-head .count { font-family: var(--mono); font-size: var(--fs-xs); color: var(--text-mute); }
+
+.blog-cat-head { margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+.blog-cat-head h1 { font-size: var(--fs-2xl); margin: 0 0 6px; letter-spacing: -.02em; }
+.blog-cat-head p { margin: 0 0 10px; font-size: var(--fs-sm); color: var(--text-dim); max-width: 62ch; }
+.blog-cat-head .count {
+  font-family: var(--mono); font-size: var(--fs-2xs); color: var(--text-mute);
+  border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px;
+}
+.blog-crumb { font-size: var(--fs-xs); color: var(--text-mute); margin-bottom: 9px; }
+.blog-crumb a { color: var(--text-mute); text-decoration: none; }
+.blog-crumb a:hover { color: var(--accent); }
+.blog-crumb b { color: var(--text-dim); font-weight: 600; }
+
+.blog-empty { color: var(--text-mute); font-size: var(--fs-sm); padding: 30px 2px; }
+
+.blog-posts { display: flex; flex-direction: column; }
+.blog-post {
+  display: grid; grid-template-columns: minmax(0, 1fr); column-gap: 26px;
+  align-items: center; text-decoration: none; color: inherit;
+  padding: 24px 2px; border-bottom: 1px solid var(--border);
+  /* 지금 글에서 가장 큰 행(칩 + 제목 한 줄 + 날짜 + 요약 두 줄 + 썸네일 117px)의 실측이 208px 다.
+     제목이 두 줄로 넘어가는 글이 생기면 그 행만 이 값을 넘고, 나머지는 208 로 남는다. */
+  min-height: 208px; align-content: start;
+}
+.blog-post.has-thumb { grid-template-columns: minmax(0, 1fr) 156px; }
+.blog-post > *:not(.blog-post-thumb) { grid-column: 1; }
+.blog-post:hover .blog-post-title { color: var(--accent); }
+
+/* grid-row: 1 / -1 은 암시적 행에서 첫 줄만 덮어 그 줄이 썸네일 높이만큼 부푼다.
+   span 으로 적어야 썸네일이 글 덩어리 전체 높이에 걸쳐 가운데 정렬된다. */
+.blog-post-thumb {
+  grid-column: 2; grid-row: 1 / span 6; align-self: center;
+  width: 156px; height: 117px; border-radius: var(--r-sm);
+  border: 1px solid var(--border); overflow: hidden; background: var(--bg-0);
+}
+.blog-post-thumb img { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+/* 글 화면의 카테고리와 같은 칩으로 보여 준다(.blog-chip). 목록은 행 전체가 링크라
+   여기서 또 링크를 열 수 없으므로 모양만 맞춘다. grid 자식이라 justify-self 로
+   폭을 글자에 맞춘다 - 안 그러면 칩이 열 전체로 늘어난다. */
+.blog-post-cat {
+  justify-self: start; margin-bottom: 7px;
+  font-size: var(--fs-2xs); font-weight: 600;
+  color: var(--accent-2); background: color-mix(in srgb, var(--accent-2) 12%, transparent);
+  border-radius: var(--r-xs); padding: 2px 8px;
+}
+/* 제목과 요약은 두 줄에서 자른다. 자리를 미리 비워 두지는 않는다 - 그러면 한 줄짜리
+   제목 아래에 빈 줄이 끼어 제목과 날짜 사이가 벌어진다. 행 높이는 .blog-post 의
+   min-height 가 잡으므로, 남는 자리는 덩어리 안이 아니라 아래쪽에 모인다. */
+.blog-post-title {
+  font-size: var(--fs-xl); margin: 0 0 7px; line-height: 1.4; font-weight: 600; letter-spacing: -.01em;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.blog-post-date { font-family: var(--mono); font-size: var(--fs-xs); color: var(--text-mute); margin-bottom: 9px; }
+
+/* 발행·수정 시각.
+   라벨은 흐리게, 숫자는 한 단계 진하게 둬서 눈이 숫자를 먼저 잡게 한다.
+   가운뎃점 대신 넓은 간격으로 가른다 - 숫자 사이에 기호가 하나 더 끼면 덩어리로 보인다.
+   수정 줄은 발행 뒤 실제로 고친 글에만 붙는다(isEditedAfterPublish). */
+.blog-dates { display: inline-flex; flex-wrap: wrap; gap: 4px 18px; }
+.blog-date { display: inline-flex; align-items: baseline; gap: 6px; }
+.blog-date .lb { color: var(--text-mute); font-family: var(--font); letter-spacing: .02em; }
+.blog-date time { color: var(--text-dim); }
+.blog-post-sum {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; margin: 0; font-size: var(--fs-sm); color: var(--text-dim); line-height: 1.65;
+}
+
+/* 레일의 검색창. 입력창과 버튼을 한 알약 안에 둔다 - 버튼을 따로 떼면 좁은
+   레일에서 입력 폭을 잡아먹는다. 자바스크립트 없는 GET form 이다. */
+/* ---- 음악 플레이어 ---- */
+/* 레일이 아니라 layout 이 그린다. 화면 우측 아래에 떠 있고, 원반이 판의 왼쪽을 걸친다.
+   250px 폭에 맞춰 만든 판이라 기본 audio 컨트롤은 볼륨을 스스로 숨긴다. 그래서 직접 그린다. */
+.blog-player {
+  position: fixed; z-index: 60; right: 20px; bottom: 20px;
+  /* 레일에 있을 때의 폭 그대로다. 넓히면 원반이 판 안에 갇혀 보인다. */
+  width: 213px;
+}
+.blog-player-front {
+  /* 왼쪽은 원반이 서는 자리다. 안 비우면 재생 줄이 원반 밑으로 들어가 안 잡힌다. */
+  padding: 3px 6px 3px 60px;
+  border-radius: var(--r-md); background: var(--bg-1);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 28px rgb(0 0 0 / .22);
+}
+/* 조작 줄과 같은 처방이다. 물려받은 line-height 24.8px 이 strut 이 되어 줄을 25px 로 띄운다. */
+.blog-player-name { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; line-height: 1; }
+.blog-player-name strong {
+  flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--fs-2xs); font-weight: 600; color: var(--text);
+}
+/* line-height 를 1 로 눌러야 한다. 물려받은 24.8px 이 strut 이 되어 줄을 25px 로 띄운다. */
+.blog-player-keys { display: flex; align-items: center; gap: 6px; line-height: 1; }
+.blog-player-seek { flex: 1; min-width: 0; }
+/* 아이콘이 단추 상자 안쪽에 1.5px 들어가 있어 제목 글자보다 오른쪽에서 시작한다.
+   그만큼 당겨야 제목과 왼쪽 끝이 한 줄로 선다. */
+.blog-player-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: none; width: 16px; height: 16px; padding: 0; margin-left: -2px;
+  border: 0; background: transparent; cursor: pointer;
+  color: var(--accent-2);
+}
+.blog-player-toggle:hover { color: color-mix(in srgb, var(--accent-2) 75%, var(--text)); }
+.blog-player-toggle svg { width: 13px; height: 13px; fill: currentColor; }
+/* **원반이 판보다 커야 한다.** 위아래로 3px 씩 넘고 왼쪽으로 5px 벗어나는 것이 이 모양의 핵심이다.
+   판 높이(49px)를 키우면 원반(55px)이 안에 갇혀 그냥 붙은 사진으로 보인다.
+   세로 가운데는 top 50% + translateY(-50%) 하나로 잡는다 — 판 높이가 바뀌어도 따라온다. */
+.blog-player-disc {
+  position: absolute; z-index: 1; left: -5px; top: 50%; transform: translateY(-50%);
+  width: 55px; height: 55px; padding: 0; border: 0; border-radius: 50%;
+  background: transparent; cursor: pointer;
+  box-shadow: 0 3px 12px rgb(0 0 0 / .3);
+}
+.blog-player-disc:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 3px; }
+.blog-player-disc img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+/* 가운데 구멍. 이게 없으면 그냥 동그란 사진으로 보인다. */
+.blog-player-disc i {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--bg-1); box-shadow: inset 0 0 0 1px var(--border);
+}
+/* 회전은 안쪽 이미지가 맡는다. 바깥은 translateY 로 세로 가운데를 잡고 있어서
+   같은 자리에 rotate 를 얹으면 둘이 서로를 지운다.
+   **멈출 때 애니메이션을 떼지 않고 play-state 만 세운다.** 떼면 각도가 0 으로 돌아가
+   다시 재생할 때 원반이 처음부터 도는 것처럼 보인다. */
+@media (prefers-reduced-motion: no-preference) {
+  .blog-player-disc img {
+    animation: blog-player-spin 9s linear infinite;
+    animation-play-state: paused;
+    /* 음수 지연이라 그 시간만큼 이미 돈 자리에서 시작한다. 화면을 옮겨도 각도가 안 튄다. */
+    animation-delay: var(--spin-from, 0s);
+  }
+  .blog-player-disc[data-spin='true'] img { animation-play-state: running; }
+}
+@keyframes blog-player-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+/* 숨긴 상태. 원반의 1/4 만 한 음표 하나가 남고, 그 자체가 다시 여는 단추다.
+   원반을 그대로 두면 숨긴 것 같지가 않다. */
+.blog-player--peek {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; padding: 0; border: 1px solid var(--border); border-radius: 50%;
+  background: var(--bg-1); color: var(--text-mute); cursor: pointer;
+  box-shadow: 0 4px 14px rgb(0 0 0 / .18);
+}
+.blog-player--peek svg { width: 14px; height: 14px; }
+.blog-player--peek:hover { color: var(--accent-2); border-color: var(--accent-2); }
+/* 재생 중이면 숨겨도 소리가 나고 있다는 것이 보여야 한다. */
+.blog-player--peek[data-playing='true'] {
+  color: var(--accent-2);
+  border-color: color-mix(in srgb, var(--accent-2) 45%, var(--border));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .blog-player--peek[data-playing='true'] { animation: blog-peek-pulse 2.2s ease-in-out infinite; }
+}
+@keyframes blog-peek-pulse {
+  0%, 100% { box-shadow: 0 4px 14px rgb(0 0 0 / .18), 0 0 0 0 color-mix(in srgb, var(--accent-2) 40%, transparent); }
+  50% { box-shadow: 0 4px 14px rgb(0 0 0 / .18), 0 0 0 5px color-mix(in srgb, var(--accent-2) 0%, transparent); }
+}
+
+.blog-player-menu { position: relative; flex: none; }
+.blog-player-menu > button, .blog-player-vol > button {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; padding: 0; border: 0; border-radius: var(--r-xs);
+  background: transparent; color: var(--text-mute); cursor: pointer;
+}
+.blog-player-menu > button:hover, .blog-player-vol > button:hover { color: var(--accent-2); }
+.blog-player-menu > button svg, .blog-player-vol > button svg { width: 13px; height: 13px; }
+/* 판이 화면 오른쪽 끝에 붙어 있어 메뉴도 왼쪽으로 편다. */
+.blog-player-sheet {
+  position: absolute; z-index: 3; right: -4px; bottom: calc(100% + 8px);
+  min-width: 132px; padding: 4px;
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: var(--bg-1); box-shadow: 0 8px 22px rgb(0 0 0 / .22);
+}
+.blog-player-sheet button {
+  display: flex; align-items: center; gap: 7px; width: 100%;
+  padding: 6px 8px; border: 0; border-radius: var(--r-xs);
+  background: transparent; color: var(--text); cursor: pointer;
+  font-size: var(--fs-2xs); text-align: left;
+}
+.blog-player-sheet button:hover { background: var(--hover); }
+.blog-player-sheet button svg { width: 13px; height: 13px; flex: none; color: var(--text-mute); }
+.blog-player-sheet button span { flex: 1; }
+.blog-player-sheet button svg.tick { color: var(--accent-2); }
+.blog-player-vol { position: relative; flex: none; }
+/* 음량은 단추 위로 세운다. 판이 화면 끝이라 옆으로 열면 잘린다. */
+.blog-player-pop {
+  position: absolute; z-index: 3; left: 50%; bottom: calc(100% + 8px);
+  width: 28px; height: 90px;
+  transform: translateX(-50%);
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--bg-1); box-shadow: 0 6px 18px rgb(0 0 0 / .18);
+}
+/* 세로 range 는 브라우저마다 다르게 붙는다. 가로로 두고 돌리는 쪽이 어디서나 같다.
+   -90도라 채움이 아래에서 위로 찬다 — 기울기는 그대로 to right 를 쓴다.
+   가운데 정렬은 절대 위치로 한다. 항목이 칸보다 넓으면 grid 중앙 정렬이 밀린다. */
+.blog-player-pop input {
+  position: absolute; left: 50%; top: 50%;
+  width: 70px; margin: 0;
+  transform: translate(-50%, -50%) rotate(-90deg);
+}
+/* range 는 지나온 구간을 스스로 안 칠한다. --played 로 직접 칠한다. */
+.blog-player input[type='range'] {
+  -webkit-appearance: none; appearance: none;
+  height: 4px; border-radius: 2px; cursor: pointer;
+  background: linear-gradient(
+    to right,
+    var(--accent-2) var(--played, 0%),
+    var(--border-strong) var(--played, 0%)
+  );
+}
+.blog-player input[type='range']:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 3px; }
+.blog-player input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 10px; height: 10px; border: 0; border-radius: 50%; background: var(--accent-2);
+}
+.blog-player input[type='range']::-moz-range-thumb {
+  width: 10px; height: 10px; border: 0; border-radius: 50%; background: var(--accent-2);
+}
+
+.blog-search {
+  display: flex; align-items: center; gap: 4px;
+  margin: 0 0 12px; padding: 2px 3px 2px 10px;
+  background: var(--bg-2); border-radius: var(--r-sm);
+  /* accent 를 옅게만 섞는다. 진하게 두면 레일에서 이것만 튄다. */
+  border: 1px solid color-mix(in srgb, var(--accent-2) 16%, var(--border));
+}
+.blog-search:focus-within { outline: 2px solid var(--accent-2); outline-offset: 1px; }
+.blog-search input {
+  flex: 1; min-width: 0; height: 26px;
+  border: 0; background: transparent; outline: none;
+  color: var(--text); font-size: var(--fs-xs);
+}
+.blog-search input::placeholder { color: var(--text-mute); }
+/* 검색 입력의 기본 지우기 버튼. 알약 안에서 아이콘과 겹쳐 보인다. */
+.blog-search input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.blog-search button {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; flex: none;
+  border: 0; border-radius: var(--r-xs); cursor: pointer;
+  background: color-mix(in srgb, var(--accent-2) 18%, transparent);
+  color: var(--accent-2);
+}
+.blog-search button:hover { background: color-mix(in srgb, var(--accent-2) 30%, transparent); }
+.blog-search button svg { width: 16px; height: 16px; }
+
+.blog-empty { color: var(--text-dim); font-size: var(--fs-sm); margin: 24px 0; }
+.blog-empty b { color: var(--text); }
+
+/* 목록 하단 페이지 이동. 한 장뿐이면 컴포넌트가 아무것도 그리지 않는다. */
+.blog-pager {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin: 28px 0 8px; font-size: var(--fs-sm);
+}
+.blog-pager-nums { display: flex; gap: 4px; }
+.blog-pager-num, .blog-pager-step {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 32px; height: 32px; padding: 0 10px; border-radius: var(--r-sm);
+  color: var(--text-dim); text-decoration: none;
+}
+.blog-pager-num { font-family: var(--mono); }
+a.blog-pager-num:hover, a.blog-pager-step:hover { background: var(--bg-2); color: var(--text); }
+.blog-pager-num.is-on {
+  color: var(--accent-2); font-weight: 700;
+  background: color-mix(in srgb, var(--accent-2) 12%, transparent);
+}
+.blog-pager-step.is-off { color: var(--text-mute); opacity: .45; }
+
+/* ---- 글 ---- */
+/* 본문(.prose)만 46rem 으로 묶여 있어서, 요약이 길어지면 제목·요약과 그 아래 구분선이
+   본문보다 넓게 끝났다. 글 전체를 같은 폭으로 잡아 머리말·태그·이전다음까지 정렬한다.
+   읽기 좋은 줄 길이는 본문 쪽이 기준이므로 칸 폭이 아니라 본문 폭에 맞춘다. */
+.blog-art { max-width: 46rem; }
+
+.blog-art-head { border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 24px; }
+.blog-art-meta {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 11px;
+  font-family: var(--mono); font-size: var(--fs-2xs); color: var(--text-mute);
+}
+/* 카테고리 칩은 왼쪽, 날짜는 제목 폭 오른쪽 끝에 붙인다. */
+.blog-art-meta .blog-dates { margin-left: auto; }
+.blog-chip {
+  font-family: var(--font); font-size: var(--fs-2xs); font-weight: 600; text-decoration: none;
+  color: var(--accent-2); background: color-mix(in srgb, var(--accent-2) 12%, transparent);
+  border-radius: var(--r-xs); padding: 2px 8px;
+}
+.blog-art-head h1 {
+  font-size: var(--fs-2xl); margin: 0 0 10px; letter-spacing: -.02em;
+  line-height: 1.35; text-wrap: balance; word-break: keep-all; overflow-wrap: break-word;
+}
+.blog-art-head .sum { color: var(--text-dim); margin: 0; font-size: var(--fs-sm); }
+
+/* 태그 줄 — 아이콘 하나가 줄 전체의 라벨이고, 알약은 작게 붙는다 */
+/* 목차. 접는 장치를 붙이지 않는다 — 첫 화면에서 눌러야 할 것이 하나 는다.
+   항목이 3개 미만이면 컴포넌트가 아예 안 그린다. */
+/* 이어지는 글 (V31). 목차 바로 위, 제목 블록 바로 아래에 온다.
+   박스도 배경도 쓰지 않는다 -- 왼쪽 강조색 띠 + 연한 배경은 본문의 인용문
+   (.prose blockquote)이 이미 쓰는 형태라, 같은 화면에서 인용으로 읽힌다.
+   대신 레일 위에 노드를 얹어 이 글이 어느 줄기의 어디쯤인지를 형태로 보인다.
+
+   레일은 새로 긋지 않고 .blog-art-head 의 밑줄을 그대로 쓴다. 여기서 선을 하나 더 그으면
+   24px 떨어진 자리에 같은 선이 두 줄로 보인다. 음수 margin 으로 그 간격을 흡수해
+   노드가 헤더 밑줄 위에 앉게 한다 */
+.blog-series {
+  position: relative;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px 32px;
+  margin: -24px 0 26px; padding-top: 20px;
+}
+.blog-series[data-side='prev'], .blog-series[data-side='next'] { grid-template-columns: 1fr; }
+
+.blog-series__side {
+  position: relative; min-width: 0; text-decoration: none; color: inherit;
+}
+.blog-series__side--next { text-align: right; }
+/* 노드. 헤더 밑줄 위에 걸치고, 자기 칸의 바깥쪽 끝에 선다 */
+.blog-series__side::before {
+  content: ''; box-sizing: border-box; position: absolute; top: -24px; left: 0; z-index: 1;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--bg-0); border: 2px solid var(--accent);
+  transition: transform .15s ease, background-color .15s ease;
+}
+.blog-series__side--next::before { left: auto; right: 0; }
+.blog-series__side:hover::before { background: var(--accent); transform: scale(1.3); }
+
+.blog-series__label {
+  display: block; font-size: var(--fs-2xs); font-weight: 500;
+  color: var(--text-mute); margin-bottom: 5px;
+  transition: color .15s ease;
+}
+/* 제목은 두 줄까지. 둘 다 있을 때 한 칸이 절반이라, 안 자르면 블록 높이가 널뛴다 */
+.blog-series__side b {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: var(--fs-sm); font-weight: 600; line-height: 1.45;
+  color: var(--text-dim); transition: color .15s ease;
+}
+.blog-series__side:hover .blog-series__label,
+.blog-series__side:hover b { color: var(--accent); }
+.blog-series__side:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .blog-series__side::before, .blog-series__label, .blog-series__side b { transition: none; }
+}
+
+.blog-toc {
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--bg-0); padding: 14px 18px 10px; margin: 0 0 28px;
+}
+.blog-toc__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin: 0 0 6px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-strong);
+  font-size: var(--fs-lg); font-weight: 700; letter-spacing: -.01em;
+}
+.blog-toc__head svg { width: 17px; height: 17px; color: var(--text-mute); flex: none; }
+.blog-toc ul { margin: 0; padding: 0; list-style: none; }
+/* 줄 사이 구분선. `--border` 를 그대로 쓰면 18줄이 표처럼 읽혀서 절반 투명도로 깐다.
+   새 색을 만들지 않고 토큰에서 파생시킨다(.blog-stickybar 가 쓰는 방식과 같다).
+   첫 줄은 머리 밑줄과 겹치므로 둘째 줄부터 긋는다 */
+.blog-toc li + li > a {
+  border-top: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+}
+/* 줄 높이가 이 화면의 전부다. 18줄짜리 글에서 목차가 첫 화면을 다 먹지 않게
+   패딩을 4px 로 줄였다. 구분선을 연하게 깐 것이 이 간격을 버티는 조건이다 —
+   선을 `--border` 그대로 쓰면 같은 간격에서 줄끼리 붙어 보인다 */
+.blog-toc a {
+  display: flex; align-items: baseline; gap: 12px;
+  padding: 4px 2px; text-decoration: none;
+  color: var(--text-dim); font-size: var(--fs-sm); line-height: 1.45;
+}
+.blog-toc a > span { flex: 1; min-width: 0; }
+/* 화살표는 오른쪽 끝에 고정한다. baseline 정렬이라 제목이 두 줄이어도 첫 줄에 선다 */
+.blog-toc a > i {
+  font-style: normal; flex: none; color: var(--text-mute);
+  font-size: var(--fs-xs); transition: transform .15s ease;
+}
+.blog-toc a:hover { color: var(--accent); }
+.blog-toc a:hover > i { color: var(--accent); transform: translateX(3px); }
+/* ### 은 한 단 들여쓰고 한 급 낮춰 그린다. 번호 없이도 위계가 보여야 한다 */
+.blog-toc li[data-depth='3'] > a {
+  padding-left: 18px; font-size: var(--fs-xs); color: var(--text-mute);
+  position: relative;
+}
+.blog-toc li[data-depth='3'] > a::before {
+  content: ''; position: absolute; left: 2px; top: 50%;
+  width: 8px; height: 1px; background: var(--border-strong);
+}
+/* 목차에서 눌러 온 제목이 상단 고정 바(.blog-stickybar, 48px) 뒤로 숨지 않게 비운다.
+   48 만 주면 제목이 바 바로 밑에 딱 붙으므로 한 줄만큼 더 준다. */
+.blog-art-body h2, .blog-art-body h3 { scroll-margin-top: 68px; }
+
+/* Mermaid xychart 의 막대 값 라벨은 차트 크기에 따라 47~50px로 생성돼 작은 비교
+   차트에서 막대를 덮어 버린다. 숫자 크기에 의존하지 않고 막대 라벨 그룹만 낮춘다. */
+.blog-art-body .mermaid svg g[class^='bar-plot-'] > text {
+  font-size: 16px !important;
+}
+
+.blog-art-tags {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  margin-top: 26px; padding: 12px 14px;
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm);
+}
+.blog-art-tags > span[aria-hidden] { color: var(--text-mute); font-family: var(--mono); margin-right: 3px; }
+.blog-art-tags .sr-label {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+.blog-art-tags a {
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-xs);
+  padding: 3px 10px; text-decoration: none; color: var(--text-dim); font-size: var(--fs-xs);
+}
+.blog-art-tags a:hover { color: var(--accent); border-color: var(--accent); }
+
+.blog-art-nav {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-top: 34px; padding-top: 20px; border-top: 1px solid var(--border);
+}
+.blog-art-nav a {
+  border: 1px solid var(--border); border-radius: var(--r-sm); padding: 12px 14px;
+  text-decoration: none; color: inherit; background: var(--bg-1);
+}
+.blog-art-nav a:hover { border-color: var(--accent); }
+.blog-art-nav span {
+  display: block; font-family: var(--mono); font-size: var(--fs-2xs);
+  color: var(--text-mute); margin-bottom: 4px;
+}
+.blog-art-nav b { font-size: var(--fs-sm); font-weight: 600; line-height: 1.45; }
+.blog-art-nav .next { text-align: right; }
+
+.blog-samecat {
+  margin-top: 34px; border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--bg-1); overflow: hidden;
+}
+.blog-samecat h2 {
+  margin: 0; padding: 14px 18px; border-bottom: 1px solid var(--border);
+  font-size: var(--fs-sm); font-weight: 600;
+}
+.blog-samecat h2 em { font-style: normal; color: var(--accent); }
+.blog-samecat ul { list-style: none; margin: 0; padding: 6px 0; }
+.blog-samecat li a {
+  display: flex; align-items: baseline; gap: 12px; padding: 8px 18px;
+  text-decoration: none; color: var(--text-dim); font-size: var(--fs-sm);
+}
+.blog-samecat li a:hover { background: var(--hover); color: var(--text); }
+.blog-samecat .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.blog-samecat .d {
+  font-family: var(--mono); font-size: var(--fs-2xs); color: var(--text-mute);
+  flex: none; font-variant-numeric: tabular-nums;
+}
+
+/* ---- 댓글 ---- */
+.blog-cmt { margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--border); }
+.blog-cmt h2 { margin: 0 0 10px; font-size: var(--fs-sm); color: var(--text-mute); font-weight: 600; }
+.blog-cmt h2 span { font-family: var(--mono); color: var(--accent); margin-left: 4px; }
+.blog-cmt-list { list-style: none; margin: 0 0 18px; padding: 0; }
+.blog-cmt-list li { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.blog-cmt-list li:first-child { padding-top: 0; }
+.blog-cmt-who { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+.blog-cmt-who b { font-size: var(--fs-sm); }
+.blog-cmt-who .ip { font-family: var(--mono); font-size: var(--fs-2xs); color: var(--text-mute); margin-left: -4px; }
+.blog-cmt-who time { font-family: var(--mono); font-size: var(--fs-2xs); color: var(--text-mute); }
+.blog-cmt-who .del {
+  margin-left: auto; font-size: var(--fs-2xs); color: var(--text-mute);
+  background: none; border: 0; cursor: pointer; padding: 1px 5px; border-radius: var(--r-xs);
+}
+.blog-cmt-who .del:hover { background: var(--hover); color: var(--danger); }
+.blog-cmt-body { margin: 0; font-size: var(--fs-sm); color: var(--text-dim); line-height: 1.6; white-space: pre-wrap; }
+
+/* 본문칸이 왼쪽을 다 쓰고, 오른쪽에 이름·암호·등록이 같은 폭으로 쌓인다.
+   세로 span 은 -1 이 아니라 span 으로 적어야 암시적 행에서도 전체를 덮는다. */
+.blog-cmt-form { display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 8px; }
+.blog-cmt-form textarea { grid-column: 1; grid-row: 1 / span 3; min-height: 92px; resize: vertical; }
+.blog-cmt-form input, .blog-cmt-form .submit { grid-column: 2; }
+.blog-cmt-form input, .blog-cmt-form textarea {
+  font: inherit; font-size: var(--fs-sm); color: var(--text); line-height: 1.6;
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-xs);
+  padding: 9px 11px; width: 100%; display: block;
+}
+.blog-cmt-form input::placeholder, .blog-cmt-form textarea::placeholder { color: var(--text-mute); }
+.blog-cmt-form input:focus, .blog-cmt-form textarea:focus { outline: none; border-color: var(--accent); }
+.blog-cmt-form .submit {
+  font: inherit; font-size: var(--fs-sm); font-weight: 600; color: #fff;
+  background: var(--accent); border: 1px solid var(--accent); border-radius: var(--r-xs);
+  padding: 9px 11px; cursor: pointer; width: 100%;
+}
+.blog-cmt-form .submit:hover:not(:disabled) { filter: brightness(1.08); }
+.blog-cmt-form .submit:disabled { opacity: .5; cursor: not-allowed; }
+.blog-cmt-err { margin: 8px 0 0; font-size: var(--fs-xs); color: var(--danger); }
+
+/* ---- 모바일 상단바와 드로어 (데스크톱에서는 숨긴다) ---- */
+.blog-mtop { display: none; }
+.blog-scrim { display: none; }
+
+@media (max-width: 820px) {
+  .blog-post-date.blog-dates { gap: 4px 12px; }
+  .blog-grid { grid-template-columns: minmax(0, 1fr); }
+  .blog-main-inner { padding: 16px 14px 28px; }
+
+  /* 드로어와 스크림이 뷰포트 기준(fixed, top 55px)이므로 상단바도 같은 기준으로 둔다.
+     sticky 로 두면 grid 행이 제 높이와 같아 붙을 여유가 없어 스크롤과 함께 밀려나고,
+     세 요소의 기준이 어긋나 드로어가 상단바를 덮는다. */
+  .blog-mtop {
+    display: flex; align-items: center; gap: 10px;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9; height: 55px; padding: 10px 12px;
+    background: var(--bg-1); border-bottom: 1px solid var(--border);
+  }
+  /* 상단바가 흐름에서 빠졌으므로 본문이 그 높이만큼 내려온다. */
+  .blog-main { padding-top: 55px; }
+  /* 링크지만 상단바 제목이라 밑줄과 색을 물려받지 않는다. */
+  .blog-mtop .blog-mtitle {
+    flex: 1; font-size: var(--fs-md); font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    color: inherit; text-decoration: none;
+  }
+  .blog-mtop .blog-mtitle img { display: block; flex: none; }
+  .blog-mtop .icon-btn { width: 30px; height: 30px; flex: none; }
+  .blog-mtop .icon-btn svg { width: 14px; height: 14px; }
+  /* 로고와 토글은 상단바에 이미 있으므로 드로어에서는 감춘다.
+     다만 위키로 돌아가는 링크는 좁은 화면에서 여기가 유일한 자리라 남긴다. */
+  .blog-rail-brand { padding: 14px 16px; }
+  .blog-rail-brand .row { display: none; }
+  .blog-rail-brand a.back { margin-top: 0; }
+  .blog-burger {
+    flex: none; width: 34px; height: 34px; display: inline-flex;
+    align-items: center; justify-content: center;
+    background: none; border: 1px solid var(--border); border-radius: var(--r-xs);
+    cursor: pointer; padding: 0;
+  }
+  .blog-burger span { display: block; position: relative; width: 15px; height: 1.5px; background: var(--text); border-radius: 2px; }
+  .blog-burger span::before, .blog-burger span::after {
+    content: ''; position: absolute; left: 0; width: 15px; height: 1.5px; background: var(--text); border-radius: 2px;
+  }
+  .blog-burger span::before { top: -5px; }
+  .blog-burger span::after { top: 5px; }
+
+  /* 드로어는 화면의 3/4 만 덮는다. 남은 1/4 로 뒤가 blur 되어 보인다. */
+  /* 높이를 명시한다. top 과 bottom 만 주고 height: auto 로 두면 높이가 콘텐츠 높이로 잡혀
+     드로어가 상단바 뒤에서 시작하고(프로필 줄이 가려진다) 아래로 넘친 부분은 스크롤도 안 됐다.
+     dvh 는 모바일 브라우저 주소창이 접힐 때의 높이 변화까지 따라간다. */
+  .blog-rail {
+    position: fixed; top: 55px; left: 0; width: 75%; height: calc(100dvh - 55px); z-index: 8;
+    transform: translateX(-100%); transition: transform .24s ease; visibility: hidden;
+  }
+  .blog-shell.open .blog-rail { transform: translateX(0); visibility: visible; }
+
+  .blog-scrim {
+    display: block; position: fixed; inset: 55px 0 0; z-index: 7;
+    background: color-mix(in srgb, var(--bg-0) 42%, transparent);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    border: 0; padding: 0;
+    opacity: 0; pointer-events: none; transition: opacity .24s ease;
+  }
+  .blog-shell.open .blog-scrim { opacity: 1; pointer-events: auto; }
+
+  .blog-stickybar { display: none; }
+
+  .blog-post.has-thumb { grid-template-columns: minmax(0, 1fr) 96px; column-gap: 14px; }
+  .blog-post-thumb { width: 96px; height: 72px; }
+  .blog-post-title { font-size: var(--fs-lg); }
+  .blog-list-head h1, .blog-cat-head h1 { font-size: var(--fs-xl); }
+
+  .blog-art-nav { grid-template-columns: 1fr; }
+  .blog-art-nav .next { text-align: left; }
+  /* 좁은 화면에서는 한 줄에 하나씩 쌓되, 두 줄을 서로 반대쪽으로 붙여 방향을 보인다.
+     먼저 읽기는 왼쪽, 이어 읽기는 오른쪽이다 */
+  .blog-series { grid-template-columns: 1fr; gap: 0; }
+  /* 둘째 줄은 헤더 밑줄에 닿지 않으므로 자기 선을 하나 갖는다.
+     선 없이 노드만 두면 점이 허공에 뜨고, 노드를 지우면 두 줄의 모양이 어긋난다 */
+  .blog-series[data-side='both'] .blog-series__side--next {
+    margin-top: 18px; padding-top: 19px;
+  }
+  .blog-series[data-side='both'] .blog-series__side--next::after {
+    content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px;
+    background: var(--border);
+  }
+  .blog-series[data-side='both'] .blog-series__side--next::before { top: -4px; }
+  .blog-art-head h1 { font-size: var(--fs-xl); }
+
+  .blog-cmt-form { grid-template-columns: minmax(0, 1fr) 104px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blog-grid *, .blog-grid *::before, .blog-grid *::after {
+    transition: none !important; animation: none !important;
+  }
+}

@@ -1,0 +1,28 @@
+# minio/minio — 위키 첨부와 포트폴리오 기술 로고 자산.
+#
+#   helm upgrade -i minio minio/minio -n data \
+#     -f infra/k8s/data/minio-values.yaml \
+#     --set rootPassword="${MINIO_ROOT_PASSWORD}"
+#
+# rootPassword 는 이 파일에 적지 않는다. 설치 시 --set 으로 주입한다.
+# wiki-assets 만 읽기 공개(policy: download)다. 웹은 same-origin asset route 로 프록시한다.
+mode: standalone
+
+rootUser: minioadmin
+
+persistence:
+  size: 50Gi
+
+resources:
+  requests:
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+buckets:
+  - name: wiki-assets
+    policy: download
+  - name: backups
+    policy: none
+  - name: batch-output
+    policy: none

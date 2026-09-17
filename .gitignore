@@ -1,0 +1,62 @@
+# === OS / 에디터 ===
+.DS_Store
+.idea/
+*.iml
+.vscode/
+
+# === Claude Code 로컬 세션 설정 ===
+# .claude/ (슬래시 있는 디렉터리 패턴)로 무시하면 git 이 안쪽을 안 들여다봐서
+# 아래 skills/ 예외가 안 먹는다. **/.claude/* 로 "내용물"을 무시해야 디렉터리는
+# 열린 채로 남아 예외가 통한다. **/ 를 써서 web/.claude/ 같은 하위 디렉터리도
+# 똑같이 잡는다 — 예외는 저장소 루트의 스킬만 연다(/.claude/skills/, 앞에 슬래시).
+**/.claude/*
+!/.claude/skills/
+# 훅은 저장소가 들고 있어야 이 저장소를 받은 세션에서도 돈다. settings.json 이
+# 빠지면 scripts/guard-main-push.sh 가 아무 데도 연결되지 않는다(실제로 그랬다).
+# settings.local.json 은 개인 설정이라 계속 무시한다.
+!/.claude/settings.json
+
+# === 별도 저장소 (구 프로토타입, 자체 git 보유 — 삭제/보관은 별도 결정) ===
+nextjs_project/
+
+# === Node / Next.js ===
+node_modules/
+web/.next/
+web/out/
+web/test-results/
+web/npm-debug.log*
+services/**/.venv/
+services/**/.pytest_cache/
+services/**/.ruff_cache/
+services/**/__pycache__/
+
+# === Gradle / Java ===
+spring/.gradle/
+spring/build/
+
+# === 로컬 배포 산출물 ===
+dist/
+.tmp/
+
+# === 글 원고 ===
+# posts/ 는 둘 다 추적한다. 정본이 아니라는 것은 각 디렉터리의 README 가 말한다.
+
+# === 시크릿 (실값은 절대 커밋 금지) ===
+.env
+.env.*
+*.pem
+**/secret.yaml
+/archive/
+
+# === SDD 작업 공간 (계획 실행 중 스크래치) ===
+.superpowers/
+
+# /sync 가 운영에 쓰기 전 받아 두는 사본. 되돌릴 때만 쓴다.
+.local-backups/
+
+# === leneu/ — 이 맥에만 두는 운영 매뉴얼과 보안이 걸리는 것 (2026-09-05) ===
+# 앞의 / 가 반드시 있어야 한다. 없으면 이름이 leneu 인 디렉터리를 깊이에 상관없이 다 잡아
+# spring/src/main/java/cloud/leneu/** 아래의 새 파일이 통째로 git 밖으로 나간다.
+# 이미 추적 중인 파일은 무시 규칙을 안 타기 때문에 기존 코드는 멀쩡해 보이고,
+# 새로 만든 패키지만 조용히 안 실린다 — 2026-09-07 에 stats 패키지가 그렇게 빠질 뻔했다.
+/leneu/

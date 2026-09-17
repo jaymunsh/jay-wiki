@@ -1,0 +1,199 @@
+# pg-services — 모놀리스가 못 붙는 두 번째 postgres.
+#
+# 설계: docs/2026-08-17-msa-data-ownership-design.md 결정 2·3
+# 인스턴스를 나누는 이유는 하나뿐이다 — NetworkPolicy 의 podSelector 는 파드 라벨을 본다.
+# 같은 postgres 에 스키마로만 나누면 네트워크 층에서 구분할 대상이 없다.
+#
+# 안에는 payment 와 shipping 두 DB 가 있다. 계정으로 가른다 —
+# payment_svc 는 shipping 에 CONNECT 가 없고 반대도 같다.
+#
+#   kubectl apply -f infra/k8s/data/pg-services.yaml
+#
+# 비밀번호는 Secret pg-services-secrets 에서 읽는다. 이 파일에 적지 않는다.
+# 이미지는 노드에 이미 있다 (pull-prod-backup.sh 가 쓰는 것과 같은 postgres:18-alpine).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pg-services-init
+  namespace: data
+data:
+  # initdb 스크립트는 데이터 디렉터리가 빈 첫 기동에만 돈다.
+  # **이미 뜬 운영 인스턴스에는 이 파일을 고쳐도 안 돈다.** shipping 을 추가할 때는
+  # kubectl -n data exec pg-services-0 -- psql 로 아래 SQL 을 직접 실행했다.
+  # 여기 남기는 것은 클린 클러스터에서 다시 만들 수 있게 하기 위해서다.
+  10-payment.sh: |
+    #!/bin/sh
+    set -e
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres <<SQL
+    create role payment_svc login password '${PAYMENT_SVC_PASSWORD}';
+    create database payment owner payment_svc;
+    -- PUBLIC 은 기본으로 아무 DB 에나 CONNECT 를 갖는다. 뺀 다음 필요한 계정에만 준다.
+    -- shipping DB 를 만들 때도 이 두 줄을 같이 해야 계정 분리가 실제로 선다.
+    revoke connect on database payment from public;
+    grant connect on database payment to payment_svc;
+    SQL
+  20-shipping.sh: |
+    #!/bin/sh
+    set -e
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres <<SQL
+    create role shipping_svc login password '${SHIPPING_SVC_PASSWORD}';
+    create database shipping owner shipping_svc;
+    -- 이 두 줄이 계정 분리의 알맹이다. 빼면 payment_svc 도 shipping 에 붙는다.
+    revoke connect on database shipping from public;
+    grant connect on database shipping to shipping_svc;
+    SQL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pg-services-headless
+  namespace: data
+spec:
+  clusterIP: None
+  selector:
+    app: pg-services
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pg-services
+  namespace: data
+spec:
+  type: ClusterIP
+  selector:
+    app: pg-services
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pg-services
+  namespace: data
+spec:
+  serviceName: pg-services-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pg-services
+  template:
+    metadata:
+      labels:
+        app: pg-services
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:18-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: TZ
+              value: Asia/Seoul
+            # 볼륨 루트에 바로 두지 않는다 — 마운트 지점에 다른 것이 생기면 initdb 가 거부한다.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pg-services-secrets
+                  key: POSTGRES_PASSWORD
+            - name: PAYMENT_SVC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pg-services-secrets
+                  key: PAYMENT_SVC_PASSWORD
+            - name: SHIPPING_SVC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pg-services-secrets
+                  key: SHIPPING_SVC_PASSWORD
+          volumeMounts:
+            - name: pg-services-data
+              mountPath: /var/lib/postgresql/data
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 45
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 192Mi
+            limits:
+              cpu: 300m
+              memory: 512Mi
+      volumes:
+        - name: init
+          configMap:
+            name: pg-services-init
+            defaultMode: 0555
+  volumeClaimTemplates:
+    - metadata:
+        name: pg-services-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+---
+# 소유권의 두 번째 겹 (결정 3). 첫 겹은 계정 권한이고, 이건 패킷을 막는다.
+#
+# 이 정책이 pg-services 파드를 고르는 순간 여기 적힌 것 말고는 전부 거부다 --
+# 모놀리스는 붙는 게 아니라 애초에 안 닿는다. 4단계 배포 뒤 운영에서 확인했다:
+#   kubectl -n backend exec deploy/jaywiki -- \
+#     timeout 5 bash -c 'cat < /dev/null > /dev/tcp/pg-services.data.svc.cluster.local/5432'
+# 차단은 타임아웃이 아니라 Connection refused 로 난다(kube-router 가 REJECT 한다).
+#
+# 백업 CronJob 을 빠뜨리면 백업이 조용히 끊긴다. 그래서 마지막 항목이 있다.
+# k3s 는 flannel + kube-router 로 정책을 강제한다(--disable-network-policy 로 끄지 않는 한).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pg-services-allow-owners
+  namespace: data
+spec:
+  podSelector:
+    matchLabels:
+      app: pg-services
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: backend
+          podSelector:
+            matchLabels:
+              app: jaywiki-payment-api
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: backend
+          podSelector:
+            matchLabels:
+              app: jaywiki-shipping-api
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: data
+          podSelector:
+            matchLabels:
+              app: jaywiki-postgres-backup
+      ports:
+        - protocol: TCP
+          port: 5432

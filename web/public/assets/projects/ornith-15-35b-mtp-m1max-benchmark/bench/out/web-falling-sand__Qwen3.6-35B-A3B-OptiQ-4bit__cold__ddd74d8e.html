@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Cellular Automata Sandbox</title>
+<style>
+    body {
+        margin: 0;
+        background: #1a1a1a;
+        color: #eee;
+        font-family: sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100vh;
+        overflow: hidden;
+        user-select: none;
+    }
+    #ui {
+        padding: 10px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        background: #2a2a2a;
+        width: 100%;
+        box-sizing: border-box;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    button, select, input {
+        padding: 5px 10px;
+        cursor: pointer;
+        background: #444;
+        color: white;
+        border: 1px solid #555;
+        border-radius: 4px;
+    }
+    button:hover { background: #555; }
+    button.active { background: #007bff; border-color: #0056b3; }
+    canvas {
+        border: 1px solid #444;
+        image-rendering: pixelated;
+        cursor: crosshair;
+        max-width: 100%;
+        max-height: calc(100vh - 60px);
+    }
+    #stats {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(0,0,0,0.5);
+        padding: 5px;
+        font-size: 12px;
+        pointer-events: none;
+    }
+</style>
+</head>
+<body>
+
+<div id="ui">
+    <button id="btn-sand" class="active" onclick="setMaterial(1)">모래</button>
+    <button id="btn-water" onclick="setMaterial(2)">물</button>
+    <button id="btn-wall" onclick="setMaterial(3)">벽</button>
+    <button id="btn-erase" onclick="setMaterial(0)">지우개</button>
+    <span>|</span>
+    <label>브러시: <input type="range" id="brushSize" min="1" max="10" value="3"></label>
+    <button id="btn-pause" onclick="togglePause()">일시정지</button>
+    <button onclick="clearGrid()">초기화</button>
+</div>
+
+<canvas id="canvas"></canvas>
+<div id="stats">FPS: 0 | 입자: 0</div>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    const statsDiv = document.getElementById('stats');
+    
+    // 설정
+    const WIDTH = 200;
+    const HEIGHT = 150;
+    const SCALE = 4;
+    
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
+    canvas.style.width = `${WIDTH * SCALE}px`;
+    canvas.style.height = `${HEIGHT * SCALE}px`;
+
+    // 재료 상수
+    const EMPTY = 0;
+    const SAND = 1;
+    const WATER = 2;
+    const WALL = 3;
+
+    // 상태 변수
+    let grid = new Uint8Array(WIDTH * HEIGHT);
+    let nextGrid = new Uint8Array(WIDTH * HEIGHT); // 버퍼
+    let currentMaterial = SAND;
+    let isPaused = false;
+    let brushSize = 3;
+    let isDrawing = false;
+    let mouseX = 0;
+    let mouseY = 0;
+    let frameCount = 0;
+    let lastTime = performance.now();
+    let fps = 0;
+
+    // 이미지 데이터
+    const imgData = ctx.createImageData(WIDTH, HEIGHT);
+    const data = imgData.data;
+
+    // 색상 정의 (R, G, B)
+    const COLORS = {
+        [EMPTY]: [26, 26, 26],
+        [SAND]: [237, 201, 175],
+        [WATER]: [64, 164, 223],
+        [WALL]: [100, 100, 100]
+    };
+
+    function setMaterial(m) {
+        currentMaterial = m;
+        document.querySelectorAll('#ui button').forEach(b => b.classList.remove('active'));
+        if(m === 0) document.getElementById('btn-erase').classList.add('active');
+        else if(m === 1) document.getElementById('btn-sand').classList.add('active');
+        else if(m === 2) document.getElementById('btn-water').classList.add('active');
+        else if(m === 3) document.getElementById('btn-wall').classList.add('active');
+    }
+
+    function togglePause() {
+        isPaused = !isPaused;
+        document.getElementById('btn-pause').innerText = isPaused ? "재개" : "일시정지";
+    }
+
+    function clearGrid() {
+        grid.fill(0);
+    }
+
+    // 그리기 로직
+    function draw(x, y) {
+        const r = brushSize;
+        for (let dy = -r; dy <= r; dy++) {
+            for (let dx = -r; dx <= r; dx++) {
+                if (dx*dx + dy*dy <= r*r) {
+                    const nx = x + dx;
+                    const ny = y + dy;
+                    if (nx >= 0 && nx < WIDTH && ny >= 0 && ny < HEIGHT) {
+                        // 벽은 무조건 덮어씀, 다른 건 확률적으로 (브러시 느낌)
+                        if (currentMaterial === WALL) {
+                            grid[ny * WIDTH + nx] = WALL;
+                        } else if (grid[ny * WIDTH + nx] === EMPTY) {
+                            if (Math.random() > 0.2) {
+                                grid[ny * WIDTH + nx] = currentMaterial;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 물리 업데이트
+    function update() {
+        // nextGrid는 grid를 참조하거나 복사할 수 있지만, 
+        // 효율성을 위해 in-place 업데이트를 하되 방향성을 고려해야 함.
+        // 여기서는 안정성을 위해 nextGrid를 사용하되, 
+        // 이동한 입자는 nextGrid에 기록하고, 안 움직인 건 grid를 복사하는 방식이 일반적이지만
+        // 모래/물은 순방향 스캔으로 in-place가 가능함.
+        
+        // In-place 업데이트 (아래에서 위로 스캔)
+        let particleCount = 0;
+        
+        // 랜덤 시드 생성 (물 흐름의 자연스러움)
+        const randL = Math.random() < 0.5;
+
+        for (let y = HEIGHT - 1; y >= 0; y--) {
+            // X 방향은 랜덤하게 스캔하여 물의 편향 방지
+            const startX = randL ? 0 : WIDTH - 1;
+            const endX = randL ? WIDTH : -1;
+            const stepX = randL ? 1 : -1;
+
+            for (let x = startX; x !== endX; x += stepX) {
+                const idx = y * WIDTH + x;
+                const type = grid[idx];
+
+                if (type === EMPTY || type === WALL) continue;
+                
+                particleCount++;
+
+                if (type === SAND) {
+                    const below = (y + 1) * WIDTH + x;
+                    const belowL = (y + 1) * WIDTH + (x - 1);
+                    const belowR = (y + 1) * WIDTH + (x + 1);
+
+                    if (y + 1 < HEIGHT) {
+                        if (grid[below] === EMPTY || grid[below] === WATER) {
+                            // 아래로 이동
+                            grid[idx] = grid[below];
+                            grid[below] = SAND;
+                        } else if (y + 1 < HEIGHT) {
+                            // 대각선 이동 (랜덤)
+                            const dir = Math.random() < 0.5 ? -1 : 1;
+                            const d1 = (y + 1) * WIDTH + (x + dir);
+                            const d2 = (y + 1) * WIDTH + (x - dir);
+                            
+                            if (x + dir >= 0 && x + dir < WIDTH && (grid[d1] === EMPTY || grid[d1] === WATER)) {
+                                grid[idx] = grid[d1];
+                                grid[d1] = SAND;
+                            } else if (x - dir >= 0 && x - dir < WIDTH && (grid[d2] === EMPTY || grid[d2] === WATER)) {
+                                grid[idx] = grid[d2];
+                                grid[d2] = SAND;
+                            }
+                        }
+                    }
+                } else if (type === WATER) {
+                    const below = (y + 1) * WIDTH + x;
+                    const left = y * WIDTH + (x - 1);
+                    const right = y * WIDTH + (x + 1);
+
+                    if (y + 1 < HEIGHT) {
+                        if (grid[below] === EMPTY) {
+                            grid[idx] = EMPTY;
+                            grid[below] = WATER;
+                        } else {
+                            // 옆으로 흐름
+                            const moveLeft = Math.random() < 0.5;
+                            if (moveLeft) {
+                                if (x > 0 && grid[left] === EMPTY) {
+                                    grid[idx] = EMPTY;
+                                    grid[left] = WATER;
+                                } else if (x < WIDTH - 1 && grid[right] === EMPTY) {
+                                    grid[idx] = EMPTY;
+                                    grid[right] = WATER;
+                                }
+                            } else {
+                                if (x < WIDTH - 1 && grid[right] === EMPTY) {
+                                    grid[idx] = EMPTY;
+                                    grid[right] = WATER;
+                                } else if (x > 0 && grid[left] === EMPTY) {
+                                    grid[idx] = EMPTY;
+                                    grid[left] = WATER;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return particleCount;
+    }
+
+    // 렌더링
+    function render(particleCount) {
+        for (let i = 0; i < grid.length; i++) {
+            const type = grid[i];
+            const color = COLORS[type];
+            const offset = i * 4;
+            
+            // 약간의 노이즈 추가 (모래 질감)
+            let r = color[0];
+            let g = color[1];
+            let b = color[2];
+            
+            if (type === SAND) {
+                const noise = (Math.random() * 20) - 10;
+                r = Math.min(255, Math.max(0, r + noise));
+                g = Math.min(255, Math.max(0, g + noise));
+                b = Math.min(255, Math.max(0, b + noise));
+            } else if (type === WATER) {
+                // 물은 약간 동적으로 보임
+                const noise = (Math.random() * 10) - 5;
+                r = Math.min(255, Math.max(0, r + noise));
+                g = Math.min(255, Math.max(0, g + noise));
+                b = Math.min(255, Math.max(0, b + noise));
+            }
+
+            data[offset] = r;
+            data[offset + 1] = g;
+            data[offset + 2] = b;
+            data[offset + 3] = 255;
+        }
+        ctx.putImageData(imgData, 0, 0);
+    }
+
+    // 메인 루프
+    function loop() {
+        if (!isPaused) {
+            const count = update();
+            render(count);
+        }
+
+        // FPS 계산
+        frameCount++;
+        const now = performance.now();
+        if (now - lastTime >= 1000) {
+            fps = frameCount;
+            frameCount = 0;
+            lastTime = now;
+            // 입자 수 업데이트 (일시정지 중에도 최신 값 유지)
+            let count = 0;
+            for(let i=0; i<grid.length; i++) if(grid[i] !== EMPTY) count++;
+            statsDiv.innerText = `FPS: ${fps} | 입자: ${count}`;
+        }
+
+        requestAnimationFrame(loop);
+    }
+
+    // 이벤트 리스너
+    canvas.addEventListener('mousedown', e => {
+        isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        mouseX = Math.floor((e.clientX - rect.left) * scaleX);
+        mouseY = Math.floor((e.clientY - rect.top) * scaleY);
+        draw(mouseX, mouseY);
+    });
+
+    window.addEventListener('mouseup', () => isDrawing = false);
+
+    canvas.addEventListener('mousemove', e => {
+        if (!isDrawing) return;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        mouseX = Math.floor((e.clientX - rect.left) * scaleX);
+        mouseY = Math.floor((e.clientY - rect.top) * scaleY);
+        draw(mouseX, mouseY);
+    });
+
+    document.getElementById('brushSize').addEventListener('input', (e) => {
+        brushSize = parseInt(e.target.value);
+    });
+
+    // 초기화
+    loop();
+
+</script>
+</body>
+</html>

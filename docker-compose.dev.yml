@@ -1,0 +1,163 @@
+# ============================================================
+# 로컬 개발용 데이터 계층 (개발 보조 도구)
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#   docker compose -f docker-compose.dev.yml ps
+#   docker compose -f docker-compose.dev.yml down          # 중지(데이터 유지)
+#   docker compose -f docker-compose.dev.yml down -v       # 데이터까지 삭제
+#
+# 위치: 로컬 노트북. 운영(prod)은 미니PC k3s — 이건 그 복제가 아니라
+#       "로컬에서 Spring/Next 를 개발할 때 붙을 DB류"만 띄우는 개발 편의 도구.
+#       Spring/Next 자체는 컨테이너로 안 띄움(호스트 hot-reload 가 빠름).
+#
+# 미니PC(prod)와 동일 메이저 버전을 맞춰 "로컬에서 되면 prod 에서도 됨" 보장.
+# 옮기는(배포) 과정은 처음엔 수동, 3~4번째 슬라이스부터 CI/CD 로 자동화.
+#
+# 2026-07-10: PostgreSQL 을 16 -> 18 로 올렸다. prod 서버가 18.4 인데 여기만 16 이라
+# "동일 메이저" 약속이 깨져 있었다(backup CronJob 이 pg_dump 16 으로 실패한 것도 같은 원인).
+#
+# 올리면서 두 가지가 걸렸다.
+#   1) 16 으로 초기화된 볼륨은 18 서버가 열지 못한다 → 새 볼륨 pg-data-18 을 쓴다.
+#      옛 볼륨 pg-data 는 지우지 않고 남겨 두었다. 옛 데이터가 필요하면:
+#        docker run --rm -v portfolio-dev_pg-data:/var/lib/postgresql/data \
+#          -e POSTGRES_PASSWORD=changeme postgres:16-alpine   # 띄운 뒤 pg_dumpall
+#   2) postgres:18 부터 권장 마운트 지점이 /var/lib/postgresql 로 바뀌었다.
+#      예전처럼 /var/lib/postgresql/data 에 걸면 "unused mount/volume" 로 무시되고 기동에 실패한다.
+# ============================================================
+
+name: portfolio-dev
+
+services:
+  # ---------- PostgreSQL 18 (prod 와 동일 메이저) ----------
+  postgres:
+    image: postgres:18-alpine
+    container_name: pf-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: portfolio
+      POSTGRES_PASSWORD: changeme        # dev 전용. prod 는 Secret/SealedSecret
+      POSTGRES_DB: portfolio
+    ports:
+      - "5432:5432"
+    volumes:
+      # postgres:18 부터 권장 마운트 지점이 /var/lib/postgresql 로 바뀌었다.
+      # (예전처럼 /var/lib/postgresql/data 에 걸면 "unused mount/volume" 로 무시되고 기동에 실패한다)
+      - pg-data-18:/var/lib/postgresql
+      - ./infra/local/postgres-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portfolio -d portfolio"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ---------- Redis 7 ----------
+  redis:
+    image: redis:7-alpine
+    container_name: pf-redis
+    restart: unless-stopped
+    command: ["redis-server", "--maxmemory", "200mb", "--maxmemory-policy", "allkeys-lru", "--appendonly", "no"]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  kafka:
+    image: apache/kafka:4.0.0
+    container_name: pf-kafka
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_HEAP_OPTS: "-Xms256m -Xmx512m"
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+
+  # ---------- OpenSearch 3 + analysis-nori (단일 노드) ----------
+  opensearch:
+    build:
+      context: ./infra/opensearch
+    image: jaywiki-opensearch-nori:3.7.0
+    container_name: pf-opensearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - DISABLE_SECURITY_PLUGIN=true            # 로컬 전용. prod 도 내부망 격리로 동일
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"  # heap 고정 (prod 와 동일 안전핀)
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+      nofile:  { soft: 65536, hard: 65536 }
+    ports:
+      - "9200:9200"
+    volumes:
+      - os-data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  # ---------- MinIO (S3 호환) ----------
+  minio:
+    image: minio/minio:RELEASE.2025-04-08T15-41-24Z
+    container_name: pf-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: changeme
+    ports:
+      - "9000:9000"     # S3 API
+      - "9001:9001"     # 웹 콘솔 → http://localhost:9001
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "mc ready local || curl -sf http://localhost:9000/minio/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------- 최초 버킷 생성 (1회 실행 후 종료) ----------
+  minio-init:
+    image: minio/mc:RELEASE.2025-04-08T15-39-49Z
+    container_name: pf-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 minioadmin changeme &&
+      mc mb -p local/wiki-assets local/wiki-assets-thumbs local/backups local/batch-output local/temp-uploads &&
+      mc anonymous set download local/wiki-assets &&
+      echo '✓ buckets ready' || true
+      "
+    restart: "no"
+
+volumes:
+  # PostgreSQL 16 시절 볼륨(pg-data)은 18 서버가 열지 못한다.
+  # 지우지 않고 새 볼륨을 쓴다. 예전 데이터가 필요하면 pg-data 를 postgres:16-alpine 으로 마운트해 덤프한다.
+  pg-data-18:
+  os-data:
+  minio-data:
+  kafka-data:

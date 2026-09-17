@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaywiki-payment-api
+  namespace: backend
+  labels:
+    app: jaywiki-payment-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaywiki-payment-api
+  template:
+    metadata:
+      labels:
+        app: jaywiki-payment-api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: ghcr-pull
+      containers:
+        - name: jaywiki-payment-api
+          image: jaywiki-payment-api:local
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - containerPort: 8000
+          env:
+            - name: TZ
+              value: Asia/Seoul
+            - name: OTEL_SERVICE_NAME
+              value: jaywiki-payment-api
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-opentelemetry-collector.obs.svc.cluster.local:4318
+            - name: OTEL_TRACES_EXPORTER
+              value: otlp
+            - name: OTEL_METRICS_EXPORTER
+              value: none
+            # 이 둘이 없으면 파드가 아예 안 뜬다 -- lifespan 이 시작할 때 asyncpg 풀을 연다.
+            - name: PAYMENT_DB_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: jaywiki-secrets
+                  key: PAYMENT_DB_DSN
+            - name: PAYMENT_KAFKA_BOOTSTRAP
+              value: kafka.data.svc.cluster.local:9092
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 25m
+              memory: 96Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaywiki-payment-api
+  namespace: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: jaywiki-payment-api
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000

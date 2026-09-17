@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: secure-search
+  namespace: data
+spec:
+  clusterIP: None
+  selector: {app: secure-search}
+  ports: [{name: https, port: 9200, targetPort: 9200}]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: secure-search
+  namespace: data
+spec:
+  serviceName: secure-search
+  replicas: 1
+  selector:
+    matchLabels: {app: secure-search}
+  template:
+    metadata:
+      labels: {app: secure-search}
+    spec:
+      automountServiceAccountToken: false
+      imagePullSecrets: [{name: ghcr-pull}]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: opensearch
+          image: ghcr.io/jaymunsh/jay-wiki-opensearch:3.7.0-main
+          env:
+            - {name: DISABLE_INSTALL_DEMO_CONFIG, value: 'true'}
+            - {name: OPENSEARCH_JAVA_OPTS, value: '-Xms512m -Xmx512m'}
+          ports: [{name: https, containerPort: 9200}]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+          resources:
+            requests: {cpu: 100m, memory: 1Gi}
+            limits: {cpu: 1000m, memory: 1536Mi}
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -ec
+                - test "$(curl --silent --output /dev/null --write-out '%{http_code}' --cacert /usr/share/opensearch/config/tls/ca.pem https://localhost:9200)" = 401
+            initialDelaySeconds: 20
+            timeoutSeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - {name: data, mountPath: /usr/share/opensearch/data}
+            - {name: tls, mountPath: /usr/share/opensearch/config/tls, readOnly: true}
+            - {name: security, mountPath: /usr/share/opensearch/config/opensearch-security, readOnly: true}
+            - {name: config, mountPath: /usr/share/opensearch/config/opensearch.yml, subPath: opensearch.yml, readOnly: true}
+      volumes:
+        - name: tls
+          secret: {secretName: opensearch-node-tls, defaultMode: 0440}
+        - name: security
+          secret: {secretName: opensearch-security-config, defaultMode: 0440}
+        - name: config
+          configMap: {name: opensearch-secure-config}
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests: {storage: 15Gi}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: secure-search-backend-only
+  namespace: data
+spec:
+  podSelector:
+    matchLabels: {app: secure-search}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: backend}
+          podSelector:
+            matchLabels: {app: jaywiki}
+      ports: [{protocol: TCP, port: 9200}]

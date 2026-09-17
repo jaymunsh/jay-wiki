@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jaywiki-pg-backups
+  namespace: data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: jaywiki-postgres-backup
+  namespace: data
+spec:
+  schedule: "17 3 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          # NetworkPolicy 가 pg-services 를 payment-api 로 좁히면 이 파드도 막힌다.
+          # 라벨로 예외를 받는다 -- 빠뜨리면 결제 백업이 조용히 끊긴다.
+          labels:
+            app: jaywiki-postgres-backup
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: pg-dump
+              image: postgres:18-alpine
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: PORTFOLIO_PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: jaywiki-db-backup
+                      key: PGPASSWORD
+                - name: PAYMENT_PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: pg-services-secrets
+                      key: PAYMENT_SVC_PASSWORD
+                - name: SHIPPING_PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: pg-services-secrets
+                      key: SHIPPING_SVC_PASSWORD
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -eu
+                  stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+                  # 데이터가 세 DB 로 갈렸다. 하나만 뜨면 나머지는 조용히 안 남는다.
+                  # set -e 라 한 쪽이 실패하면 Job 이 실패로 뜬다 -- 그게 알림이다.
+                  dump() {
+                    target="/backups/$1-${stamp}.dump"
+                    PGPASSWORD="$5" pg_dump -h "$2" -U "$4" -d "$3" --format=custom --file="${target}"
+                    sha256sum "${target}" > "${target}.sha256"
+                    ls -lh "${target}" "${target}.sha256"
+                  }
+                  dump portfolio pg-postgresql.data.svc.cluster.local portfolio portfolio "${PORTFOLIO_PGPASSWORD}"
+                  dump payment pg-services.data.svc.cluster.local payment payment_svc "${PAYMENT_PGPASSWORD}"
+                  dump shipping pg-services.data.svc.cluster.local shipping shipping_svc "${SHIPPING_PGPASSWORD}"
+                  find /backups -type f -name '*.dump' -mtime +7 -delete
+                  find /backups -type f -name '*.dump.sha256' -mtime +7 -delete
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  cpu: 300m
+                  memory: 512Mi
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: jaywiki-pg-backups

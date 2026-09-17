@@ -1,0 +1,56 @@
+---
+title: "랜덤채팅 대기열을 Redis ZSET으로 만든 이유"
+slug: redis-random-chat-queue
+tab: "시나리오·시연"
+parentId: demo
+sortOrder: 1
+kind: wiki
+tags: redis,websocket,queue,chat
+source: scripts/seed-portfolio-wiki.mjs
+---
+- 랜덤채팅의 방 정원과 대기열 상태를 왜 Pod 메모리가 아니라 Redis에 두고, 왜 백업하지 않나?
+- 대기열은 score에 입장 요청 시각을 넣은 ZSET으로 만들어 가장 오래 기다린 사람을 먼저 승급하게 했고, 이 상태는 다시 만드는 비용이 복구 비용보다 싸므로 백업하지 않기로 했다.
+- 가상 유저 +5로 정원 초과를 만들면 members가 3명에서 멈추고 queue가 늘며, 퇴장 시 대기열 1번이 승격되는 것을 Redis debug view에서 확인한다.
+
+랜덤채팅은 작은 기능이지만 분산 상태를 설명하기 좋다. 여러 사용자가 들어오고,
+방 정원이 차면 대기열로 보내고, 누군가 나가면 다음 사람을 승급한다.
+
+## 정원 3명, 4번째는 대기열로 간다
+
+현재 기본 방 정원은 3명이다. 4번째 사용자는 바로 입장하지 않고 대기열로 들어간다.
+
+## 방 상태는 Redis 키 넷으로 나눠 담는다
+
+| 키 | 자료구조 | 역할 |
+|---|---|---|
+| chat:room:main:members | SET | 현재 입장자 |
+| chat:room:main:queue | ZSET | 대기열, score는 입장 요청 시각 |
+| chat:room:main:events | STREAM | 입장, 퇴장, 승급 이벤트 |
+| heartbeat/rate limit | STRING | 연결 상태와 과도한 메시지 제어 |
+
+## 왜 ZSET인가
+
+대기열은 순서가 핵심이다. 먼저 온 사람을 먼저 승급하도록 score에 시간값을 넣으면
+가장 오래 기다린 사람을 쉽게 꺼낼 수 있다.
+
+## 정원 초과와 승급을 debug view로 본다
+
+- 가상 유저 +5로 정원 초과를 만든다.
+- members는 3명에서 멈추고 queue가 늘어난다.
+- 누군가 퇴장하면 대기열 1번이 입장 승격된다.
+- Redis debug view에서 members와 queue 상태를 바로 본다.
+
+이 기능은 세션 클러스터링을 억지로 로그인에 붙이는 대신, 실시간 방 상태를 공유 저장소로 빼는 예시다.
+
+## 왜 이 상태는 백업하지 않는가
+
+members, queue, events 는 전부 Redis 에만 있고 백업 대상이 아니다.
+
+이것은 빠뜨린 것이 아니라 결정이다.
+Redis 가 죽으면 방이 비고 대기열이 사라지지만, 사용자는 다시 입장하면 된다.
+잃어버린 상태를 복구하는 비용보다, 다시 만드는 비용이 훨씬 싸다.
+
+반대로 위키 본문과 게시글은 다시 만들 수 없다. 그래서 PostgreSQL 만 백업한다.
+OpenSearch 색인도 PostgreSQL 에서 다시 만들 수 있으므로 백업하지 않는다.
+
+**저장소를 고를 때는 데이터의 수명과 재생성 비용을 먼저 본다.**

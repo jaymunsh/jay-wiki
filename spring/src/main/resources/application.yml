@@ -1,0 +1,106 @@
+spring:
+  application:
+    name: jaywiki
+  lifecycle:
+    # graceful shutdown 이 처리 중인 요청을 기다리는 상한. 파드의 종료 유예(기본 30초)와
+    # preStop 5초를 합쳐도 넘지 않게 잡는다 -- 넘으면 어차피 SIGKILL 이다.
+    timeout-per-shutdown-phase: 20s
+  jpa:
+    hibernate:
+      ddl-auto: validate        # 스키마는 Flyway가 만든다. JPA는 '엔티티 ↔ 테이블 일치' 검증만
+    open-in-view: false         # OSIV 끔 — 컨트롤러까지 영속성 컨텍스트를 끌고 가는 함정 방지
+    properties:
+      hibernate.format_sql: true
+  flyway:
+    enabled: true
+    schemas: [public]           # 도메인 테이블은 전부 public 로 통합(과설계 금지). batch 만 별도 스키마.
+    default-schema: public      # flyway 이력 테이블(flyway_schema_history)이 여기에
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
+server:
+  forward-headers-strategy: framework
+  # SIGTERM 을 받으면 새 요청은 안 받고 처리 중인 것만 끝내고 내려간다.
+  # 기본값(immediate)은 처리 중이던 요청을 그 자리에서 끊는다 -- 파드 교체 때마다 그럴 수 있다.
+  shutdown: graceful
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics   # 관측 단계에서 사용
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  tracing:
+    sampling:
+      probability: ${MANAGEMENT_TRACING_SAMPLING_PROBABILITY:1.0}
+  otlp:
+    tracing:
+      endpoint: ${MANAGEMENT_OTLP_TRACING_ENDPOINT:http://localhost:4318/v1/traces}
+logging:
+  pattern:
+    level: "%5p trace_id=%X{traceId:-} span_id=%X{spanId:-}"
+app:
+  minio:
+    endpoint: ${APP_MINIO_ENDPOINT:http://localhost:9000}
+    access-key: ${APP_MINIO_ACCESS_KEY:minioadmin}
+    secret-key: ${APP_MINIO_SECRET_KEY:changeme}
+    bucket: ${APP_MINIO_BUCKET:wiki-assets}
+  blog-comment:
+    # salt 가 유출되면 IP 역산이 쉬워진다. 운영에서는 Secret 으로 주입한다.
+    ip-salt: ${APP_BLOG_COMMENT_IP_SALT:local-dev-salt}
+  admin:
+    totp:
+      enabled: ${APP_ADMIN_TOTP_ENABLED:false}
+      secret: ${APP_ADMIN_TOTP_SECRET:}
+      max-attempts: ${APP_ADMIN_TOTP_MAX_ATTEMPTS:5}
+      attempt-window: ${APP_ADMIN_TOTP_ATTEMPT_WINDOW:5m}
+  # JWT 서명 시크릿 (로컬 기본값. 배포 시 환경변수 APP_JWT_SECRET 로 교체)
+  jwt:
+    secret: ${APP_JWT_SECRET:jaywiki-local-dev-secret-change-me-please-32bytes+}
+  opensearch:
+    enabled: ${APP_OPENSEARCH_ENABLED:false}
+    url: ${APP_OPENSEARCH_URL:http://localhost:9200}
+    board-index: ${APP_OPENSEARCH_BOARD_INDEX:jaywiki-posts-v1}
+    wiki-index: ${APP_OPENSEARCH_WIKI_INDEX:jaywiki-articles-v1}
+    username: ${APP_OPENSEARCH_USERNAME:}
+    password: ${APP_OPENSEARCH_PASSWORD:}
+    ca-certificate: ${APP_OPENSEARCH_CA_CERTIFICATE:}
+    security-required: ${APP_OPENSEARCH_SECURITY_REQUIRED:false}
+  payment-service:
+    url: ${APP_PAYMENT_SERVICE_URL:http://localhost:8000}
+  # 로컬은 payment-api 가 8000 을 이미 쓰고 있어 8001 로 띄운다.
+  shipping-service:
+    url: ${APP_SHIPPING_SERVICE_URL:http://localhost:8001}
+  chat:
+    room-capacity: ${APP_CHAT_ROOM_CAPACITY:3}
+    heartbeat-ttl: ${APP_CHAT_HEARTBEAT_TTL:30s}
+    message-rate-limit: ${APP_CHAT_MESSAGE_RATE_LIMIT:30}
+    message-rate-window: ${APP_CHAT_MESSAGE_RATE_WINDOW:1m}
+    allowed-origin-patterns: ${APP_CHAT_ALLOWED_ORIGINS:https://portfolio.leneu.cloud,http://localhost:*}
+  # 결제 이벤트. kafka-demo 와 브로커·컨테이너 팩토리를 공유하지만 토픽은 다르다.
+  payment-events:
+    topic: ${APP_PAYMENT_EVENTS_TOPIC:jaywiki.payment-events}
+    group: ${APP_PAYMENT_EVENTS_GROUP:jaywiki-payment-projection}
+  # 배송 이벤트. 같은 브로커, 다른 토픽·그룹이다.
+  shipping-events:
+    topic: ${APP_SHIPPING_EVENTS_TOPIC:jaywiki.shipping-events}
+    group: ${APP_SHIPPING_EVENTS_GROUP:jaywiki-shipping-projection}
+  kafka-demo:
+    enabled: ${APP_KAFKA_DEMO_ENABLED:false}
+    order-topic: ${APP_KAFKA_DEMO_ORDER_TOPIC:jaywiki.order-events}
+    dlq-topic: ${APP_KAFKA_DEMO_DLQ_TOPIC:jaywiki.order-events.dlq}
+    group-prefix: ${APP_KAFKA_DEMO_GROUP_PREFIX:jaywiki-kafka-demo}
+    relay-delay: ${APP_KAFKA_DEMO_RELAY_DELAY:2s}
+    max-retries: ${APP_KAFKA_DEMO_MAX_RETRIES:2}

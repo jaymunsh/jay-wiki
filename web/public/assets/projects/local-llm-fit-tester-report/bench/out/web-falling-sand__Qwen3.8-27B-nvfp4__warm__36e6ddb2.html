@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>모래 물리 샌드박스</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #0b0e14;
+    overflow: hidden;
+    font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    color: #e8eef7;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #wrap {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(1200px 700px at 50% 30%, #1a2233 0%, #0b0e14 70%),
+      #0b0e14;
+  }
+  #stage {
+    position: relative;
+    box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.05);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #05070b;
+  }
+  canvas { display: block; cursor: crosshair; }
+
+  /* HUD */
+  #hud {
+    position: absolute;
+    top: 14px; left: 14px;
+    display: flex;
+    gap: 10px;
+    pointer-events: none;
+  }
+  .stat {
+    background: rgba(10,14,22,.72);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 9px;
+    padding: 8px 14px;
+    min-width: 92px;
+    backdrop-filter: blur(6px);
+  }
+  .stat .label {
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #7f8ea6;
+    font-weight: 600;
+  }
+  .stat .value {
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    margin-top: 2px;
+  }
+  #fpsVal.good { color: #5fe08a; }
+  #fpsVal.mid  { color: #f2c14e; }
+  #fpsVal.bad  { color: #ff6b6b; }
+
+  /* Toolbar */
+  #bar {
+    position: absolute;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(12,16,26,.82);
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 14px;
+    padding: 12px 16px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 12px 40px rgba(0,0,0,.5);
+    max-width: calc(100% - 24px);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .divider {
+    width: 1px;
+    height: 34px;
+    background: rgba(255,255,255,.1);
+  }
+  .mat {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    position: relative;
+    transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+    outline: none;
+  }
+  .mat:hover { transform: translateY(-2px); }
+  .mat.active {
+    border-color: #fff;
+    box-shadow: 0 0 0 3px rgba(255,255,255,.15), 0 6px 16px rgba(0,0,0,.4);
+    transform: translateY(-2px);
+  }
+  .mat::after {
+    content: attr(data-name);
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 6px;
+    font-size: 10px;
+    letter-spacing: .05em;
+    color: #9fb0c8;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity .12s ease;
+    pointer-events: none;
+  }
+  .mat:hover::after, .mat.active::after { opacity: 1; }
+  .mat[data-m="sand"]  { background: linear-gradient(135deg,#e6c07a,#c99a4e); }
+  .mat[data-m="water"] { background: linear-gradient(135deg,#57b6e6,#2f7fb8); }
+  .mat[data-m="wall"]  { background: linear-gradient(135deg,#5a6472,#333b47); }
+  .mat[data-m="mountain"] { background: linear-gradient(135deg,#8a6a4a,#5c4632); }
+
+  .btn {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    color: #d7e0ee;
+    border-radius: 9px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .12s ease, transform .1s ease, color .12s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+  }
+  .btn:hover { background: rgba(255,255,255,.13); transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn .ico { font-size: 15px; line-height: 1; }
+  #pauseBtn.paused { background: rgba(95,224,138,.16); border-color: rgba(95,224,138,.4); color: #aef3c6; }
+
+  .slider-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 130px;
+  }
+  .slider-wrap .top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #9fb0c8;
+    letter-spacing: .04em;
+  }
+  .slider-wrap .top b { color: #e8eef7; font-variant-numeric: tabular-nums; }
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 4px;
+    background: rgba(255,255,255,.14);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,.4);
+    cursor: pointer;
+    transition: transform .1s ease;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  input[type=range]::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border: none;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,.4);
+    cursor: pointer;
+  }
+
+  #hint {
+    position: absolute;
+    top: 14px; right: 14px;
+    font-size: 11px;
+    color: #6f7f98;
+    background: rgba(10,14,22,.6);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 8px;
+    padding: 7px 11px;
+    pointer-events: none;
+    letter-spacing: .02em;
+  }
+  #hint b { color: #aebcd2; font-weight: 600; }
+  @media (max-width: 640px) {
+    #hint { display: none; }
+    .stat { min-width: 74px; padding: 6px 10px; }
+    .stat .value { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <canvas id="c"></canvas>
+
+    <div id="hud">
+      <div class="stat">
+        <div class="label">입자 수</div>
+        <div class="value" id="countVal">0</div>
+      </div>
+      <div class="stat">
+        <div class="label">FPS</div>
+        <div class="value good" id="fpsVal">60</div>
+      </div>
+    </div>
+
+    <div id="hint">클릭·드래그로 뿌리기 &nbsp;·&nbsp; <b>1</b> 모래 <b>2</b> 물 <b>3</b> 벽 <b>4</b> 산</div>
+
+    <div id="bar">
+      <div class="group" id="mats">
+        <button class="mat active" data-m="sand" data-name="모래" title="모래 (1)"></button>
+        <button class="mat" data-m="water" data-name="물" title="물 (2)"></button>
+        <button class="mat" data-m="wall" data-name="벽" title="벽 (3)"></button>
+        <button class="mat" data-m="mountain" data-name="산" title="산 (4)"></button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="group">
+        <div class="slider-wrap">
+          <div class="top"><span>브러시 크기</span><b id="brushVal">10</b></div>
+          <input type="range" id="brush" min="1" max="40" value="10">
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="group">
+        <button class="btn" id="pauseBtn"><span class="ico">⏸</span><span id="pauseTxt">일시정지</span></button>
+        <button class="btn" id="resetBtn"><span class="ico">↺</span>초기화</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- material ids ----
+  const EMPTY = 0, SAND = 1, WATER = 2, WALL = 3, MOUNTAIN = 4;
+
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+
+  let W = 0, H = 0;          // grid dimensions
+  let grid = null;           // Uint8Array
+  let shade = null;          // per-cell brightness variation (0..1)
+  let count = 0;             // active particle count
+  let paused = false;
+  let brush = 10;
+  let currentMat = SAND;
+
+  // ---- sizing ----
+  function resize() {
+    const stage = document.getElementById("stage");
+    const availW = window.innerWidth - 24;
+    const availH = window.innerHeight - 24;
+    const targetW = Math.min(availW, 900);
+    const targetH = Math.min(availH, 620);
+    const scale = Math.min(targetW / 900, targetH / 620, 1);
+    const cssW = Math.max(320, Math.floor(900 * scale));
+    const cssH = Math.max(240, Math.floor(620 * scale));
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.style.width = cssW + "px";
+    canvas.style.height = cssH + "px";
+    canvas.width = Math.floor(cssW * dpr);
+    canvas.height = Math.floor(cssH * dpr);
+    ctx.imageSmoothingEnabled = false;
+
+    W = Math.max(40, Math.floor(cssW / 4));
+    H = Math.max(40, Math.floor(cssH / 4));
+    grid = new Uint8Array(W * H);
+    shade = new Float32Array(W * H);
+    buildScene();
+  }
+
+  // ---- scene setup ----
+  function buildScene() {
+    grid.fill(EMPTY);
+    shade.fill(0);
+    count = 0;
+
+    // floor
+    for (let x = 0; x < W; x++) {
+      grid[(H - 1) * W + x] = WALL;
+      grid[(H - 2) * W + x] = WALL;
+    }
+    // side walls
+    for (let y = 0; y < H; y++) {
+      grid[y * W] = WALL;
+      grid[y * W + (W - 1)] = WALL;
+    }
+
+    // mountain: a couple of triangular peaks
+    addMountain(Math.floor(W * 0.30), Math.floor(H * 0.55), Math.floor(W * 0.16));
+    addMountain(Math.floor(W * 0.68), Math.floor(H * 0.62), Math.floor(W * 0.13));
+
+    // a little sand pile on top of the left mountain
+    addSandPile(Math.floor(W * 0.30), Math.floor(H * 0.55), 14);
+  }
+
+  function addMountain(cx, baseY, halfW) {
+    for (let dx = -halfW; dx <= halfW; dx++) {
+      const x = cx + dx;
+      if (x < 1 || x >= W - 1) continue;
+      const t = Math.abs(dx) / halfW;
+      const h = Math.floor((1 - t) * halfW * 0.9);
+      for (let k = 0; k < h; k++) {
+        const y = baseY - k;
+        if (y < 1) break;
+        const idx = y * W + x;
+        if (grid[idx] === EMPTY) {
+          grid[idx] = MOUNTAIN;
+          shade[idx] = Math.random();
+          count++;
+        }
+      }
+    }
+  }
+
+  function addSandPile(cx, topY, r) {
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (dx * dx + dy * dy > r * r) continue;
+        const x = cx + dx, y = topY + dy;
+        if (x < 1 || x >= W - 1 || y < 1 || y >= H - 1) continue;
+        const idx = y * W + x;
+        if (grid[idx] === EMPTY) {
+          grid[idx] = SAND;
+          shade[idx] = Math.random();
+          count++;
+        }
+      }
+    }
+  }
+
+  // ---- painting ----
+  function paint(x, y, mat) {
+    const r = brush;
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (dx * dx + dy * dy > r * r) continue;
+        const px = x + dx, py = y + dy;
+        if (px < 0 || px >= W || py < 0 || py >= H) continue;
+        const idx = py * W + px;
+        const cur = grid[idx];
+        if (mat === WALL) {
+          if (cur !== WALL) {
+            if (cur !== EMPTY) count--;
+            grid[idx] = WALL;
+            shade[idx] = 0.5;
+            count++;
+          }
+        } else if (mat === MOUNTAIN) {
+          if (cur === EMPTY) {
+            grid[idx] = MOUNTAIN;
+            shade[idx] = Math.random();
+            count++;
+          }
+        } else {
+          // sand / water: fill empty cells (and displace sand when placing water)
+          if (cur === EMPTY || (mat === WATER && cur === SAND)) {
+            if (cur !== EMPTY) count--;
+            grid[idx] = mat;
+            shade[idx] = Math.random();
+            count++;
+          }
+        }
+      }
+    }
+  }
+
+  // ---- simulation ----
+  function step() {
+    // bottom-up so falling particles don't double-move in one frame
+    for (let y = H - 1; y >= 0; y--) {
+      const ltr = (y & 1) === 0;
+      for (let i = 0; i < W; i++) {
+        const x = ltr ? i : (W - 1 - i);
+        const idx = y * W + x;
+        const m = grid[idx];
+        if (m === EMPTY || m === WALL) continue;
+        if (m === MOUNTAIN) continue; // static
+        if (m === SAND) moveSand(x, y, idx);
+        else if (m === WATER) moveWater(x, y, idx);
+      }
+    }
+  }
+
+  function swap(a, b) {
+    const t = grid[a]; grid[a] = grid[b]; grid[b] = t;
+    const s = shade[a]; shade[a] = shade[b]; shade[b] = s;
+  }
+
+  function moveSand(x, y, idx) {
+    // fall straight
+    if (y + 1 < H) {
+      const below = grid[idx + W];
+      if (below === EMPTY) { swap(idx, idx + W); return; }
+      if (below === WATER) { swap(idx, idx + W); return; } // sand sinks in water
+      // diagonal
+      const dir = Math.random() < 0.5 ? 1 : -1;
+      for (let d = 0; d < 2; d++) {
+        const step = d === 0 ? dir : -dir;
+        const nx = x + step;
+        if (nx < 0 || nx >= W) continue;
+        const diag = grid[idx + W + step];
+        if (diag === EMPTY || diag === WATER) { swap(idx, idx + W + step); return; }
+      }
+    }
+  }
+
+  function moveWater(x, y, idx) {
+    // fall
+    if (y + 1 < H) {
+      const below = grid[idx + W];
+      if (below === EMPTY) { swap(idx, idx + W); return; }
+    }
+    // spread horizontally
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    for (let d = 0; d < 2; d++) {
+      const step = d === 0 ? dir : -dir;
+      const nx = x + step;
+      if (nx < 0 || nx >= W) continue;
+      const side = grid[idx + step];
+      if (side === EMPTY) { swap(idx, idx + step); return; }
+    }
+    // diagonal spread
+    for (let d = 0; d < 2; d++) {
+      const step = d === 0 ? dir : -dir;
+      const nx = x + step;
+      if (nx < 0 || nx >= W) continue;
+      if (y + 1 < H) {
+        const diag = grid[idx + W + step];
+        if (diag === EMPTY) { swap(idx, idx + W + step); return; }
+      }
+    }
+  }
+
+  // ---- rendering ----
+  function render() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cw = canvas.width / dpr, ch = canvas.height / dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // background
+    const g = ctx.createLinearGradient(0, 0, 0, ch);
+    g.addColorStop(0, "#0a0e16");
+    g.addColorStop(1, "#05070b");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, cw, ch);
+
+    const cell = cw / W;
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const m = grid[y * W + x];
+        if (m === EMPTY) continue;
+        const s = shade[y * W + x];
+        let col;
+        if (m === SAND) {
+          const v = 0.72 + s * 0.28;
+          col = "rgb(" + Math.floor(230 * v) + "," + Math.floor(190 * v) + "," + Math.floor(120 * v) + ")";
+        } else if (m === WATER) {
+          const v = 0.7 + s * 0.3;
+          col = "rgba(" + Math.floor(70 * v) + "," + Math.floor(150 * v) + "," + Math.floor(220 * v) + ",0.92)";
+        } else if (m === WALL) {
+          const v = 0.55 + s * 0.4;
+          col = "rgb(" + Math.floor(90 * v) + "," + Math.floor(100 * v) + "," + Math.floor(115 * v) + ")";
+        } else if (m === MOUNTAIN) {
+          const v = 0.6 + s * 0.4;
+          col = "rgb(" + Math.floor(140 * v) + "," + Math.floor(105 * v) + "," + Math.floor(75 * v) + ")";
+        }
+        ctx.fillStyle = col;
+        ctx.fillRect(x * cell, y * cell, cell + 0.6, cell + 0.6);
+      }
+    }
+  }
+
+  // ---- main loop ----
+  let last = performance.now();
+  let fps = 60;
+  let fpsAcc = 0, fpsFrames = 0, fpsTimer = 0;
+
+  function loop(now) {
+    const dt = now - last;
+    last = now;
+
+    if (!paused) step();
+    render();
+
+    // fps
+    if (dt > 0) fps = 1000 / dt;
+    fpsAcc += fps; fpsFrames++; fpsTimer += dt;
+    if (fpsTimer >= 250) {
+      const avg = Math.round(fpsAcc / fpsFrames);
+      const el = document.getElementById("fpsVal");
+      el.textContent = avg;
+      el.className = "value " + (avg >= 50 ? "good" : avg >= 28 ? "mid" : "bad");
+      document.getElementById("countVal").textContent = count.toLocaleString();
+      fpsAcc = 0; fpsFrames = 0; fpsTimer = 0;
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  // ---- input ----
+  let drawing = false;
+  function gridPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+    return {
+      x: Math.floor(cx / rect.width * W),
+      y: Math.floor(cy / rect.height * H)
+    };
+  }
+  function start(e) { drawing = true; const p = gridPos(e); paint(p.x, p.y, currentMat); e.preventDefault(); }
+  function move(e) { if (!drawing) return; const p = gridPos(e); paint(p.x, p.y, currentMat); e.preventDefault(); }
+  function end() { drawing = false; }
+
+  canvas.addEventListener("mousedown", start);
+  window.addEventListener("mousemove", move);
+  window.addEventListener("mouseup", end);
+  canvas.addEventListener("touchstart", start, { passive: false });
+  canvas.addEventListener("touchmove", move, { passive: false });
+  canvas.addEventListener("touchend", end);
+
+  // material buttons
+  const matBtns = document.querySelectorAll(".mat");
+  function selectMat(m) {
+    currentMat = m;
+    matBtns.forEach(b => b.classList.toggle("active", b.dataset.m === m));
+  }
+  matBtns.forEach(b => b.addEventListener("click", () => selectMat(b.dataset.m)));
+
+  // brush
+  const brushEl = document.getElementById("brush");
+  const brushVal = document.getElementById("brushVal");
+  brushEl.addEventListener("input", () => {
+    brush = parseInt(brushEl.value, 10);
+    brushVal.textContent = brush;
+  });
+
+  // pause
+  const pauseBtn = document.getElementById("pauseBtn");
+  const pauseTxt = document.getElementById("pauseTxt");
+  pauseBtn.addEventListener("click", () => {
+    paused = !paused;
+    pauseBtn.classList.toggle("paused", paused);
+    pauseBtn.querySelector(".ico").textContent = paused ? "▶" : "⏸";
+    pauseTxt.textContent = paused ? "재생" : "일시정지";
+  });
+
+  // reset
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    buildScene();
+  });
+
+  // keyboard
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "1") selectMat("sand");
+    else if (e.key === "2") selectMat("water");
+    else if (e.key === "3") selectMat("wall");
+    else if (e.key === "4") selectMat("mountain");
+    else if (e.key === " ") { e.preventDefault(); pauseBtn.click(); }
+    else if (e.key === "r" || e.key === "R") buildScene();
+  });
+
+  // ---- init ----
+  let resizeTimer;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resize, 150);
+  });
+
+  resize();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

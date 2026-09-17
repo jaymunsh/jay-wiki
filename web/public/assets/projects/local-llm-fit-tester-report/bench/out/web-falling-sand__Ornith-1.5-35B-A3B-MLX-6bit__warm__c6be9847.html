@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>모래 물리 샌드박스</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #12131a;
+    color: #cfd2e0;
+    font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 12px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  h1 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 6px 0 12px;
+    letter-spacing: -0.5px;
+    color: #e8eaf2;
+  }
+  #toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    max-width: 720px;
+  }
+  .grp {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #1e2030;
+    border-radius: 8px;
+    padding: 5px 7px;
+  }
+  .mat-btn {
+    border: 2px solid transparent;
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    transition: transform .08s, border-color .12s, box-shadow .12s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .mat-btn:hover { transform: translateY(-1px); }
+  .mat-btn .dot {
+    width: 12px; height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  .act-btn {
+    border: 1px solid #3a3d52;
+    background: #2a2c40;
+    color: #cfd2e0;
+    border-radius: 6px;
+    padding: 6px 11px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background .12s, border-color .12s;
+  }
+  .act-btn:hover { background: #35384f; border-color: #4f5377; }
+  .act-btn.on { background: #3d6b45; border-color: #5a9c63; color: #e6ffe8; }
+  #brushWrap { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  #brush { width: 90px; accent-color: #e0a94b; cursor: pointer; }
+  #brushVal { min-width: 20px; text-align: center; color: #e0a94b; font-weight: 600; }
+  #canvasWrap {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,.55);
+    line-height: 0;
+    border: 1px solid #2a2c3a;
+  }
+  canvas { display: block; cursor: crosshair; image-rendering: pixelated; }
+  #stats {
+    display: flex;
+    gap: 18px;
+    margin-top: 10px;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: #9aa0bd;
+  }
+  #stats b { color: #cfd2e0; font-weight: 600; }
+  #stats .fps b { color: #6fd68f; }
+  .hint { font-size: 11px; color: #6b7094; margin-top: 8px; }
+</style>
+</head>
+<body>
+  <h1>🏜 셀룰러 오토마타 모래 물리 샌드박스</h1>
+  <div id="toolbar">
+    <div class="grp" id="matGroup"></div>
+    <button class="act-btn" id="pauseBtn">⏸ 일시정지</button>
+    <button class="act-btn" id="clearBtn">🗑 초기화</button>
+    <div id="brushWrap">
+      <span>브러시</span>
+      <input type="range" id="brush" min="1" max="30" value="6">
+      <span id="brushVal">6</span>
+    </div>
+  </div>
+  <div id="canvasWrap">
+    <canvas id="c"></canvas>
+  </div>
+  <div id="stats">
+    <span>입자 수: <b id="countVal">0</b></span>
+    <span class="fps">FPS: <b id="fpsVal">0</b></span>
+  </div>
+  <div class="hint">클릭&드래그로 그리기 · 키보드 1~4: 재료, P: 정지, C: 지우기</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- 상수 ----------
+  const COLS = 180, ROWS = 120;
+  const CELL = 5;                 // 그리드 한 셀 픽셀 크기
+  const W = COLS * CELL, H = ROWS * CELL;
+
+  // 재질 인덱스
+  const EMPTY = 0, SAND = 1, WATER = 2, WALL = 3;
+
+  // 재질 속성
+  const MATS = {
+    [SAND]:  { name: "모래", color: [226, 178, 78],  density: 4, kind: "sand" },
+    [WATER]: { name: "물",   color: [62, 130, 236],  density: 2, kind: "water" },
+    [WALL]:  { name: "벽",   color: [120, 124, 140], density: 99, kind: "solid" }
+  };
+
+  // ---------- 캔버스 / 그리드 ----------
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  canvas.width = W; canvas.height = H;
+
+  const grid = new Uint8Array(COLS * ROWS);
+  const next = new Uint8Array(COLS * ROWS);
+  const colorCache = new Uint8Array(COLS * ROWS * 3);
+  const seed = new Int16Array(COLS * ROWS);
+
+  const idx = (x, y) => y * COLS + x;
+
+  function inBounds(x, y) { return x >= 0 && x < COLS && y >= 0 && y < ROWS; }
+
+  function getCell(x, y) {
+    if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return WALL;
+    return grid[idx(x, y)];
+  }
+
+  function swap(i, j) {
+    const g = grid[i]; grid[i] = grid[j]; grid[j] = g;
+    const s = seed[i]; seed[i] = seed[j]; seed[j] = s;
+    for (let k = 0; k < 3; k++) {
+      const c = colorCache[i * 3 + k];
+      colorCache[i * 3 + k] = colorCache[j * 3 + k];
+      colorCache[j * 3 + k] = c;
+    }
+  }
+
+  function isEmpty(x, y) { return getCell(x, y) === EMPTY; }
+
+  // ---------- 초기화 ----------
+  function clearGrid() {
+    grid.fill(0); seed.fill(0);
+    colorCache.fill(0);
+  }
+
+  // ---------- 입력 ----------
+  let currentMat = SAND;
+  let brushSize = 6;
+  let painting = false;
+  let lastPaint = null;
+
+  function paintAt(px, py) {
+    const gx = Math.floor(px / CELL);
+    const gy = Math.floor(py / CELL);
+    const r = brushSize;
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (dx * dx + dy * dy > r * r) continue;
+        const x = gx + dx, y = gy + dy;
+        if (!inBounds(x, y)) continue;
+        const i = idx(x, y);
+        if (currentMat === WALL) {
+          grid[i] = WALL;
+          const m = MATS[WALL];
+          colorCache[i*3] = m.color[0]; colorCache[i*3+1] = m.color[1]; colorCache[i*3+2] = m.color[2];
+          seed[i] = (Math.random() * 20 - 10) | 0;
+        } else {
+          if (getCell(x, y) === EMPTY) {
+            grid[i] = currentMat;
+            const m = MATS[currentMat];
+            const jitter = (Math.random() * 2 - 1) * 22 | 0;
+            colorCache[i*3]   = Math.max(0, Math.min(255, m.color[0] + jitter));
+            colorCache[i*3+1] = Math.max(0, Math.min(255, m.color[1] + jitter));
+            colorCache[i*3+2] = Math.max(0, Math.min(255, m.color[2] + jitter));
+            seed[i] = (Math.random() * 20 - 10) | 0;
+          }
+        }
+      }
+    }
+  }
+
+  // 드래그 경로 보간 (빠른 이동 방지)
+  function paintLine(x0, y0, x1, y1) {
+    const steps = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / (CELL * 0.6)));
+    for (let s = 0; s <= steps; s++) {
+      const t = s / steps;
+      paintAt(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t);
+    }
+  }
+
+  function canvasPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+    return { x: cx * (W / rect.width), y: cy * (H / rect.height) };
+  }
+
+  function onDown(e) {
+    e.preventDefault();
+    painting = true;
+    const p = canvasPos(e);
+    lastPaint = p;
+    paintAt(p.x, p.y);
+  }
+  function onMove(e) {
+    if (!painting) return;
+    const p = canvasPos(e);
+    paintLine(lastPaint.x, lastPaint.y, p.x, p.y);
+    lastPaint = p;
+  }
+  function onUp() { painting = false; lastPaint = null; }
+
+  canvas.addEventListener("mousedown", onDown);
+  canvas.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
+  canvas.addEventListener("touchstart", onDown, { passive: false });
+  canvas.addEventListener("touchmove", function (e) { e.preventDefault(); onMove(e); }, { passive: false });
+  window.addEventListener("touchend", onUp);
+
+  // ---------- 물리 업데이트 ----------
+  function update() {
+    next.set(grid);
+    // 아래에서 위로, 랜덤 수평 방향
+    for (let y = ROWS - 2; y >= 0; y--) {
+      const leftToRight = (Math.random() < 0.5);
+      const xStart = leftToRight ? 0 : COLS - 1;
+      const xEnd = leftToRight ? COLS : -1;
+      const xStep = leftToRight ? 1 : -1;
+      for (let x = xStart; x !== xEnd; x += xStep) {
+        const i = idx(x, y);
+        const t = grid[i];
+        if (t === EMPTY || t === WALL) continue;
+        const m = MATS[t];
+
+        if (m.kind === "sand") updateSand(x, y, i);
+        else if (m.kind === "water") updateWater(x, y, i, t);
+      }
+    }
+    grid.set(next);
+  }
+
+  function updateSand(x, y, i) {
+    // 아래
+    if (canSink(x, y + 1, SAND)) { moveOrSpread(x, y, x, y + 1, SAND); return; }
+    // 대각 아래
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    if (canSink(x + dir, y + 1, SAND)) { moveOrSpread(x, y, x + dir, y + 1, SAND); return; }
+    if (canSink(x - dir, y + 1, SAND)) { moveOrSpread(x, y, x - dir, y + 1, SAND); return; }
+  }
+
+  function updateWater(x, y, i, t) {
+    // 아래
+    if (canSink(x, y + 1, WATER)) { moveOrSpread(x, y, x, y + 1, WATER); return; }
+    // 대각 아래 (더 넓게)
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    if (canSink(x + dir, y + 1, WATER)) { moveOrSpread(x, y, x + dir, y + 1, WATER); return; }
+    if (canSink(x - dir, y + 1, WATER)) { moveOrSpread(x, y, x - dir, y + 1, WATER); return; }
+    // 옆으로 흐름 (최대 4까지)
+    const spread = 1 + (Math.random() * 3 | 0);
+    for (let s = 1; s <= spread; s++) {
+      if (canSink(x + dir * s, y, WATER)) { moveOrSpread(x, y, x + dir * s, y, WATER); return; }
+    }
+    for (let s = 1; s <= spread; s++) {
+      if (canSink(x - dir * s, y, WATER)) { moveOrSpread(x, y, x - dir * s, y, WATER); return; }
+    }
+  }
+
+  // 타겔 셀이 `sinkMat`(이동하는 입자)에 비해 밀도가 높으면 침전 불가
+  function canSink(x, y, sinkMat) {
+    if (!inBounds(x, y)) return false;
+    const c = grid[idx(x, y)];
+    if (c === EMPTY) return true;
+    if (c === WALL) return false;
+    if (c === sinkMat) return false;
+    const sinkD = MATS[sinkMat].density;
+    const otherD = MATS[c].density;
+    return otherD < sinkD; // 더 무거운 것이 내려앉음 (물 속 모래 가라앉기)
+  }
+
+  function moveOrSpread(x0, y0, x1, y1, mat) {
+    const i0 = idx(x0, y0), i1 = idx(x1, y1);
+    swap(i0, i1);
+  }
+
+  // ---------- 렌더링 ----------
+  const imgData = ctx.createImageData(W, H);
+  const buf = imgData.data;
+
+  function render() {
+    // 배경
+    for (let p = 0; p < W * H; p++) {
+      const o = p * 4;
+      buf[o] = 20; buf[o+1] = 22; buf[o+2] = 32; buf[o+3] = 255;
+    }
+    let count = 0;
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const g = grid[idx(x, y)];
+        if (g === EMPTY) continue;
+        count++;
+        const co = idx(x, y) * 3;
+        const r = colorCache[co], gr = colorCache[co+1], b = colorCache[co+2];
+        // 픽셀 블록
+        for (let py = 0; py < CELL; py++) {
+          const rowBase = ((y * CELL + py) * W + x * CELL) * 4;
+          for (let px = 0; px < CELL; px++) {
+            const o = rowBase + px * 4;
+            buf[o] = r; buf[o+1] = gr; buf[o+2] = b; buf[o+3] = 255;
+          }
+        }
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+    document.getElementById("countVal").textContent = count.toLocaleString();
+  }
+
+  // ---------- UI 바 ----------
+  const matGroup = document.getElementById("matGroup");
+  const matOrder = [SAND, WATER, WALL];
+  const matColors = { [SAND]: "#e2b24e", [WATER]: "#3e82ec", [WALL]: "#787c8c" };
+  matOrder.forEach((m, i) => {
+    const btn = document.createElement("button");
+    btn.className = "mat-btn";
+    btn.style.background = shade(matColors[m], -35);
+    btn.style.borderColor = matColors[m];
+    btn.innerHTML = '<span class="dot" style="background:' + matColors[m] + '"></span>' + MATS[m].name;
+    btn.dataset.mat = m;
+    btn.addEventListener("click", () => setMat(m));
+    matGroup.appendChild(btn);
+  });
+
+  function setMat(m) {
+    currentMat = m;
+    document.querySelectorAll(".mat-btn").forEach(b => {
+      b.style.boxShadow = (+b.dataset.mat === m) ? "0 0 0 2px #fff6" : "none";
+    });
+  }
+
+  function shade(hex, amt) {
+    const n = parseInt(hex.slice(1), 16);
+    let r = (n >> 16) + amt, g = ((n >> 8) & 255) + amt, b = (n & 255) + amt;
+    r = Math.max(0, Math.min(255, r)); g = Math.max(0, Math.min(255, g)); b = Math.max(0, Math.min(255, b));
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+  // 초기 재료 선택 표시
+  setMat(SAND);
+
+  // 브러시
+  const brushEl = document.getElementById("brush");
+  const brushVal = document.getElementById("brushVal");
+  brushEl.addEventListener("input", () => {
+    brushSize = +brushEl.value;
+    brushVal.textContent = brushSize;
+  });
+
+  // 일시정지
+  let paused = false;
+  const pauseBtn = document.getElementById("pauseBtn");
+  pauseBtn.addEventListener("click", () => {
+    paused = !paused;
+    pauseBtn.textContent = paused ? "▶ 계속하기" : "⏸ 일시정지";
+    pauseBtn.classList.toggle("on", paused);
+  });
+
+  // 초기화
+  document.getElementById("clearBtn").addEventListener("click", clearGrid);
+
+  // 키보드
+  window.addEventListener("keydown", (e) => {
+    switch (e.key) {
+      case "1": setMat(SAND); break;
+      case "2": setMat(WATER); break;
+      case "3": setMat(WALL); break;
+      case "p": case "P": pauseBtn.click(); break;
+      case "c": case "C": clearGrid(); break;
+    }
+  });
+
+  // ---------- 메인 루프 ----------
+  let lastTime = performance.now();
+  let fpsAccum = 0, fpsFrames = 0, fpsTimer = 0, displayFps = 0;
+
+  function loop(now) {
+    const dt = now - lastTime;
+    lastTime = now;
+
+    if (!paused) update();
+    render();
+
+    // FPS 계산
+    fpsAccum += dt;
+    fpsFrames++;
+    fpsTimer += dt;
+    if (fpsTimer >= 500) {
+      displayFps = Math.round((fpsFrames * 1000) / fpsAccum);
+      fpsAccum = 0; fpsFrames = 0; fpsTimer = 0;
+      document.getElementById("fpsVal").textContent = displayFps;
+    }
+    requestAnimationFrame(loop);
+  }
+
+  // 초기 모래 산 몇 개 배치
+  function seedDemo() {
+    for (let i = 0; i < 5; i++) {
+      const cx = 30 + (Math.random() * (COLS - 60) | 0);
+      const cy = 5 + (Math.random() * 10 | 0);
+      const r = 6 + (Math.random() * 8 | 0);
+      for (let dy = -r; dy <= r; dy++) {
+        for (let dx = -r; dx <= r; dx++) {
+          if (dx*dx + dy*dy > r*r) continue;
+          const x = cx + dx, y = cy + dy;
+          if (inBounds(x, y) && getCell(x, y) === EMPTY) {
+            const ii = idx(x, y);
+            grid[ii] = SAND;
+            const m = MATS[SAND];
+            const j = (Math.random() * 2 - 1) * 22 | 0;
+            colorCache[ii*3] = Math.min(255, Math.max(0, m.color[0]+j));
+            colorCache[ii*3+1] = Math.min(255, Math.max(0, m.color[1]+j));
+            colorCache[ii*3+2] = Math.min(255, Math.max(0, m.color[2]+j));
+            seed[ii] = (Math.random()*20-10)|0;
+          }
+        }
+      }
+    }
+    // 물 웅덩이 하나
+    const wx = (COLS * 0.6) | 0, wy = (ROWS * 0.7) | 0;
+    for (let dy = -4; dy <= 4; dy++) {
+      for (let dx = -6; dx <= 6; dx++) {
+        const x = wx + dx, y = wy + dy;
+        if (inBounds(x, y) && getCell(x, y) === EMPTY) {
+          const ii = idx(x, y);
+          grid[ii] = WATER;
+          const m = MATS[WATER];
+          const j = (Math.random()*2-1)*18|0;
+          colorCache[ii*3] = Math.min(255, Math.max(0, m.color[0]+j));
+          colorCache[ii*3+1] = Math.min(255, Math.max(0, m.color[1]+j));
+          colorCache[ii*3+2] = Math.min(255, Math.max(0, m.color[2]+j));
+        }
+      }
+    }
+  }
+  seedDemo();
+
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

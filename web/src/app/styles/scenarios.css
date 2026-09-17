@@ -1,0 +1,668 @@
+/* ============================================================
+   Scenario hub — 운영 시나리오 모음
+   ============================================================ */
+.scenario-hero {
+  display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 24px;
+  align-items: stretch; padding: 30px 32px; border-radius: var(--r-lg);
+  background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+  border: 1px solid var(--border);
+}
+.scenario-hero h1 {
+  margin: 0 0 12px; font-size: var(--fs-3xl); line-height: 1.2;
+  letter-spacing: 0;
+}
+.scenario-hero p { max-width: 760px; margin: 0; color: var(--text-dim); font-size: var(--fs-md); }
+.scenario-summary {
+  min-height: 126px; border-radius: var(--r-md); border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-0) 32%, var(--bg-3));
+  display: flex; flex-direction: column; justify-content: center; gap: 6px;
+  padding: 18px;
+}
+.scenario-summary strong { font-size: var(--fs-hero); letter-spacing: 0; line-height: 1; }
+.scenario-summary span {
+  color: var(--text-mute); font-size: var(--fs-2xs); letter-spacing: 0;
+  text-transform: uppercase;
+}
+.scenario-layout {
+  display: grid; gap: 18px; margin-top: 22px;
+}
+.scenario-list {
+  display: grid; gap: 26px;
+}
+.scenario-group { min-width: 0; }
+.scenario-group + .scenario-group { padding-top: 26px; border-top: 1px solid var(--border); }
+/* 라벨·제목 위, 설명은 제목 바로 아래, 개수는 우상단.
+   제목이 짧아도 설명이 오른쪽으로 벌어지지 않도록 세로로 쌓는다. */
+.scenario-group-head {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'head count' 'desc count';
+  column-gap: 16px; row-gap: 6px; align-items: start; margin-bottom: 14px;
+}
+.scenario-group-head > div { grid-area: head; min-width: 0; }
+.scenario-group-head span {
+  display: block; margin-bottom: 4px; color: var(--accent-2);
+  font-family: var(--mono); font-size: var(--fs-2xs); font-weight: 800; text-transform: uppercase;
+}
+.scenario-group-head h2 { margin: 0; font-size: var(--fs-lg); letter-spacing: 0; }
+.scenario-group-head p {
+  grid-area: desc; margin: 0; max-width: 640px; color: var(--text-dim);
+  font-size: var(--fs-sm); line-height: 1.55; word-break: keep-all;
+}
+.scenario-group-head > b {
+  grid-area: count; align-self: start;
+  color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs); text-align: right;
+}
+/* 카드 배지는 라벨만 보여주므로 목록 상단에서 뜻을 한 번 밝힌다. */
+.scenario-legend {
+  margin: 18px 0 4px; padding: 18px 22px;
+  border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--bg-1);
+}
+.scenario-legend > header { margin-bottom: 14px; }
+.scenario-legend > header span {
+  display: block; margin-bottom: 5px; color: var(--accent-2);
+  font: 800 var(--fs-2xs) var(--mono); letter-spacing: .06em; text-transform: uppercase;
+}
+.scenario-legend > header p {
+  margin: 0; color: var(--text-dim); font-size: var(--fs-xs); line-height: 1.55; word-break: keep-all;
+}
+/* 반반으로 나누면 출처 쪽만 넘친다. 출처는 항목이 셋에 설명도 길고 실행은 둘에 짧다.
+   내용이 요구하는 만큼 나눠 준다. */
+.scenario-legend > div { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 14px 28px; }
+.scenario-legend h2 {
+  margin: 0 0 8px; color: var(--text); font-size: var(--fs-xs); font-weight: 700; line-height: 1.45;
+}
+.scenario-legend dl { display: grid; gap: 6px; margin: 0; }
+.scenario-legend dl > div { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; align-items: baseline; }
+.scenario-legend dd {
+  margin: 0; color: var(--text-dim); font-size: var(--fs-2xs); line-height: 1.55; word-break: keep-all;
+}
+.scenario-legend-chip {
+  padding-left: 9px; border-left: 2px solid var(--border-strong);
+  color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs);
+  font-weight: 800; line-height: 1.4; text-transform: uppercase;
+}
+.scenario-legend-chip[data-kind='work-reconstructed'] { border-left-color: var(--accent); color: var(--accent); }
+.scenario-legend-chip[data-kind='portfolio-operated'] { border-left-color: var(--success); color: var(--success); }
+.scenario-legend-chip[data-kind='policy-model'] { border-left-color: var(--warn); color: var(--warn); }
+/* 범례도 카드와 같은 형태여야 한다. 여기서 막대로 보여주면 카드에서 점을 보고 못 알아본다. */
+.scenario-legend-chip[data-execution] {
+  display: inline-flex; align-items: center; gap: 5px; padding-left: 0; border-left: 0;
+}
+.scenario-legend-chip[data-execution]::before {
+  content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%;
+}
+.scenario-legend-chip[data-execution='live'] { color: var(--success); }
+.scenario-legend-chip[data-execution='live']::before {
+  background: var(--success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 15%, transparent);
+}
+.scenario-legend-chip[data-execution='scripted'] { color: var(--text-mute); }
+.scenario-legend-chip[data-execution='scripted']::before { border: 1.5px solid var(--text-mute); }
+
+/* 3열이다. 열 수는 summary 길이와 묶여 있다 — 카드가 좁으면 같은 글이 더 여러 줄이 된다.
+   summary 가 문제 제시에서 끝나던 때는 4열이 나았지만(2줄, 목록 1836px), 지금은 무엇을
+   보게 되는지까지 담아 100자쯤 된다. 415px 에서 세 줄, 309px 에서는 네 줄이라 빽빽해진다.
+   대가는 거래·분산 4편이 3+1 로 두 칸씩 비는 것. 카드가 읽히는 쪽을 택했다. */
+.scenario-group-grid {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;
+}
+.scenario-list a {
+  /* 카드마다 시작 위치가 달라지지 않게 flex column 으로 고정한다.
+     kicker·제목은 상단, 출처 배지는 하단 고정. */
+  text-decoration: none;
+  display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;
+  width: 100%; min-height: 164px; padding: 18px; text-align: left;
+  border-radius: var(--r-md); border: 1px solid var(--border);
+  background: var(--bg-1); color: var(--text); cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+/* 출처 배지는 카드 하단 고정. margin-top:auto 가 남는 공간을 전부 먹어 아래로 민다.
+   여기에 padding-top 을 얹으면 안 된다 — border-left 막대가 요소 높이를 따라가므로
+   막대만 글자보다 길어진다. 최소 간격은 위 문단의 아래 여백으로 준다. */
+.scenario-list a > .scenario-provenance[data-compact] { margin-top: auto; }
+/* 하단 줄을 감쌌으므로 아래로 미는 일은 감싸개가 맡는다. 출처 배지에 걸린 위 규칙은
+   감싸개 안에서는 직계가 아니라 안 먹으니, 여기서 margin-top 을 0 으로 되돌린다. */
+.scenario-card-footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-top: auto;
+}
+.scenario-card-footer > .scenario-provenance[data-compact] { margin-top: 0; }
+.scenario-list a > .scenario-card-summary { margin-bottom: 14px; }
+.scenario-list a:hover { background: var(--hover); border-color: var(--border-strong); }
+.scenario-card-kicker {
+  display: flex; align-items: center; gap: 5px; margin-bottom: 8px;
+  font-family: var(--mono); font-size: var(--fs-2xs); text-transform: uppercase;
+}
+.scenario-card-kicker b {
+  min-width: 18px; color: var(--text-mute); font-size: var(--fs-2xs);
+}
+.scenario-card-kicker em {
+  min-width: 0; overflow: hidden; color: var(--accent-2); font-style: normal;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+/* 상태등은 헤더 오른쪽 끝. 여백은 eyebrow가 줄어들며 만들고, 배지 자체는 줄지 않는다.
+   [data-compact] 선택자에 margin-top:16px 이 걸려 있고 그게 이 규칙보다 뒤에 온다.
+   같은 명시도면 뒤가 이기므로 여기서 한 단계 더 좁혀 잡아야 헤더 줄에 맞는다. */
+.scenario-card-kicker .scenario-provenance[data-compact] {
+  flex: none; margin-top: 0; margin-left: auto; padding-left: 8px;
+}
+.scenario-card-kicker .scenario-provenance[data-compact] span { line-height: 1.4; }
+.scenario-list a strong {
+  display: block; margin-bottom: 8px; font-size: var(--fs-lg); line-height: 1.35;
+}
+.scenario-card-summary {
+  display: block; color: var(--text-dim); font-style: normal;
+  font-size: var(--fs-xs); line-height: 1.55; word-break: keep-all;
+}
+.scenario-provenance {
+  display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px;
+  align-items: center; margin-top: 13px; padding-left: 10px;
+  border-left: 2px solid var(--border-strong);
+}
+/* 720px 상한이 있으면 넓은 화면에서도 설명이 접히고 마지막 줄에 두어 단어만 남는다.
+   컨테이너가 주는 폭을 그대로 쓰게 두고, 대신 지나치게 길어지지 않도록 상한만 넉넉히 잡는다.
+   그리고 설명이 여러 줄일 때 라벨을 세로 가운데에 두면 어디에도 걸리지 않은 것처럼 뜬다.
+   첫 줄에 맞춰 시작 정렬한다. (라벨만 있는 compact 는 가운데가 맞다) */
+/* 막대는 라벨의 표식이다. 컨테이너에 걸면 설명 줄까지 내려가 글 전체를 인용문처럼 만든다.
+   라벨에 걸어 그 줄에서 끝나게 하고, 설명은 막대·점과 같은 왼쪽 끝에서 시작한다. */
+.scenario-provenance:not([data-compact]) { max-width: 1040px; align-items: start; padding-left: 0; border-left: 0; }
+.scenario-provenance:not([data-compact]):not(.scenario-execution) > span {
+  border-left: 2px solid currentColor; padding-left: 10px;
+}
+.scenario-provenance span {
+  color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs); font-weight: 800;
+  line-height: 1.5; text-transform: uppercase;
+}
+.scenario-provenance p {
+  margin: 0; color: var(--text-dim); font-size: var(--fs-2xs); line-height: 1.55; word-break: keep-all;
+}
+.scenario-provenance[data-kind='work-reconstructed'] { border-left-color: var(--accent); }
+.scenario-provenance[data-kind='work-reconstructed'] span { color: var(--accent); }
+.scenario-provenance[data-kind='portfolio-operated'] { border-left-color: var(--success); }
+.scenario-provenance[data-kind='portfolio-operated'] span { color: var(--success); }
+.scenario-provenance[data-kind='policy-model'] { border-left-color: var(--warn); }
+.scenario-provenance[data-kind='policy-model'] span { color: var(--warn); }
+/* 실행 축은 분류가 아니라 상태다. 이 사이트는 이미 RUN STATUS 같은 계기판 언어를 쓰므로
+   그 세계의 물건인 상태등을 빌린다. 켜진 등은 채우고 발광시키고, 꺼진 등은 외곽선만 남긴다.
+   출처의 세로 막대와 형태가 갈려야 두 배지가 다른 종류의 정보임이 한눈에 보인다.
+   막대(2px)+padding(10px)=12px 에 맞춰 점(7px)+gap(5px)=12px 로 라벨 시작점은 맞춘다. */
+.scenario-execution { padding-left: 0; border-left: 0; }
+.scenario-execution > span { display: inline-flex; align-items: center; gap: 5px; }
+.scenario-execution > span::before {
+  content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%;
+}
+.scenario-execution[data-execution='live'] > span {
+  color: var(--success);
+}
+.scenario-execution[data-execution='live'] > span::before {
+  background: var(--success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 15%, transparent);
+}
+.scenario-execution[data-execution='scripted'] > span {
+  color: var(--text-mute);
+}
+.scenario-execution[data-execution='scripted'] > span::before {
+  border: 1.5px solid var(--text-mute);
+}
+.scenario-provenance-group { display: grid; gap: 10px; }
+.scenario-provenance-group[data-compact] { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+.scenario-provenance-group > .scenario-provenance { margin-top: 0; }
+.scenario-provenance-group:not([data-compact]) { margin-top: 13px; }
+.scenario-provenance[data-compact] {
+  display: inline-flex; align-items: center; margin-top: 16px; padding-left: 9px;
+}
+.scenario-provenance[data-compact] span { font-size: var(--fs-2xs); line-height: 1.35; }
+/* 관리자 표시. --info 를 쓰는 이유는 셋이다. 카드에 이미 있는 색(eyebrow 의 accent-2,
+   LIVE 와 출처의 success)과 겹치지 않고, 헤더의 .auth-boundary 가 로그인 상태를 같은
+   색으로 말하고 있어 인증 계열로 읽히며, danger 처럼 오류를 뜻하지도 않는다.
+   글자·테두리·배경을 한 색에서 뽑는 방식도 .auth-boundary 와 같게 맞췄다.
+   히어로에서는 auto 여백이 오른쪽 끝으로 민다. 카드에서는 감싸개가 자리를 잡는다. */
+.scenario-admin-mark {
+  /* align-self 가 없으면 flex 기본값(stretch)이 배지를 그룹 높이까지 늘린다. 히어로의
+     배지 줄은 위에 16px 여백이 걸려 있어, 늘어난 배지만 다른 둘보다 위에서 시작한다. */
+  flex: none; align-self: flex-end; margin-left: auto; padding: 0 6px;
+  border: 1px solid color-mix(in srgb, var(--info) 34%, var(--border));
+  border-radius: 999px; background: color-mix(in srgb, var(--info) 9%, transparent);
+  color: var(--info); font-family: var(--mono); font-size: 10px;
+  letter-spacing: .04em; line-height: 1.4; white-space: nowrap;
+  /* 세로 패딩을 넣거나 이 음수 여백을 빼면 카드가 6px 높아진다. 그리드 행이 함께
+     늘어나 같은 줄의 다른 카드까지 밀리므로, 목록 스물세 장의 높이가 두 갈래로 갈린다.
+     테두리 2px 만 상쇄하는 값이라 글자 크기가 바뀌어도 어긋나지 않는다. */
+  margin-block: -1px;
+}
+.scenario-case-banner { overflow: hidden; margin: 18px 0; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--bg-1); }
+/* 배지 설명은 이 사례가 아니라 배지 체계를 말한다. 머리글에 두면 제목보다 글자가 많아
+   전체가 설명문으로 읽힌다. 설명은 툴팁으로 내리고 상태등 하나만 오른쪽 끝에 남긴다.
+   출처(운영 검증 등)는 여기서 뺐다 — 배지 둘이 나란히 서면 서로 경쟁하고,
+   이 배너가 붙는 데모 화면에서 필요한 것은 "지금 진짜로 도는가" 하나다. */
+.scenario-case-banner > header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px 24px; flex-wrap: wrap; padding: 18px 22px; border-bottom: 1px solid var(--border);
+}
+.scenario-case-banner > header > div:first-child { display: flex; align-items: baseline; gap: 16px; min-width: 0; }
+.scenario-case-banner > header > div:first-child > span { color: var(--accent-2); font: 800 var(--fs-2xs) var(--mono); letter-spacing: .06em; white-space: nowrap; }
+.scenario-case-banner > header .scenario-provenance[data-compact] { margin-top: 0; }
+.scenario-case-banner h2 { margin: 0; font-size: var(--fs-lg); letter-spacing: 0; }
+.scenario-case-banner > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.scenario-case-banner article { min-width: 0; padding: 17px 20px; }
+.scenario-case-banner article + article { border-left: 1px solid var(--border); }
+.scenario-case-banner article > span { color: var(--text-mute); font: 800 var(--fs-2xs) var(--mono); }
+.scenario-case-banner article[data-tone='danger'] > span { color: var(--danger); }
+.scenario-case-banner article[data-tone='success'] > span { color: var(--success); }
+.scenario-case-banner article p { margin: 7px 0 0; color: var(--text-dim); font-size: var(--fs-sm); line-height: 1.6; word-break: keep-all; }
+.scenario-flow {
+  padding: 18px 28px; border-bottom: 1px solid var(--border); background: var(--bg-1);
+}
+.scenario-flow-head {
+  display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px;
+}
+.scenario-flow-head span {
+  color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs); font-weight: 800;
+  letter-spacing: .06em;
+}
+.scenario-flow-head strong { font-size: var(--fs-md); word-break: keep-all; }
+.scenario-flow-track {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px;
+}
+.scenario-flow-item { position: relative; min-width: 0; }
+.scenario-flow-item > div {
+  min-height: 74px; padding: 12px; border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--bg-2);
+}
+.scenario-flow-item strong, .scenario-flow-item small { display: block; min-width: 0; }
+.scenario-flow-item strong {
+  color: var(--text); font-family: var(--mono); font-size: var(--fs-2xs); line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.scenario-flow-item small { margin-top: 7px; color: var(--text-mute); font-size: var(--fs-2xs); line-height: 1.35; }
+.scenario-flow-item[data-tone='warning'] > div {
+  border-color: color-mix(in srgb, var(--warn) 48%, var(--border)); background: color-mix(in srgb, var(--warn) 9%, var(--bg-2));
+}
+.scenario-flow-item[data-tone='success'] > div {
+  border-color: color-mix(in srgb, var(--success) 44%, var(--border)); background: color-mix(in srgb, var(--success) 8%, var(--bg-2));
+}
+.scenario-flow-connector {
+  position: absolute; z-index: 1; top: 27px; left: -8px; color: var(--text-mute); font-size: var(--fs-sm);
+}
+.hpa-console { padding: 22px 28px; border-bottom: 1px solid var(--border); background: var(--bg-2); }
+.hpa-console-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.hpa-console-head span { color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs); font-weight: 800; }
+.hpa-console-head h3 { margin: 5px 0 0; font-size: var(--fs-lg); }
+.hpa-console-state { display: inline-flex; align-items: center; gap: 7px; min-height: 30px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-1); font-family: var(--mono); font-size: var(--fs-2xs); }
+.hpa-console-state i { width: 7px; height: 7px; border-radius: 50%; background: var(--text-mute); }
+.hpa-console-state[data-state='LOADING'] i, .hpa-console-state[data-state='SCALED_OUT'] i, .hpa-console-state[data-state='STABILIZING'] i { background: var(--warn); }
+.hpa-console-state[data-state='COMPLETED'] i, .hpa-console-state[data-state='IDLE'] i { background: var(--success); }
+.hpa-console-state[data-state='FAILED'] i { background: var(--danger); }
+.hpa-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 16px; border: 1px solid var(--border); background: var(--bg-1); }
+.hpa-metrics > div { min-width: 0; padding: 12px 14px; }
+.hpa-metrics > div + div { border-left: 1px solid var(--border); }
+.hpa-metrics span, .hpa-metrics strong { display: block; }
+.hpa-metrics span { color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs); text-transform: uppercase; }
+.hpa-metrics strong { margin-top: 4px; font-family: var(--mono); font-size: var(--fs-lg); }
+.hpa-live-grid { display: grid; align-items: start; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .8fr); gap: 12px; margin-top: 12px; }
+.hpa-chart, .hpa-pods { min-width: 0; padding: 14px; border: 1px solid var(--border); background: var(--bg-1); }
+.hpa-chart > header, .hpa-pods > header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+.hpa-chart header strong, .hpa-pods header strong { font-size: var(--fs-xs); }
+.hpa-chart header span, .hpa-pods header span { color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs); }
+.hpa-chart-canvas { position: relative; width: 100%; height: 200px; overflow: hidden; border-left: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.hpa-chart-scale span { position: absolute; left: 0; right: 0; border-top: 1px solid var(--border); }
+.hpa-chart-scale b { position: absolute; left: 0; top: 2px; padding: 0 4px; background: var(--bg-1); color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs); font-weight: 400; }
+.hpa-chart-canvas svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hpa-chart-canvas polyline { fill: none; stroke: var(--accent-2); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.hpa-chart-canvas > p { display: grid; place-items: center; height: 100%; margin: 0; color: var(--text-mute); font-size: var(--fs-2xs); }
+.hpa-threshold { position: absolute; z-index: 1; left: 0; right: 0; border-top: 1px dashed var(--warn); }
+.hpa-threshold b { position: absolute; right: 4px; bottom: 3px; color: var(--warn); font-family: var(--mono); font-size: var(--fs-2xs); }
+.hpa-pods > div { display: grid; gap: 8px; }
+.hpa-pod { min-width: 0; padding: 11px; border: 1px solid var(--border); background: var(--bg-2); }
+.hpa-pod[data-ready='true'] { border-color: color-mix(in srgb, var(--success) 36%, var(--border)); }
+.hpa-pod > header { display: flex; justify-content: space-between; gap: 10px; }
+.hpa-pod header strong { min-width: 0; overflow: hidden; color: var(--text); font-family: var(--mono); font-size: var(--fs-2xs); text-overflow: ellipsis; white-space: nowrap; }
+.hpa-pod header span { color: var(--success); font-family: var(--mono); font-size: var(--fs-2xs); }
+.hpa-pod dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 12px; margin: 10px 0 0; }
+.hpa-pod dl div { min-width: 0; display: flex; justify-content: space-between; gap: 6px; }
+.hpa-pod dt, .hpa-pod dd { margin: 0; font-family: var(--mono); font-size: var(--fs-2xs); }
+.hpa-pod dt { color: var(--text-mute); }.hpa-pod dd { color: var(--text-dim); }
+.hpa-pod code { display: block; margin-top: 8px; color: var(--text-mute); font-size: var(--fs-2xs); overflow-wrap: anywhere; }
+.hpa-empty { margin: 0; color: var(--text-mute); font-size: var(--fs-2xs); }
+.hpa-timeline { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px; padding: 11px 14px; border: 1px solid var(--border); background: var(--bg-1); }
+.hpa-timeline[data-empty='true'] { padding: 0; border: 0; background: none; }
+.hpa-timeline > div { display: inline-flex; align-items: center; gap: 6px; }
+.hpa-timeline time, .hpa-timeline span, .hpa-timeline > p { color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs); }
+.hpa-timeline i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent-2); }
+/* 부하 Job 이 스스로 센 값이다. 4칸 지표 그리드는 클러스터 지표만 두고 여기서 나눈다. */
+.hpa-load { margin: 10px 0 0; color: var(--text); font-family: var(--mono); font-size: var(--fs-2xs); }
+.hpa-load[data-empty="true"] { color: var(--text-mute); }
+.hpa-workers { display: inline-flex; align-items: center; gap: 6px; }
+.hpa-workers > span { color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs); text-transform: uppercase; }
+.hpa-workers select { padding: 4px 6px; border: 1px solid var(--border); background: var(--bg-1); color: var(--text); font-family: var(--mono); font-size: var(--fs-2xs); }
+.hpa-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.hpa-controls > span { color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs); }
+.hpa-error { margin: 10px 0 0; color: var(--danger); font-size: var(--fs-2xs); }
+.hpa-boundary { margin: 11px 0 0; color: var(--text-mute); font-size: var(--fs-2xs); }
+.scenario-panel {
+  min-width: 0; padding: 18px; border-radius: var(--r-md);
+  border: 1px solid var(--border); background: var(--bg-2);
+}
+.scenario-panel h3, .scenario-story-grid .scenario-panel h2 {
+  margin: 0 0 12px; font-size: var(--fs-xs); color: var(--text-mute);
+  letter-spacing: 0; text-transform: uppercase;
+}
+.scenario-steps {
+  margin: 0; padding-left: 20px; color: var(--text-dim);
+  font-size: var(--fs-sm); line-height: 1.7;
+}
+.scenario-steps li + li { margin-top: 7px; }
+.scenario-signal-list {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+/* 사람 말이 앞, 지표 원문이 뒤. 원문만 있으면 개발 지식이 적은 사람에게 안 읽히고,
+   원문을 지우면 Grafana 에서 뭘 찾아야 하는지가 사라진다. 둘 다 둔다. */
+.scenario-signal-list span {
+  display: inline-flex; align-items: baseline; gap: 7px;
+  padding: 6px 11px; border-radius: 999px;
+  background: var(--bg-1); border: 1px solid var(--border);
+  color: var(--text); font-size: var(--fs-xs); word-break: keep-all;
+}
+.scenario-signal-list span code {
+  color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs);
+}
+
+/* Scenario story — 허브와 실행 화면 사이의 공통 상세 설명 */
+/* minmax(0, 1fr) 이 없으면 암묵 열이 max-content 로 잡힌다. 실행판 안의 넓은 요소 하나가
+   열을 716px 로 밀어서, 390px 화면에서 빵 부스러기와 제목까지 화면 밖으로 나가 있었다.
+   자식이 페이지 폭을 정하지 못하게 막는다 — 넘치는 것은 자기 안에서 스크롤한다. */
+.scenario-narrative-page { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.scenario-story-breadcrumb { display: flex; align-items: center; gap: 9px; color: var(--text-mute); font: var(--fs-2xs) var(--mono); }
+.scenario-story-breadcrumb a { color: var(--text-dim); text-decoration: none; }
+.scenario-story-breadcrumb a:hover { color: var(--accent); }
+.scenario-story-breadcrumb strong { color: var(--accent-2); }
+.scenario-story-hero {
+  padding: 30px 32px; border: 1px solid var(--border); border-radius: var(--r-lg);
+  background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+}
+.scenario-story-hero .scenario-provenance-group { margin-top: 16px; }
+.scenario-story-hero h1 { margin: 0 0 11px; font-size: var(--fs-3xl); line-height: 1.2; letter-spacing: 0; }
+.scenario-story-hero p { max-width: 780px; margin: 0; color: var(--text-dim); font-size: var(--fs-md); line-height: 1.65; word-break: keep-all; }
+.scenario-case-study header > span,
+.scenario-story-purpose span,
+.scenario-story-grid .scenario-panel > span,
+.scenario-story-boundary header > span,
+.scenario-story-links span { color: var(--accent-2); font: 800 var(--fs-2xs) var(--mono); letter-spacing: .06em; }
+.scenario-case-study { overflow: hidden; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--bg-1); }
+.scenario-case-study > header { display: flex; align-items: baseline; gap: 16px; padding: 22px 26px; border-bottom: 1px solid var(--border); }
+.scenario-case-study h2 { margin: 0; font-size: var(--fs-xl); letter-spacing: 0; }
+.scenario-case-study > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.scenario-case-study article { position: relative; min-width: 0; padding: 20px 24px; }
+.scenario-case-study article + article { border-left: 1px solid var(--border); }
+.scenario-case-study article > span { display: inline-flex; align-items: baseline; gap: 7px; color: var(--text-mute); font: 800 var(--fs-2xs) var(--mono); }
+/* 번호는 순서만 말한다. 색은 라벨이 든다 — 둘 다 물들이면 무엇이 위험인지가 흐려진다. */
+.scenario-case-study article > span b { color: var(--text-mute); font-weight: 800; }
+/* 칸 경계 위에 얹는다. 배경을 패널과 같은 색으로 줘야 구분선을 깔끔히 끊는다. */
+.scenario-case-connector {
+  position: absolute; z-index: 1; top: 18px; left: -9px; width: 18px;
+  background: var(--bg-1); color: var(--text-mute); font-size: var(--fs-sm); font-style: normal; text-align: center;
+}
+.scenario-case-study article[data-tone='danger'] > span { color: var(--danger); }
+.scenario-case-study article[data-tone='success'] > span { color: var(--success); }
+.scenario-case-study article p { margin: 9px 0 0; color: var(--text-dim); font-size: var(--fs-sm); line-height: 1.65; word-break: keep-all; }
+/* PROOF 칸이 히어로로 옮겨 가 한 칸만 남았다. 한 칸이면 grid 가 필요 없다. */
+.scenario-story-purpose { border-block: 1px solid var(--border); }
+.scenario-story-purpose > div { min-width: 0; padding: 22px 26px; }
+.scenario-story-purpose h2,
+.scenario-story-grid h2,
+.scenario-story-boundary h2,
+.scenario-story-links h2 { margin: 7px 0 9px; font-size: var(--fs-lg); letter-spacing: 0; }
+.scenario-story-purpose p { margin: 0; color: var(--text-dim); font-size: var(--fs-sm); line-height: 1.65; word-break: keep-all; }
+.scenario-narrative-page .scenario-flow { border: 1px solid var(--border); border-radius: var(--r-lg); }
+.scenario-story-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); gap: 14px; }
+/* 실행판이 페이지 안에 있는 편은 순서와 신호가 실행판을 사이에 두고 갈라진다. 그때는 한 칸씩이다. */
+.scenario-story-grid[data-single] { grid-template-columns: minmax(0, 1fr); }
+.scenario-story-grid .scenario-panel { padding: 22px 24px; }
+.scenario-story-grid .scenario-signal-list span { border-radius: var(--r-sm); }
+.scenario-story-boundary { border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--bg-1); overflow: hidden; }
+.scenario-story-boundary > header { padding: 22px 26px 13px; }
+/* 여섯 칸으로 깔고 항목마다 두 칸씩 먹는다 — 보이는 건 3열이다.
+   여섯으로 깐 이유는 마지막 줄이 덜 찼을 때 남는 칸을 나눠 줄 수 있어서다.
+   판단 개수는 편마다 5~8로 다른데, 개수를 3의 배수로 맞추려고 문장을 합치면
+   사실이 잘려 나간다. 글을 칸에 맞추지 말고 칸이 글을 받게 한다. */
+.scenario-story-boundary ul { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); margin: 0; padding: 0; border-top: 1px solid var(--border); list-style: none; }
+.scenario-story-boundary li { min-width: 0; grid-column: span 2; padding: 18px 20px; }
+/* 마지막 줄에 하나만 남으면 그 하나가 줄 전체를 쓴다 (개수 % 3 == 1) */
+.scenario-story-boundary li:nth-child(3n + 1):last-child { grid-column: span 6; }
+/* 둘만 남으면 둘이 반씩 나눈다 (개수 % 3 == 2) */
+.scenario-story-boundary li:nth-child(3n + 1):nth-last-child(2),
+.scenario-story-boundary li:nth-child(3n + 1):nth-last-child(2) ~ li { grid-column: span 3; }
+.scenario-story-boundary li + li { border-left: 1px solid var(--border); }
+.scenario-story-boundary li p { margin: 0; color: var(--text-dim); font-size: var(--fs-sm); line-height: 1.65; word-break: keep-all; }
+.scenario-story-links { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 22px 26px; border-block: 1px solid var(--border); }
+.scenario-story-links h2 { margin-bottom: 0; }
+.scenario-story-links > div:last-child { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+
+.monitoring-page { display: grid; gap: 22px; }
+.monitoring-hero {
+  display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 28px; align-items: stretch;
+  padding: 32px; border: 1px solid var(--border); border-radius: var(--r-lg);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-2) 7%, var(--bg-1)), var(--bg-2));
+}
+.monitoring-hero h1 { margin: 0 0 12px; font-size: var(--fs-3xl); line-height: 1.2; letter-spacing: 0; }
+.monitoring-hero p { max-width: 760px; margin: 0; color: var(--text-dim); font-size: var(--fs-md); word-break: keep-all; }
+.monitoring-hero aside {
+  display: flex; align-self: stretch; justify-content: center; gap: 7px; padding-left: 24px;
+  border-left: 1px solid var(--border-strong);
+}
+.monitoring-hero aside > span, .monitoring-scope header > span, .monitoring-scope article > span {
+  color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs); font-weight: 800; letter-spacing: .07em;
+}
+.monitoring-hero aside strong { color: var(--accent-2); font-family: var(--mono); font-size: var(--fs-lg); }
+.monitoring-hero aside p { color: var(--text-mute); font-size: var(--fs-xs); line-height: 1.55; }
+.monitoring-page .live-operations { margin: 0; }
+.monitoring-reading { padding-top: 2px; }
+.monitoring-reading header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+.monitoring-reading header > span {
+  color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs); font-weight: 800; letter-spacing: .07em;
+}
+.monitoring-reading h2 { margin: 0; font-size: var(--fs-lg); letter-spacing: 0; }
+.monitoring-reading > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--border); }
+.monitoring-reading article { min-width: 0; padding: 16px 18px 4px 0; }
+.monitoring-reading article + article { padding-left: 18px; border-left: 1px solid var(--border); }
+.monitoring-reading article > span { color: var(--accent-2); font-family: var(--mono); font-size: var(--fs-2xs); font-weight: 800; }
+.monitoring-reading article h3 { margin: 6px 0; font-size: var(--fs-md); letter-spacing: 0; }
+.monitoring-reading article p { margin: 0; color: var(--text-dim); font-size: var(--fs-sm); line-height: 1.6; word-break: keep-all; }
+.monitoring-scope { padding: 2px 0 0; }
+.monitoring-scope header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+.monitoring-scope h2 { margin: 0; font-size: var(--fs-lg); letter-spacing: 0; }
+.monitoring-scope > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--border); }
+.monitoring-scope article { min-width: 0; padding: 16px 18px 4px 0; }
+.monitoring-scope article + article { padding-left: 18px; border-left: 1px solid var(--border); }
+.monitoring-scope article h3 { margin: 6px 0; font-size: var(--fs-md); letter-spacing: 0; }
+.monitoring-scope article p { margin: 0; color: var(--text-dim); font-size: var(--fs-sm); line-height: 1.6; word-break: keep-all; }
+@media (max-width: 1040px) {
+  .home-title-line { display: block; }
+  .scenario-hero { grid-template-columns: 1fr; }
+  .scenario-summary { min-height: auto; }
+  .scenario-group-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hpa-live-grid { grid-template-columns: 1fr; }
+  .monitoring-hero { grid-template-columns: 1fr; }
+  .monitoring-hero aside { min-height: auto; padding: 16px 0 0; border-left: 0; border-top: 1px solid var(--border-strong); }
+  .scenario-story-hero { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .scenario-hero { padding: 24px; }
+  .scenario-hero h1 { font-size: var(--fs-2xl); }
+  .scenario-list { gap: 22px; }
+  .scenario-group + .scenario-group { padding-top: 22px; }
+  .scenario-group-grid { grid-template-columns: 1fr; }
+  .scenario-legend > div { grid-template-columns: 1fr; }
+  .scenario-legend dl > div { grid-template-columns: 1fr; gap: 2px; }
+  .scenario-list a { min-height: 0; }
+  .scenario-case-banner > header { gap: 12px; padding: 18px; }
+  .scenario-case-banner > header .scenario-provenance-group { grid-template-columns: 1fr; }
+  .scenario-case-banner > header > div:first-child { align-items: flex-start; flex-direction: column; gap: 6px; }
+  .scenario-provenance { grid-template-columns: 1fr; gap: 3px; }
+  .scenario-case-banner > div { grid-template-columns: 1fr; }
+  .scenario-case-banner article { padding: 15px 18px; }
+  .scenario-case-banner article + article { border-left: 0; border-top: 1px solid var(--border); }
+  .scenario-flow { padding: 16px 22px; }
+  .scenario-flow-track { grid-template-columns: 1fr; gap: 6px; }
+  .scenario-flow-item > div { min-height: 0; }
+  .scenario-flow-connector { top: -10px; left: 50%; transform: translateX(-50%) rotate(90deg); }
+  .hpa-console { padding: 18px 22px; }
+  .hpa-console-head { flex-direction: column; }
+  .hpa-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hpa-metrics > div + div { border-left: 0; }
+  .hpa-metrics > div:nth-child(even) { border-left: 1px solid var(--border); }
+  .hpa-metrics > div:nth-child(n + 3) { border-top: 1px solid var(--border); }
+  .scenario-story-hero { padding: 24px; }
+  .scenario-story-hero h1 { font-size: var(--fs-2xl); }
+  .scenario-case-study > header { align-items: flex-start; flex-direction: column; gap: 7px; padding: 20px; }
+  .scenario-case-study > div, .scenario-story-grid { grid-template-columns: 1fr; }
+  /* 한 줄에 하나. span 규칙이 남아 있으면 칸이 어긋나므로 전부 한 칸으로 되돌린다. */
+  .scenario-story-boundary ul { grid-template-columns: 1fr; }
+  .scenario-story-boundary li,
+  .scenario-story-boundary li:nth-child(3n + 1):last-child,
+  .scenario-story-boundary li:nth-child(3n + 1):nth-last-child(2),
+  .scenario-story-boundary li:nth-child(3n + 1):nth-last-child(2) ~ li { grid-column: auto; }
+  .scenario-case-study article { padding: 17px 20px; }
+  .scenario-case-study article + article { border-left: 0; border-top: 1px solid var(--border); }
+  /* 세로로 쌓이면 화살표도 같이 돈다. FLOW MAP 이 좁은 화면에서 하는 것과 같다. */
+  .scenario-case-connector { top: -10px; left: 50%; transform: translateX(-50%) rotate(90deg); }
+  .scenario-story-purpose > div { padding: 19px 20px; }
+  .scenario-story-grid { gap: 10px; }
+  .scenario-story-boundary > header { padding: 20px 20px 12px; }
+  .scenario-story-boundary li { padding: 16px 20px; }
+  .scenario-story-boundary li + li { border-left: 0; border-top: 1px solid var(--border); }
+  .scenario-story-links { align-items: stretch; flex-direction: column; padding: 20px; }
+  .scenario-story-links > div:last-child { justify-content: flex-start; }
+  .monitoring-hero { padding: 24px; }
+  .monitoring-hero h1 { font-size: var(--fs-2xl); }
+  .monitoring-reading header { flex-direction: column; align-items: flex-start; gap: 5px; }
+  .monitoring-reading > div { grid-template-columns: 1fr; }
+  .monitoring-reading article, .monitoring-reading article + article { padding: 16px 0 0; border-left: 0; }
+  .monitoring-reading article + article { margin-top: 16px; border-top: 1px solid var(--border); }
+  .monitoring-scope header { flex-direction: column; align-items: flex-start; gap: 5px; }
+  .monitoring-scope > div { grid-template-columns: 1fr; }
+  .monitoring-scope article, .monitoring-scope article + article { padding: 16px 0 0; border-left: 0; }
+  .monitoring-scope article + article { margin-top: 16px; border-top: 1px solid var(--border); }
+}
+
+/* 알림 드릴 실행판. HPA 콘솔과 같은 자리(시나리오 상세 안)에 오지만 훨씬 단순하다 —
+   그래프가 없고 목록과 버튼뿐이라 hpa-console 계열을 빌리지 않고 따로 둔다. */
+.alert-drill {
+  margin: 0 28px 22px; padding: 18px 20px;
+  border: 1px solid var(--border); border-radius: var(--r-md); background: var(--bg-2);
+}
+.alert-drill-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.alert-drill-head > div > span { color: var(--accent-2); font: 800 var(--fs-2xs) var(--mono); letter-spacing: .06em; }
+.alert-drill-head h3 { margin: 4px 0 0; font-size: var(--fs-md); letter-spacing: 0; }
+.alert-drill-recent { margin: 0; color: var(--text-mute); font-size: var(--fs-2xs); font-family: var(--mono); }
+.alert-drill-recent strong, .alert-drill-recent time { color: var(--text); }
+/* 되돌릴 수 없는 행동이라는 것을 버튼 옆이 아니라 목록 위에 한 번 적는다. */
+.alert-drill-note { margin: 12px 0 0; color: var(--text-dim); font-size: var(--fs-xs); word-break: keep-all; }
+.alert-drill-list { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--r-xs); overflow: hidden; }
+.alert-drill-list li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 14px; background: var(--bg-1); }
+.alert-drill-list li > div { min-width: 0; }
+.alert-drill-list strong { font-size: var(--fs-sm); }
+.alert-drill-list p { margin: 3px 0 0; color: var(--text-dim); font-size: var(--fs-xs); word-break: keep-all; }
+/* 어떤 규칙이 울리는지. 알림을 받았을 때 어느 드릴이었는지 맞춰 보는 값이라 mono 로 둔다. */
+.alert-drill-rule { display: inline-block; margin-top: 5px; color: var(--text-mute); font: 700 var(--fs-2xs) var(--mono); }
+.alert-drill-rule b { color: var(--warn); }
+.alert-drill-list button {
+  flex: 0 0 auto; padding: 6px 14px; cursor: pointer;
+  border: 1px solid var(--border); border-radius: var(--r-xs);
+  background: var(--bg-2); color: var(--text); font: 700 var(--fs-2xs) var(--mono);
+}
+.alert-drill-list button:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+.alert-drill-list button:disabled { opacity: .5; cursor: default; }
+.alert-drill-error { margin: 12px 0 0; color: var(--danger); font-size: var(--fs-xs); }
+
+/* 상세 페이지의 절 이동 줄. 스물두 편이 같은 뼈대라 어느 편에서든 같은 자리를 가리킨다.
+   페이지가 길어져도 무엇이 남았는지가 위에서 한 번에 보인다. */
+/* 테두리도 radius 도 없다. 카드 껍데기를 쓰면 아래 CASE·WHY 와 무게가 같아져
+   내비게이션이 아니라 절 하나처럼 읽힌다. 바탕은 본문이 밑으로 지나가도 글자가
+   겹쳐 보이지 않을 만큼만 깐다. */
+.scenario-story-rail {
+  /* 사이트 헤더가 sticky 라(65px, z-index 100) top:0 으로 두면 그 아래로 숨는다.
+     헤더 높이와 어긋나면 그 사이 틈으로 본문이 지나가는 게 보인다. */
+  position: sticky; top: 65px; z-index: 3;
+  display: flex; flex-wrap: wrap; gap: 2px;
+  /* 본문 칸 폭을 그대로 쓴다. 한때 바탕을 좌우로 빼 봤는데, 이 줄만 카드보다 넓어져
+     열 정렬이 깨졌다. 좌우 띠에는 애초에 본문이 없다 — 비쳐 보이던 건 옆이 아니라
+     줄 밑을 지나가는 본문이라, 폭이 아니라 바탕을 채워야 하는 문제였다. */
+  padding: 10px 0 13px;
+  background: color-mix(in srgb, var(--bg-0) 94%, transparent);
+  backdrop-filter: blur(8px);
+}
+/* 첫 항목만 왼쪽 여백을 뗀다. 그래야 "사례"가 아래 카드의 왼쪽 끝과 같은 선에서 시작한다. */
+.scenario-story-rail a:first-of-type { padding-left: 0; }
+@media (max-width: 640px) {
+  /* 이 폭에서 헤더가 61px 로 낮아진다. 안 맞추면 그 사이 틈으로 본문이 지나간다. */
+  .scenario-story-rail { top: 61px; padding: 9px 0 12px; }
+}
+.scenario-story-rail a {
+  padding: 4px 10px; border-radius: var(--r-xs);
+  color: var(--text-mute); font: 800 var(--fs-2xs) var(--mono); letter-spacing: .04em;
+  text-decoration: none;
+}
+.scenario-story-rail a:hover { color: var(--text); }
+/* 지금 읽는 절. 알약을 씌우면 hover 와 구별이 안 되므로 색으로만 든다. */
+.scenario-story-rail a[aria-current] { color: var(--accent-2); }
+.scenario-story-rail a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 지나온 만큼 차오르는 선. 이 줄이 목차이면서 어디까지 읽었는지도 보고한다. */
+.scenario-story-rail-track {
+  position: absolute; right: 0; bottom: 0; left: 0; height: 2px; background: var(--border);
+}
+.scenario-story-rail-track i { display: block; height: 100%; background: var(--accent-2); transition: width .18s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .scenario-story-rail-track i { transition: none; }
+}
+.scenario-list a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 절 제목이 이 줄에 가려지지 않게 한다. 앵커로 뛰면 그만큼 위를 비워 둔다. */
+.scenario-narrative-page [id] { scroll-margin-top: 121px; }
+
+/* 실행판이 들어오는 자리. 안에 오는 것은 세 종류(도메인 실행판·HPA·알림 드릴)인데
+   원래 인라인 상세 안에 있던 것이라 아래 테두리로 칸을 나누고 있었다. 여기서는
+   저마다 하나의 카드다. */
+.scenario-story-run > * { border: 1px solid var(--border); border-radius: var(--r-lg); }
+.scenario-story-run .hpa-console,
+.scenario-story-run .alert-drill { margin: 0; border-bottom: 1px solid var(--border); }
+
+.scenario-runner { background: var(--bg-1); overflow: hidden; }
+.scenario-runner-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;
+  padding: 22px 26px; border-bottom: 1px solid var(--border);
+}
+.scenario-runner-head > div:first-child { min-width: 0; }
+.scenario-runner-head span { color: var(--accent-2); font: 800 var(--fs-2xs) var(--mono); letter-spacing: .06em; }
+.scenario-runner-head h2 { margin: 6px 0 8px; font-size: var(--fs-lg); letter-spacing: 0; }
+.scenario-runner-head p {
+  max-width: 760px; margin: 0; color: var(--text-mute);
+  font-size: var(--fs-2xs); line-height: 1.6; word-break: keep-all;
+}
+
+/* 실행이 다른 화면에 있는 편. 설명이 여기서 끝난다는 것을 숨기지 않는다. */
+.scenario-story-away {
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  padding: 22px 26px; background: var(--bg-1);
+}
+.scenario-story-away > div { min-width: 0; }
+.scenario-story-away span { color: var(--accent-2); font: 800 var(--fs-2xs) var(--mono); letter-spacing: .06em; }
+.scenario-story-away h2 { margin: 6px 0 7px; font-size: var(--fs-lg); letter-spacing: 0; }
+.scenario-story-away p { margin: 0; color: var(--text-dim); font-size: var(--fs-sm); word-break: keep-all; }
+.scenario-story-away .btn { flex: none; }
+
+/* 판단 목록. 번호를 뗐으므로 왼쪽 막대가 항목의 경계를 대신한다.
+   li + li 규칙이 먼저 있어 첫 칸만 달라 보였다. 모든 칸에 같은 막대를 준다. */
+.scenario-story-boundary ul li { border-left: 2px solid var(--border-strong); }
+
+@media (max-width: 900px) {
+  .scenario-story-hero { grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 22px; }
+  .scenario-story-grid { grid-template-columns: minmax(0, 1fr); }
+  .scenario-story-boundary ul { grid-template-columns: minmax(0, 1fr); }
+  /* 한 칸씩 쌓이므로 span 규칙을 되돌린다. 안 그러면 칸이 어긋난다. */
+  .scenario-story-boundary li,
+  .scenario-story-boundary li:nth-child(3n + 1):last-child,
+  .scenario-story-boundary li:nth-child(3n + 1):nth-last-child(2),
+  .scenario-story-boundary li:nth-child(3n + 1):nth-last-child(2) ~ li { grid-column: auto; }
+  .scenario-story-boundary li + li { border-left: 2px solid var(--border-strong); border-top: 1px solid var(--border); }
+  .scenario-story-away { flex-direction: column; align-items: flex-start; }
+  .scenario-runner-head { flex-direction: column; }
+}

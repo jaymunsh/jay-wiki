@@ -1,0 +1,76 @@
+
+/* ============================================================
+   디자인 토큰
+   ============================================================ */
+:root {
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .06), 0 1px 6px rgba(0, 0, 0, .04);
+  --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, .35), 0 8px 20px -8px rgba(0, 0, 0, .18);
+
+  --font: var(--font-pretendard), 'Pretendard', -apple-system, BlinkMacSystemFont,
+    'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+  --mono: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo,
+    monospace;
+
+  /* 폰트 크기 스케일 — 새 크기는 반드시 이 토큰만 사용한다.
+     하한은 --fs-2xs(11px): 한글 판독성 때문에 이보다 작은 크기를 만들지 말 것. */
+  --fs-2xs: 11px;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 19px;
+  --fs-2xl: 24px;
+  --fs-3xl: 30px;
+  --fs-hero: 34px;
+}
+
+:root[data-theme='dark'] {
+  --bg-0: #0a0b10;
+  --bg-1: #13141b;
+  --bg-2: #1b1d26;
+  --bg-3: #252835;
+  --hover: #22242f;          /* 카드/버튼 hover 배경 */
+  --hover-strong: #2b2e3c;   /* 강조 hover */
+  --border: rgba(255, 255, 255, .08);
+  --border-strong: rgba(255, 255, 255, .16);
+  --text: #e7e8ec;
+  --text-dim: #9ca0aa;
+  --text-mute: #8a90a0; /* bg-1~bg-3 어디서든 4.5:1 이상 (WCAG AA) */
+  --accent: #7c5cff;
+  --accent-2: #2ad6c7;
+  --accent-soft: rgba(124, 92, 255, .14);
+  --success: #4ade80;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --info: #60a5fa;
+  --grad-1: linear-gradient(135deg, #7c5cff 0%, #2ad6c7 100%);
+  --grad-glow: radial-gradient(ellipse at top, rgba(124, 92, 255, .15), transparent 70%);
+}
+
+:root[data-theme='light'] {
+  --bg-0: #f4f5f8;
+  --bg-1: #ffffff;
+  --bg-2: #f7f8fb;          /* bg-1 과 구분되는 살짝 회색 */
+  --bg-3: #eef0f4;
+  --hover: #eff1f6;          /* 라이트 hover = 옅은 회색 (흰색 아님) */
+  --hover-strong: #e6e9f0;
+  --border: #e5e7ee;
+  --border-strong: #cfd3dd;
+  --text: #171a21;
+  --text-dim: #5a6072;
+  --text-mute: #626a7b; /* bg-0~bg-3 어디서든 4.7:1 이상 (WCAG AA) */
+  --accent: #5b3df5;
+  --accent-2: #0fb8a8;
+  --accent-soft: rgba(91, 61, 245, .08);
+  --success: #16a34a;
+  --warn: #ca8a04;
+  --danger: #dc2626;
+  --info: #2563eb;
+  --grad-1: linear-gradient(135deg, #5b3df5 0%, #0fb8a8 100%);
+  --grad-glow: radial-gradient(ellipse at top, rgba(91, 61, 245, .06), transparent 70%);
+}

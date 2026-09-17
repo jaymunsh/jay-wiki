@@ -1,0 +1,17 @@
+# Apply only after the transition procedure in docs/security-phase2-2026-09-09.md.
+# kubectl -n backend patch deployment jaywiki --patch-file <this file>
+spec:
+  template:
+    spec:
+      containers:
+        - name: jaywiki
+          env:
+            - name: APP_SECURITY_REDIS_REQUIRED
+              value: "true"
+            - name: APP_SECURITY_REDIS_HOST
+              value: security-redis.data.svc.cluster.local
+            - name: APP_SECURITY_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: security-redis-auth
+                  key: password

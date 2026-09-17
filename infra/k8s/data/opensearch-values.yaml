@@ -1,0 +1,49 @@
+clusterName: portfolio-search
+nodeGroup: master
+singleNode: true
+replicas: 1
+
+image:
+  repository: ghcr.io/jaymunsh/jay-wiki-opensearch
+  tag: 3.7.0-main
+
+imagePullSecrets:
+  - name: ghcr-pull
+
+opensearchJavaOpts: "-Xms512m -Xmx512m"
+
+config:
+  opensearch.yml: |
+    cluster.name: portfolio-search
+    network.host: 0.0.0.0
+    discovery.type: single-node
+    plugins.security.disabled: true
+    cluster.routing.allocation.disk.threshold_enabled: false
+    cluster.routing.allocation.disk.watermark.low: 90%
+    cluster.routing.allocation.disk.watermark.high: 95%
+
+extraEnvs:
+  - name: DISABLE_INSTALL_DEMO_CONFIG
+    value: "true"
+  - name: DISABLE_SECURITY_PLUGIN
+    value: "true"
+  - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+    value: changeme
+
+persistence:
+  enabled: true
+  size: 15Gi
+
+podDisruptionBudget:
+  enabled: false
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 1Gi
+  limits:
+    cpu: 1000m
+    memory: 1.5Gi
+
+sysctlInit:
+  enabled: false

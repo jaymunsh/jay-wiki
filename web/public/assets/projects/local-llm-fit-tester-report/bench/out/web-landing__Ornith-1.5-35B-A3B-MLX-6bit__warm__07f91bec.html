@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LocalBench — 로컬 LLM 벤치마크 도구</title>
+<style>
+  :root{
+    --bg:#0a0e17;
+    --bg2:#0f1524;
+    --panel:#141c2e;
+    --panel2:#1a2338;
+    --border:#243049;
+    --text:#e6edf7;
+    --muted:#8b98b0;
+    --accent:#4f8cff;
+    --accent2:#7c5cff;
+    --green:#3ddc97;
+    --amber:#ffb454;
+    --red:#ff6b6b;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:var(--sans);
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px;}
+
+  /* Background grid */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background-image:
+      linear-gradient(rgba(79,140,255,0.05) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(79,140,255,0.05) 1px,transparent 1px);
+    background-size:48px 48px;
+    mask-image:radial-gradient(circle at 50% 0%,#000 0%,transparent 75%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* Nav */
+  header{
+    position:sticky;top:0;z-index:50;
+    backdrop-filter:blur(12px);
+    background:rgba(10,14,23,0.7);
+    border-bottom:1px solid var(--border);
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;height:64px;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:-.02em;}
+  .logo{
+    width:32px;height:32px;border-radius:8px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:14px;color:#fff;
+    box-shadow:0 0 20px rgba(79,140,255,.4);
+  }
+  .nav-links{display:flex;gap:28px;font-size:14px;color:var(--muted);}
+  .nav-links a:hover{color:var(--text);}
+  .nav-cta{
+    background:var(--panel2);border:1px solid var(--border);
+    padding:8px 16px;border-radius:8px;font-size:14px;font-weight:600;
+    transition:.2s;
+  }
+  .nav-cta:hover{border-color:var(--accent);color:var(--accent);}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* Hero */
+  .hero{position:relative;z-index:1;padding:96px 0 72px;text-align:center;}
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--panel);border:1px solid var(--border);
+    padding:7px 14px;border-radius:999px;font-size:13px;color:var(--muted);
+    margin-bottom:28px;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .hero h1{
+    font-size:clamp(34px,6vw,64px);line-height:1.08;letter-spacing:-.03em;
+    font-weight:800;margin-bottom:22px;
+  }
+  .hero h1 .grad{
+    background:linear-gradient(120deg,var(--accent),var(--accent2) 60%,var(--green));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero p.lead{font-size:clamp(16px,2.2vw,20px);color:var(--muted);max-width:640px;margin:0 auto 36px;}
+  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+  .btn{padding:13px 26px;border-radius:10px;font-weight:600;font-size:15px;transition:.2s;cursor:pointer;border:1px solid transparent;}
+  .btn-primary{background:linear-gradient(120deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 8px 30px rgba(79,140,255,.35);}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(79,140,255,.5);}
+  .btn-ghost{background:transparent;border-color:var(--border);color:var(--text);}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+  .mono-hint{font-family:var(--mono);font-size:14px;color:var(--green);}
+
+  /* Terminal */
+  .terminal{
+    max-width:760px;margin:56px auto 0;background:#060912;
+    border:1px solid var(--border);border-radius:14px;overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.5);text-align:left;
+  }
+  .term-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--panel);border-bottom:1px solid var(--border);}
+  .term-dot{width:12px;height:12px;border-radius:50%;}
+  .term-dot.r{background:#ff5f56;} .term-dot.y{background:#ffbd2e;} .term-dot.g{background:#27c93f;}
+  .term-title{margin-left:10px;font-family:var(--mono);font-size:12px;color:var(--muted);}
+  .term-body{padding:20px;font-family:var(--mono);font-size:13.5px;line-height:1.9;white-space:pre-wrap;}
+  .term-body .prompt{color:var(--green);}
+  .term-body .c1{color:var(--accent);}
+  .term-body .c2{color:var(--amber);}
+  .term-body .c3{color:var(--muted);}
+  .cursor{display:inline-block;width:8px;height:15px;background:var(--accent);vertical-align:-2px;animation:blink 1s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  /* Section base */
+  section{position:relative;z-index:1;padding:80px 0;}
+  .sec-head{text-align:center;max-width:640px;margin:0 auto 52px;}
+  .sec-eyebrow{color:var(--accent);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;}
+  .sec-head h2{font-size:clamp(26px,4vw,40px);letter-spacing:-.02em;font-weight:800;margin-bottom:14px;}
+  .sec-head p{color:var(--muted);font-size:17px;}
+
+  /* Stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:26px;text-align:center;}
+  .stat .num{font-size:38px;font-weight:800;letter-spacing:-.02em;background:linear-gradient(120deg,var(--accent),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .stat .lbl{color:var(--muted);font-size:14px;margin-top:6px;}
+  @media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr);}}
+
+  /* Feature grid */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:28px;transition:.25s;}
+  .card:hover{border-color:var(--accent);transform:translateY(-4px);}
+  .ico{width:46px;height:46px;border-radius:11px;background:var(--panel2);border:1px solid var(--border);display:grid;place-items:center;margin-bottom:18px;color:var(--accent);}
+  .card h3{font-size:18px;margin-bottom:9px;letter-spacing:-.01em;}
+  .card p{color:var(--muted);font-size:15px;}
+  @media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+  /* Workflow */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;counter-reset:s;}
+  .step{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:26px;position:relative;counter-increment:s;}
+  .step::before{content:counter(s);font-family:var(--mono);font-weight:800;font-size:34px;color:var(--accent);opacity:.5;}
+  .step h4{font-size:17px;margin:10px 0 8px;}
+  .step p{color:var(--muted);font-size:14px;}
+  @media(max-width:900px){.steps{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:520px){.steps{grid-template-columns:1fr;}}
+
+  /* Benchmark demo */
+  .bench{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px;}
+  .bench-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px;flex-wrap:wrap;gap:12px;}
+  .bench-head h3{font-size:20px;letter-spacing:-.01em;}
+  .pill{font-family:var(--mono);font-size:12px;color:var(--green);background:rgba(61,220,151,.1);border:1px solid rgba(61,220,151,.3);padding:5px 12px;border-radius:999px;}
+  .bench-row{margin-bottom:20px;}
+  .bench-top{display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px;}
+  .bench-top .m{font-weight:600;}
+  .bench-top .s{font-family:var(--mono);color:var(--muted);}
+  .bar{height:12px;background:var(--panel);border-radius:999px;overflow:hidden;}
+  .bar > span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 1.2s ease;}
+  .bar.g > span{background:linear-gradient(90deg,var(--green),#2bc98a);}
+  .bar.a > span{background:linear-gradient(90deg,var(--amber),#ff9f54);}
+
+  /* Comparison table */
+  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:14px;}
+  table{width:100%;border-collapse:collapse;min-width:560px;}
+  th,td{text-align:left;padding:15px 18px;font-size:14px;border-bottom:1px solid var(--border);}
+  thead th{background:var(--panel);color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.05em;}
+  tbody tr:hover{background:var(--panel2);}
+  td.m{font-weight:700;}
+  td.mono{font-family:var(--mono);color:var(--accent);}
+  .tag{font-size:12px;padding:3px 9px;border-radius:6px;background:rgba(79,140,255,.12);color:var(--accent);font-weight:600;}
+
+  /* CTA */
+  .final{background:linear-gradient(135deg,var(--panel),var(--panel2));border:1px solid var(--border);border-radius:24px;text-align:center;padding:60px 32px;position:relative;overflow:hidden;}
+  .final::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 0%,rgba(79,140,255,.18),transparent 55%),radial-gradient(circle at 80% 100%,rgba(124,92,255,.18),transparent 55%);pointer-events:none;}
+  .final h2{font-size:clamp(26px,4vw,40px);letter-spacing:-.02em;font-weight:800;margin-bottom:14px;position:relative;}
+  .final p{color:var(--muted);font-size:17px;margin-bottom:30px;position:relative;}
+  .final .mono-hint{display:block;margin-bottom:28px;position:relative;}
+
+  /* Footer */
+  footer{border-top:1px solid var(--border);padding:40px 0;font-size:14px;color:var(--muted);}
+  .foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+  .foot-links{display:flex;gap:22px;}
+  .foot-links a:hover{color:var(--accent);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand"><span class="logo">LB</span> LocalBench</div>
+    <nav class="nav-links">
+      <a href="#features">기능</a>
+      <a href="#workflow">사용법</a>
+      <a href="#bench">벤치마크</a>
+      <a href="#compare">비교</a>
+    </nav>
+    <a href="#cta" class="nav-cta">다운로드</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="badge"><span class="dot"></span> 100% 로컬 실행 · 서버 전송 없음</div>
+    <h1>당신의 GPU 위에서<br><span class="grad">로컬 LLM을 빠르게 평가하세요</span></h1>
+    <p class="lead">LocalBench는 설치·실행·평가까지 모든 과정이 로컬에서 완료되는 경량 벤치마크 도구입니다. 인터넷 연결 없이도 수백 개의 벤치마크를 동시에 실행할 수 있습니다.</p>
+    <div class="cta-row">
+      <a href="#cta" class="btn btn-primary">무료로 시작하기</a>
+      <a href="#features" class="btn btn-ghost">더 알아보기 →</a>
+    </div>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <span class="term-dot r"></span><span class="term-dot y"></span><span class="term-dot g"></span>
+        <span class="term-title">terminal — localbench</span>
+      </div>
+      <div class="term-body"><span class="prompt">❯</span> localbench run --model llama3-8b --bench mmlu,humaneval,bbh
+<span class="c3">… loading model (4-bit) · VRAM 4.2GB · 3 benchmarks queued</span>
+<span class="c1">[mmlu]    </span><span class="c2">1250 questions · 68.4% accuracy</span>
+<span class="c1">[humaneval]</span><span class="c2">164 tests · 74.1% pass@1</span>
+<span class="c1">[bbh]     </span><span class="c2">525 questions · 51.9% accuracy</span>
+<span class="prompt">❯</span> localbench report --format html
+<span class="c3">✓ report.html generated in 0.3s</span><span class="cursor"></span></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:20px;">
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><div class="num">0</div><div class="lbl">업로드 필요 없음</div></div>
+      <div class="stat"><div class="num">50+</div><div class="lbl">내장 벤치마크</div></div>
+      <div class="stat"><div class="num">10x</div><div class="lbl">클라우드보다 빠른 실행</div></div>
+      <div class="stat"><div class="num">4-bit</div><div class="lbl">양자화 지원</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Features</div>
+      <h2>프로덕션을 위한 벤치마크</h2>
+      <p>개발자부터 연구자까지. 복잡한 설정 없이도 전문 수준의 평가를 제공합니다.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="ico">◈</div>
+        <h3>원클릭 실행</h3>
+        <p>모델과 벤치마크를 지정하면 자동으로 병렬로 실행됩니다. 드라이버나 서버 설정은 필요 없습니다.</p>
+      </div>
+      <div class="card">
+        <div class="ico">⚡</div>
+        <h3>고성능 추론</h3>
+        <p>GGUF, EXLLAMAV2, ONNX 등 주요 런타임을 지원하며 4비트·8비트 양자화를 자동으로 최적화합니다.</p>
+      </div>
+      <div class="card">
+        <div class="ico">◐</div>
+        <h3>동시 벤치마크</h3>
+        <p>MMLU, HumanEval, BBH 등 50개 이상의 벤치마크를 하나의 명령어로 동시에 실행하세요.</p>
+      </div>
+      <div class="card">
+        <div class="ico">▤</div>
+        <h3>재현 가능한 결과</h3>
+        <p>모든 시드를 고정하고 실행 로그를 저장하여 언제 어디서든 동일한 결과를 재현할 수 있습니다.</p>
+      </div>
+      <div class="card">
+        <div class="ico">◱</div>
+        <h3>상세 리포트</h3>
+        <p>질문별 정답률, 오답 분석, 지연 시간·토큰 속도를 포함하는 HTML 리포트를 즉시 생성합니다.</p>
+      </div>
+      <div class="card">
+        <div class="ico">⬡</div>
+        <h3>프라이버시 우선</h3>
+        <p>데이터는 절대 외부로 전송되지 않습니다. 평가에 사용하는 모델·데이터도 모두 로컬에 머무릅니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="workflow" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">How it works</div>
+      <h2>4단계로 끝나는 평가</h2>
+      <p>복잡한 파이프라인은 없습니다. 명령어를 실행하는 것만으로 충분합니다.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><h4>모델 선택</h4><p>로컬 저장소의 GGUF·SAFETENSORS 모델을 지정합니다.</p></div>
+      <div class="step"><h4>벤치마크 선택</h4><p>평가하려는 벤치마크를 이름으로 선택합니다.</p></div>
+      <div class="step"><h4>실행</h4><p>GPU·CPU 부하를 자동으로 분산시켜 병렬로 평가합니다.</p></div>
+      <div class="step"><h4>결과 확인</h4><p>HTML 리포트와 CSV를 즉시 확인·공유합니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="bench">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Live Demo</div>
+      <h2>실제 벤치마크 결과</h2>
+      <p>LocalBench로 측정한 로컬 LLM의 성능입니다. 실제 실행과 유사한 레이아웃으로 제공합니다.</p>
+    </div>
+    <div class="bench">
+      <div class="bench-head">
+        <h3>llama3-8b-instant · RTX 4090</h3>
+        <span class="pill">● 실행 완료 · 2m 14s</span>
+      </div>
+      <div class="bench-row">
+        <div class="bench-top"><span class="m">MMLU (지식)</span><span class="s">68.4%</span></div>
+        <div class="bar g"><span style="width:68.4%"></span></div>
+      </div>
+      <div class="bench-row">
+        <div class="bench-top"><span class="m">HumanEval (코딩)</span><span class="s">74.1%</span></div>
+        <div class="bar"><span style="width:74.1%"></span></div>
+      </div>
+      <div class="bench-row">
+        <div class="bench-top"><span class="m">Big-Bench-Hard (추론)</span><span class="s">51.9%</span></div>
+        <div class="bar a"><span style="width:51.9%"></span></div>
+      </div>
+      <div class="bench-row">
+        <div class="bench-top"><span class="m">GSM8K (수학)</span><span class="s">62.7%</span></div>
+        <div class="bar g"><span style="width:62.7%"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="compare" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Comparison</div>
+      <h2>왜 LocalBench인가요</h2>
+      <p>클라우드 벤치마크 솔루션과의 차이점을 확인하세요.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>구분</th><th>LocalBench</th><th>클라우드 서비스</th><th>수동 스크립트</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="m">데이터 프라이버시</td><td><span class="tag">완전 로컬</span></td><td>외부 전송</td><td>직접 관리</td></tr>
+          <tr><td class="m">초기 설정</td><td><span class="

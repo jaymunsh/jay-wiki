@@ -1,0 +1,61 @@
+# Loki ruler 규칙. 로그 본문에서 값을 뽑아 알림을 만든다.
+#
+# 왜 지표가 아니라 로그인가: Prometheus 경로에는 숫자만 흐른다. trace_id 와 pod 이름은
+# 로그에만 있고, 그 둘이 있어야 알림에서 사고 하나로 바로 넘어갈 수 있다.
+#
+# status =~ "5.." 는 5xx 만 고르려는 게 아니라 정규식이 실제로 맞았는지 보는 문지기다.
+# LogQL 의 regexp 는 안 맞아도 줄을 버리지 않고 라벨만 비운 채 통과시킨다. 그대로 두면
+# 로그 형식이 바뀌는 순간 '오류 ·' 처럼 값이 텅 빈 알림이 온다. 실제로 한 번 왔다.
+#
+# 500 만 보지 않는다. 이 사이트를 만든 그 사고 — 관리자 화면이 발행일을 오프셋 없이
+# 보낸 것 — 는 읽을 수 없는 본문이라 지금은 400 이다. 500 만 보면 정작 그 사고를 놓친다.
+#
+# 이 규칙은 GlobalExceptionHandler 가 찍는 두 줄에 의존한다. 꼬리가 같아 정규식 하나로 잡는다.
+#   unhandled exception status=500 method=PUT path=/api/admin/blog/posts/24 route=/api/admin/blog/posts/{id}
+#   unreadable request body status=400 method=PUT path=... route=... cause=...
+# 그 로그 형식을 바꾸면 아래 정규식도 같이 고쳐야 한다.
+# GlobalExceptionHandlerTest 가 같은 정규식을 들고 있어 어긋나면 배포 전에 깨진다.
+#
+# 사이드카(loki-sc-rules)가 loki_rule 라벨을 보고 이 파일을 /rules/fake 로 떨어뜨린다.
+# fake 는 auth_enabled: false 일 때 Loki 가 쓰는 테넌트 이름이다.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loki-rules-jaywiki
+  namespace: obs
+  labels:
+    loki_rule: "1"
+  annotations:
+    k8s-sidecar-target-directory: /rules/fake
+data:
+  jaywiki-errors.yaml: |
+    groups:
+      - name: jaywiki-log-errors
+        rules:
+          - alert: JaywikiApiErrorLogged
+            # 10분 창에서 같은 trace 의 예외 줄을 센다. trace_id 가 라벨이라 사고마다
+            # 알림이 하나씩 따로 온다. 한 요청이 여러 줄을 남겨도 한 통으로 묶인다.
+            #
+            # 창 길이는 지표 규칙(JaywikiApi5xxObserved)과 같아야 한다. 이 알림이 떠 있는
+            # 동안 지표 알림을 억제하는데, 이쪽이 먼저 풀리면 억제가 풀려 같은 사고로
+            # 뒤늦게 한 통이 더 간다.
+            expr: |
+              sum by (namespace, pod, trace_id, status, method, path, uri) (
+                count_over_time(
+                  {namespace="backend"}
+                  |~ "unhandled exception status=|unreadable request body status="
+                  | regexp "trace_id=(?P<trace_id>[0-9a-f]{32})"
+                  | regexp "status=(?P<status>[0-9]{3}) method=(?P<method>[A-Z]+) path=(?P<path>[^ ]+) route=(?P<uri>[^ ]+)"
+                  | status =~ "[45].."
+                  [10m]
+                )
+              ) > 0
+            for: 0m
+            labels:
+              severity: warning
+              source: loki
+            # route 를 uri 라는 이름으로 뽑는 이유: Alertmanager 의 억제 규칙이 지표 알림과
+            # equal: [method, uri] 로 맞추는데, 지표 쪽 uri 가 Spring 의 라우트 패턴이다.
+            # 사람에게 보여줄 실제 경로는 path 로 따로 싣는다.
+            annotations:
+              summary: "{{ $labels.status }} 오류 · {{ $labels.method }} {{ $labels.path }}"

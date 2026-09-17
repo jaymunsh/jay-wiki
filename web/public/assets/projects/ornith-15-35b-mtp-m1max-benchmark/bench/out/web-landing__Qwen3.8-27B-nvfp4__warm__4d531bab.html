@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOCALEVAL — 로컬 LLM 벤치마크</title>
+<style>
+:root{
+  --bg:#0a0c10; --bg2:#0e1218; --panel:#12161d; --panel2:#161b24;
+  --line:rgba(255,255,255,.07); --line2:rgba(255,255,255,.13);
+  --ink:#eef2f6; --dim:#98a3b3; --faint:#5b6472;
+  --amber:#ffb454; --amber2:#ff8a3d; --teal:#3fd6c4; --coral:#ff6f5e;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Code",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::selection{background:var(--amber);color:#1a1206}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+.mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--amber);display:inline-flex;align-items:center;gap:10px}
+.eyebrow::before{content:"";width:26px;height:1px;background:var(--amber);opacity:.6}
+
+/* ---------- ambient ---------- */
+#bg{position:fixed;inset:0;z-index:-2;opacity:.5}
+.glow{position:fixed;z-index:-1;pointer-events:none;filter:blur(70px);opacity:.35}
+.glow.a{width:520px;height:520px;background:radial-gradient(circle,rgba(255,138,61,.5),transparent 70%);top:-160px;right:-120px}
+.glow.b{width:460px;height:460px;background:radial-gradient(circle,rgba(63,214,196,.4),transparent 70%);bottom:-120px;left:-140px}
+.grain{position:fixed;inset:0;z-index:50;pointer-events:none;opacity:.04;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ---------- nav ---------- */
+header{position:sticky;top:0;z-index:40;backdrop-filter:blur(10px);background:rgba(10,12,16,.72);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+.brand{display:flex;align-items:center;gap:11px;font-family:var(--mono);font-weight:700;letter-spacing:.04em;font-size:15px}
+.brand .dot{width:11px;height:11px;border-radius:50%;background:var(--amber);box-shadow:0 0 12px var(--amber);animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.brand small{color:var(--faint);font-weight:400;font-size:11px;letter-spacing:.1em}
+.navlinks{display:flex;gap:28px;font-family:var(--mono);font-size:13px;color:var(--dim)}
+.navlinks a{transition:color .2s;position:relative}
+.navlinks a:hover{color:var(--ink)}
+.navlinks a::after{content:"";position:absolute;left:0;bottom:-6px;width:0;height:1px;background:var(--amber);transition:width .25s}
+.navlinks a:hover::after{width:100%}
+.nav .ver{font-family:var(--mono);font-size:11px;color:var(--faint);border:1px solid var(--line);padding:4px 9px;border-radius:20px}
+@media(max-width:760px){.navlinks{display:none}}
+
+/* ---------- hero ---------- */
+.hero{padding:72px 0 40px;position:relative}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(38px,6.2vw,74px);line-height:1.02;letter-spacing:-.02em;font-weight:800;margin:22px 0 20px}
+.hero h1 .hl{color:var(--amber)}
+.hero h1 .thin{color:var(--dim);font-weight:300}
+.hero p.lead{font-size:18px;color:var(--dim);max-width:46ch}
+.hero .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.chip{font-family:var(--mono);font-size:12px;color:var(--dim);border:1px solid var(--line);padding:7px 13px;border-radius:8px;background:var(--panel)}
+.chip b{color:var(--ink);font-weight:600}
+.cta{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap}
+.btn{font-family:var(--mono);font-size:14px;font-weight:600;padding:14px 22px;border-radius:10px;cursor:pointer;transition:transform .18s,box-shadow .18s,background .18s;border:1px solid transparent;display:inline-flex;align-items:center;gap:9px}
+.btn.primary{background:var(--amber);color:#1a1206;box-shadow:0 8px 30px rgba(255,138,61,.28)}
+.btn.primary:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(255,138,61,.42)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line2)}
+.btn.ghost:hover{background:var(--panel);transform:translateY(-2px)}
+.btn .ar{transition:transform .18s}
+.btn:hover .ar{transform:translateX(4px)}
+
+/* ---------- console ---------- */
+.console{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line2);border-radius:16px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.55);position:relative}
+.console::before{content:"";position:absolute;inset:0 0 auto 0;height:1px;background:linear-gradient(90deg,transparent,var(--amber),transparent);opacity:.5}
+.cbar{display:flex;align-items:center;gap:8px;padding:13px 16px;border-bottom:1px solid var(--line);background:rgba(0,0,0,.25)}
+.cbar .dots{display:flex;gap:6px}
+.cbar .dots i{width:11px;height:11px;border-radius:50%;background:var(--line2)}
+.cbar .dots i:nth-child(1){background:#ff5f57}.cbar .dots i:nth-child(2){background:#febc2e}.cbar .dots i:nth-child(3){background:#28c840}
+.cbar .title{font-family:var(--mono);font-size:12px;color:var(--dim);margin-left:8px}
+.cbar .live{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--teal);display:flex;align-items:center;gap:6px}
+.cbar .live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);animation:pulse 1.6s infinite}
+.cbody{padding:18px 18px 20px;font-family:var(--mono);font-size:13px}
+.cbody .cmd{color:var(--ink)}
+.cbody .cmd .p{color:var(--teal)}
+.cbody .cmd .f{color:var(--amber)}
+.cbody .out{color:var(--dim);margin-top:12px;line-height:1.9}
+.cbody .out .k{color:var(--faint)}
+.cbody .out .v{color:var(--ink)}
+.cbody .out .ok{color:var(--teal)}
+.cbody .out .warn{color:var(--amber)}
+.cbody .out .bad{color:var(--coral)}
+.cbody .bar{height:8px;background:rgba(255,255,255,.06);border-radius:6px;overflow:hidden;margin:6px 0 14px}
+.cbody .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--amber2),var(--amber));border-radius:6px;transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
+.cbody .cursor{display:inline-block;width:8px;height:15px;background:var(--amber);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+@media(max-width:860px){.hero-grid{grid-template-columns:1fr;gap:34px}.hero{padding:48px 0 24px}}
+
+/* ---------- ticker ---------- */
+.ticker{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg2);overflow:hidden;white-space:nowrap;padding:14px 0;position:relative}
+.ticker .track{display:inline-flex;gap:44px;animation:scroll 34s linear infinite;font-family:var(--mono);font-size:13px;color:var(--dim)}
+.ticker .track span b{color:var(--ink);font-weight:600}
+.ticker .track span .up{color:var(--teal)}
+.ticker .track span .dn{color:var(--coral)}
+.ticker .track span::before{content:"◆";color:var(--amber);margin-right:12px;font-size:9px;vertical-align:2px}
+@keyframes scroll{to{transform:translateX(-50%)}}
+
+/* ---------- section shell ---------- */
+section{padding:88px 0;position:relative}
+.sec-head{max-width:640px;margin-bottom:44px}
+.sec-head h2{font-size:clamp(30px,4.4vw,46px);line-height:1.05;letter-spacing:-.02em;font-weight:800;margin:16px 0 14px}
+.sec-head p{color:var(--dim);font-size:17px}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* ---------- benchmark table ---------- */
+.table-wrap{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel)}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13.5px;min-width:720px}
+thead th{text-align:right;padding:16px 18px;color:var(--faint);font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid var(--line2);background:rgba(0,0,0,.2);white-space:nowrap}
+thead th:first-child{text-align:left}
+tbody td{padding:15px 18px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody td:first-child{text-align:left}
+tbody tr{transition:background .18s}
+tbody tr:hover{background:rgba(255,180,84,.05)}
+tbody tr:last-child td{border-bottom:none}
+.model{display:flex;align-items:center;gap:11px;font-weight:600;color:var(--ink)}
+.model .tag{font-size:10px;color:var(--faint);border:1px solid var(--line);padding:2px 7px;border-radius:20px;letter-spacing:.05em}
+.model .tag.q{color:var(--teal);border-color:rgba(63,214,196,.3)}
+.model .tag.f{color:var(--amber);border-color:rgba(255,180,84,.3)}
+.score{font-weight:700}
+.score .lead{color:var(--amber)}
+.score .t{color:var(--teal)}
+.score .c{color:var(--coral)}
+.score .n{color:var(--dim)}
+.score .u{color:var(--faint);font-size:11px}
+.rank{color:var(--faint);font-size:12px}
+.rank .r1{color:var(--amber);font-weight:700}
+.table-foot{display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:center;padding:16px 18px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--faint)}
+.table-foot .legend{display:flex;gap:16px;flex-wrap:wrap}
+.table-foot .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:0}
+
+/* ---------- features bento ---------- */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.card{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:26px;position:relative;overflow:hidden;transition:transform .25s,border-color .25s,background .25s}
+.card:hover{transform:translateY(-4px);border-color:var(--line2);background:var(--panel2)}
+.card .ic{width:42px;height:42px;border-radius:10px;display:grid;place-items:center;background:rgba(255,180,84,.1);color:var(--amber);margin-bottom:18px;font-family:var(--mono);font-size:18px;font-weight:700}
+.card h3{font-size:19px;font-weight:700;margin-bottom:9px;letter-spacing:-.01em}
+.card p{color:var(--dim);font-size:14.5px}
+.card .stat{font-family:var(--mono);font-size:34px;font-weight:700;color:var(--ink);margin-top:14px;letter-spacing:-.02em}
+.card .stat small{font-size:13px;color:var(--faint);font-weight:400}
+.card .sub{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+.c-a{grid-column:span 3;grid-row:span 2}
+.c-b{grid-column:span 3}
+.c-c{grid-column:span 2}
+.c-d{grid-column:span 2}
+.c-e{grid-column:span 2}
+.c-f{grid-column:span 3}
+.c-g{grid-column:span 3}
+.c-a .ic{background:rgba(63,214,196,.1);color:var(--teal)}
+.c-a .big{font-family:var(--mono);font-size:52px;font-weight:700;letter-spacing:-.03em;line-height:1;margin:22px 0 6px}
+.c-a .big .u{font-size:20px;color:var(--faint)}
+.c-a .bars{display:flex;flex-direction:column;gap:12px;margin-top:24px}
+.c-a .brow{display:grid;grid-template-columns:120px 1fr 44px;align-items:center;gap:12px;font-family:var(--mono);font-size:12px}
+.c-a .brow .lbl{color:var(--dim)}
+.c-a .brow .val{text-align:right;color:var(--ink)}
+.c-a .btrack{height:9px;background:rgba(255,255,255,.06);border-radius:6px;overflow:hidden}
+.c-a .btrack i{display:block;height:100%;width:0;border-radius:6px;transition:width 1.3s cubic-bezier(.2,.8,.2,1)}
+.c-a .btrack i.g{background:linear-gradient(90deg,var(--amber2),var(--amber))}
+.c-a .btrack i.t{background:linear-gradient(90deg,#2aa89a,var(--teal))}
+.c-a .btrack i.c{background:linear-gradient(90deg,#d14a3c,var(--coral))}
+@media(max-width:900px){.bento{grid-template-columns:repeat(2,1fr)}.c-a,.c-b,.c-c,.c-d,.c-e,.c-f,.c-g{grid-column:span 1;grid-row:auto}.c-a{grid-column:span 2}}
+@media(max-width:560px){.bento{grid-template-columns:1fr}.c-a{grid-column:span 1}}
+
+/* ---------- pipeline ---------- */
+.pipe{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative}
+.step{padding:0 22px;position:relative}
+.step .num{font-family:var(--mono);font-size:13px;color:var(--amber);letter-spacing:.1em}
+.step .n{width:44px;height:44px;border-radius:50%;border:1px solid var(--line2);display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:16px;margin:16px 0 18px;background:var(--panel);position:relative;z-index:2}
+.step h3{font-size:18px;font-weight:700;margin-bottom:8px}
+.step p{color:var(--dim);font-size:14px}
+.step::after{content:"";position:absolute;top:38px;right:0;width:100%;height:1px;background:linear-gradient(90deg,var(--line2),transparent);z-index:1}
+.step:last-child::after{display:none}
+@media(max-width:820px){.pipe{grid-template-columns:1fr;gap:8px}.step{padding:0;border-left:2px solid var(--line);padding-left:22px}.step::after{display:none}}
+
+/* ---------- hardware ---------- */
+.hw{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.hw .list{display:flex;flex-direction:column;gap:2px}
+.hw .row{display:grid;grid-template-columns:1fr auto;gap:16px;padding:18px 20px;border:1px solid var(--line);border-radius:12px;background:var(--panel);transition:transform .2s,border-color .2s}
+.hw .row:hover{transform:translateX(6px);border-color:var(--line2)}
+.hw .row .name{font-weight:700;font-size:16px}
+.hw .row .name small{display:block;font-family:var(--mono);font-size:11px;color:var(--faint);font-weight:400;margin-top:3px;letter-spacing:.05em}
+.hw .row .spec{font-family:var(--mono);text-align:right}
+.hw .row .spec b{color:var(--amber);font-size:15px}
+.hw .row .spec span{display:block;font-size:11px;color:var(--faint);margin-top:3px}
+.hw .intro h2{font-size:clamp(28px,4vw,42px);line-height:1.05;letter-spacing:-.02em;font-weight:800;margin:14px 0 16px}
+.hw .intro p{color:var(--dim);font-size:16px;max-width:44ch}
+@media(max-width:820px){.hw{grid-template-columns:1fr;gap:28px}}
+
+/* ---------- code ---------- */
+.code-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:center}
+.code-grid .txt h2{font-size:clamp(28px,4vw,42px);line-height:1.05;letter-spacing:-.02em;font-weight:800;margin:14px 0 16px}
+.code-grid .txt p{color:var(--dim);font-size:16px;max-width:42ch}
+.code-grid .txt ul{list-style:none;margin-top:22px;display:flex;flex-direction:column;gap:12px}
+.code-grid .txt li{display:flex;gap:12px;align-items:flex-start;color:var(--dim);font-size:15px}
+.code-grid .txt li::before{content:"→";color:var(--amber);font-family:var(--mono);flex-shrink:0}
+.codebox{background:#0b0e13;border:1px solid var(--line2);border-radius:14px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.codebox .hd{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--dim)}
+.codebox .hd .tab{color:var(--ink);background:var(--panel2);padding:4px 12px;border-radius:6px}
+.codebox pre{padding:20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.85}
+.codebox .cm{color:var(--faint)}
+.codebox .kw{color:var(--amber)}
+.codebox .st{color:var(--teal)}
+.codebox .fn{color:var(--ink)}
+.codebox .nu{color:var(--coral)}
+@media(max-width:820px){.code-grid{grid-template-columns:1fr;gap:24px}}
+
+/* ---------- stats band ---------- */
+.band{background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.band .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.band .cell{text-align:center;padding:14px}
+.band .cell .n{font-family:var(--mono);font-size:clamp(34px,5vw,52px);font-weight:700;letter-spacing:-.03em;color:var(--ink)}
+.band .cell .n .u{color:var(--amber);font-size:.5em}
+.band .cell .l{font-family:var(--mono);font-size:12px;color:var(--faint);letter-spacing:.1em;text-transform:uppercase;margin-top:8px}
+@media(max-width:720px){.band .grid{grid-template-columns:repeat(2,1fr);gap:32px 16px}}
+
+/* ---------- pricing ---------- */
+.price{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:stretch}
+.plan{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:30px;display:flex;flex-direction:column;transition:transform .25s,border-color .25s}
+.plan:hover{transform:translateY(-5px);border-color:var(--line2)}
+.plan.feat{border-color:rgba(255,180,84,.4);background:linear-gradient(180deg,rgba(255,180,84,.06),var(--panel));position:relative}
+.plan.feat::before{content:"가장 인기";position:absolute;top:-11px;left:30px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;background:var(--amber);color:#1a1206;padding:4px 12px;border-radius:20px;font-weight:700}
+.plan .tier{font-family:var(--mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.plan .amt{font-family:var(--mono);font-size:44px;font-weight:700;letter-spacing:-.03em;margin:16px 0 4px}
+.plan .amt small{font-size:15px;color:var(--faint);font-weight:400}
+.plan .desc{color:var(--dim);font-size:14px;min-height:44px}
+.plan ul{list-style:none;margin:22px 0;display:flex;flex-direction:column;gap:11px;flex:1}
+.plan li{display:flex;gap:11px;font-size:14px;color:var(--dim)}
+.plan li::before{content:"✓";color:var(--teal);font-family:var(--mono);flex-shrink:0}
+.plan li.off{color:var(--faint)}
+.plan li.off::before{content:"—";color:var(--faint)}
+.plan .btn{width:100%;justify-content:center}
+@media(max-width:820px){.price{grid-template-columns:1fr;max-width:440px;margin:0 auto}}
+
+/* ---------- faq ---------- */
+.faq{max-width:820px;margin:0 auto}
+.q{border-bottom:1px solid var(--line)}
+.q button{width:100%;text-align:left;background:none;border:none;color:var(--ink);font-family:var(--sans);font-size:18px;font-weight:600;padding:22px 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:20px}
+.q button .pm{font-family:var(--mono);color:var(--amber);font-size:22px;transition:transform .3s;flex-shrink:0}
+.q.open button .pm{transform:rotate(45deg)}
+.q .a{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.q .a p{color:var(--dim);font-size:15.5px;padding:0 0 22px;max-width:64ch}
+
+/* ---------- cta ---------- */
+.cta-band{border:1px solid var(--line2);border-radius:20px;background:linear-gradient(135deg,rgba(255,138,61,.12),rgba(63,214,196,.06));padding:56px;text-align:center;position:relative;overflow:hidden}
+.cta-band::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 120%,rgba(255,138,61,.25),transparent 60%)}
+.cta-band>*{position:relative}
+.cta-band h2{font-size:clamp(30px,5vw,52px);font-weight:800;letter-spacing:-.02em;line-height:1.05}
+.cta-band p{color:var(--dim);font-size:17px;margin:16px auto 30px;max-width:48ch}
+.cta-band .cta{justify-content:center}
+.cta-band .cmdline{font-family:var(--mono);font-size:14px;color:var(--ink);background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:10px;padding:14px 20px;display:inline-flex;gap:12px;align-items:center;margin-top:26px}
+.cta-band .cmdline .p{color:var(--teal)}
+@media(max-width:600px){.cta-band{padding:36px 24px}}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);padding:56px 0 40px;background:var(--bg2)}
+.foot{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:36px}
+.foot .brand{margin-bottom:16px}
+.foot .tag{color:var(--dim);font-size:14px;max-width:34ch}
+.foot .col h4{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:16px}
+.foot .col a{display:block;color:var(--dim);font-size:14px;padding:6px 0;transition:color .2s}
+.foot .col a:hover{color:var(--ink)}
+.foot .bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-top:44px;padding-top:24px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--faint)}
+@media(max-width:760px){.foot{grid-template-columns:1fr 1fr}.foot .brand-col{grid-column:span 2}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div class="glow a"></div>
+<div class="glow b"></div>
+<div class="grain"></div>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#"><span class="dot"></span>LOCALEVAL <small>v2.4</small></a>
+    <nav class="navlinks">
+      <a href="#bench">벤치마크</a>
+      <a href="#features">기능</a>
+      <a href="#hw">하드웨어</a>
+      <a href="#pricing">가격</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <span class="ver">● 로컬 · 오프라인</span>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="wrap hero">
+  <div class="hero-grid">
+    <div class="hero-copy reveal">
+      <span class="eyebrow">로컬 LLM 벤치마크 · 오프라인</span>
+      <h1>모델을 <span class="hl">숫자로</span> 말하게<br>하는 <span class="thin">단 하나의 도구</span></h1>
+      <p class="lead">네트워크 없이, 클라우드 없이. 로컬에서 실행되는 LLM을 MMLU·HumanEval·GSM8K·MATH·IFEval로 측정하고, 토큰/초·VRAM·첫 토큰 지연까지 한 화면에 담습니다.</p>
+      <div class="meta">
+        <span class="chip"><b>12</b> 벤치마크</span>
+        <span class="chip"><b>40+</b> 모델</span>
+        <span class="chip"><b>0</b> 네트워크</span>
+        <span class="chip"><b>3</b> 백엔드</span>
+      </div>
+      <div class="cta">
+        <a class="btn primary" href="#bench">벤치마크 시작 <span class="ar">→</span></a>
+        <a class="btn ghost" href="#code">코드 보기</a>
+      </div>
+    </div>
+
+    <div class="console reveal">
+      <div class="cbar">
+        <div class="dots"><i></i><i></i><i></i></div>
+        <span class="title">localeval — run 7ac201d4</span>
+        <span class="live">LIVE</span>
+      </div>
+      <div class="cbody">
+        <div class="cmd"><span class="p">$</span> localeval run <span class="f">--model</span> qwen2.5-7b-instruct <span class="f">--suite</span> full</div>
+        <div class="out">
+          <div><span class="k">[00:00]</span> <span class="ok">✓</span> 모델 로드 <span class="v">qwen2.5-7b-instruct</span> <span class="k">(4.1 GB)</span></div>
+          <div><span class="k">[00:02]</span> <span class="ok">✓</span> 백엔드 <span class="v">llama.cpp · CUDA</span> <span class="k">ctx=8192</span></div>
+          <div><span class="k">[00:04]</span> <span class="warn">▸</span> MMLU <span class="v">5,000</span> 문항 · <span class="v">4</span> 선택지</div>
+          <div class="bar"><i data-w="87"></i></div>
+          <div><span class="k">[00:41]</span> <span class="ok">✓</span> MMLU <span class="v">87.2</span> · HumanEval <span class="v">71.4</span> · GSM8K <span class="v">89.0</span></div>
+          <div><span class="k">[00:58]</span> <span class="ok">✓</span> MATH <span class="v">64.8</span> · IFEval <span class="v">78.3</span> · MMLU-Pro <span class="v">72.1</span></div>
+          <div><span class="k">[01:02]</span> <span class="ok">✓</span> 완료 · <span class="v">1,240 tok/s</span> · VRAM <span class="v">6.2 GB</span> · TTFT <span class="v">42 ms</span></div>
+          <div style="margin-top:12px"><span class="k">$</span> <span class="cursor"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="track" id="tick">
+    <span><b>llama3.1-8b</b> MMLU <b>78.4</b> <span class="up">▲ 2.1</span></span>
+    <span><b>qwen2.5-7b</b> HumanEval <b>71.4</b> <span class="up">▲ 4.0</span></span>
+    <span><b>phi-3-mini</b> MATH <b>58.2</b> <span class="dn">▼ 1.3</span></span>
+    <span><b>gemma-2-9b</b> GSM8K <b>84.6</b> <span class="up">▲ 3.2</span></span>
+    <span><b>mistral-7b</b> IFEval <b>74.9</b> <span class="up">▲ 0.8</span></span>
+    <span><b>llama3.1-8b</b> MMLU <b>78.4</b> <span class="up">▲ 2.1</span></span>
+    <span><b>qwen2.5-7b</b> HumanEval <b>71.4</b> <span class="up">▲ 4.0</span></span>
+    <span><b>phi-3-mini</b> MATH <b>58.2</b> <span class="dn">▼ 1.3</span></span>
+    <span><b>gemma-2-9b</b> GSM8K <b>84.6</b> <span class="up">▲ 3.2</span></span>
+    <span><b>mistral-7b</b> IFEval <b>74.9</b> <span class="up">▲ 0.8</span></span>
+  </div>
+</div>
+
+<!-- BENCHMARK TABLE -->
+<section id="bench">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">벤치마크 리더보드</span>
+      <h2>같은 하드웨어, 같은 조건.<br>숫자만 남는다.</h2>
+      <p>모든 모델은 동일한 GPU·컨텍스트·샘플링 설정에서 측정됩니다. Q4_K_M 양자화 기준, 2024-11 스냅샷.</p>
+    </div>
+    <div class="table-wrap reveal">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>모델</th>
+              <th>MMLU</th>
+              <th>HumanEval</th>
+              <th>GSM8K</th>
+              <th>MATH</th>
+              <th>IFEval</th>
+              <th>tok/s</th>
+              <th>VRAM</th>
+              <th>TTFT</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="model">llama3.1-8b <span class="tag q">Q4_K_M</span></div></td>
+              <td class="score"><span class="lead">78.4</span></td>
+              <td class="score"><span class="n">62.1</span></td>
+              <td class="score"><span class="n">85.3</span></td>
+              <td class="score"><span class="n">54.7</span></td>
+              <td class="score"><span class="n">76.2</span></td>
+              <td class="score"><span class="n">1,240</span> <span class="u">tok/s</span></td>
+              <td class="score"><span class="n">5.8</span> <span class="u">GB</span></td>
+              <td class="score"><span class="n">38</span> <span class="u">ms</span></td>
+            </tr>
+            <tr>
+              <td><div class="model">qwen2.5-7b-instruct <span class="tag q">Q4_K_M</span></div></td>
+              <td class="score"><span class="lead">87.2</span></td>
+              <td class="score"><span class="lead">71.4</span></td>
+              <td class="score"><span class="lead">89.0</span></td>
+              <td class="score"><span class="n">64.8</span></td>
+              <td class="score"><span class="n">78.3</span></td>
+              <td class="score"><span class="n">1,180</span> <span class="u">tok/s</span></td>
+              <td class="score"><span class="n">4.9</span> <span class="u">GB</span></td>
+              <td class="score"><span class="n">42</span> <span class="u">ms</span></td>
+            </tr>
+            <tr>
+              <td><div class="model">gemma-2-9b-it <span class="tag q">Q4_K_M</span></div></td>
+              <td class="score"><span class="n">74.1</span></td>
+              <td class="score"><span class="n">58.9</span></td>
+              <td class="score"><span class="n">84.6</span></td>
+              <td class="score"><span class="n">52.3</span></td>
+              <td class="score"><span class="n">72.8</span></td>
+              <td class="score"><span class="n">980</span> <span class="u">tok/s</span></td>
+              <td class="score"><span class="n">6.4</span> <span class="u">GB</span></td>
+              <td class="score"><span class="n">51</span> <span class="u">ms</span></td>
+            </tr>
+            <tr>
+              <td><div class="model">mistral-7b-v0.3 <span class="tag q">Q4_K_M</span></div></td>
+              <td class="score"><span class="n">71.5</span></td>
+              <td class="score"><span class="n">55.2</span></td>
+              <td class="score"><span class="n">82.1</span></td>
+              <td class="score"><span class="n">48.9</span></td>
+              <td class="score"><span class="n">74.9</span></td>
+              <td class="score"><span class="n">1,320</span> <span class="u">tok/s</span></td>
+              <td class="score"><span class="n">4.6</span> <span class="u">GB</span></td>
+              <td class="score"><span class="n">35</span> <span class="u">ms</span></td>
+            </tr>
+            <tr>
+              <td><div class="model">phi-3-mini-4k <span class="tag q">Q4_K_M</span></div></td>
+              <td class="score"><span class="n">72.8</span></td>
+              <td class="score"><span class="n">51.7</span></td>
+              <td class="score"><span class="n">79.4</span></td>
+              <td class="score"><span class="n">58.2</span></td>
+              <td class="score"><span class="n">68.5</span></td>
+              <td class="score"><span class="n">1,540</span> <span class="u">tok/s</span></td>
+              <td class="score"><span class="n">3.1</span> <span class="u">GB</span></td>
+              <td class="score"><span class="n">29</span> <span class="u">ms</span></td>
+            </tr>
+            <tr>
+              <td><div class="model">llama3.1-8b <span class="tag f">FP16</span></div></td>
+              <td class="score"><span class="n">78.9</span></td>
+              <td class="score"><span class="n">62.8</span></td>
+              <td class="score"><span class="n">85.7</span></td>
+              <td class="score"><span class="n">55.1</span></td>
+              <td class="score"><span class="n">76.9</span></td>
+              <td class="score"><span class="n">620</span> <span class="u">tok/s</span></td>
+              <td class="score"><span class="n">16.2</span> <span class="u">GB</span></td>
+              <td class="score"><span class="n">44</span> <span class="u">ms</span></td>
+            </tr>
+            <tr>
+              <td><div class="model">qwen2.5-7b-instruct <span class="tag f">FP16</span></div></td>
+              <td class="score"><span class="n">87.6</span></td>
+              <td class="score"><span class="n">72.0</span></td>
+              <td class="score"><span class="n">89.4</span></td>
+              <td class="score"><span class="n">65.3</span></td>
+              <td class="score"><span class="n">78.9</span></td>
+              <td class="score"><span class="n">580</span> <span class="u">tok/s</span></td>
+              <td class="score"><span class="n">14.8</span> <span class="u">GB</span></td>
+              <td class="score"><span class="n">47</span> <span class="u">ms</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-foot">
+        <div class="legend">
+          <span><i style="background:var(--amber)"></i>항목 최고</span>
+          <span><i style="background:var(--teal)"></i>양자화</span>
+          <span><i style="background:var(--coral)"></i>FP16</span>
+        </div>
+        <div>단위: 점(0–100) · tok/s · GB · ms · 스냅샷 2024-11</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">기능</span>
+      <h2>측정부터 리포트까지,<br>한 번에.</h2>
+      <p>모델을 실행하고, 점수를 뽑고, 하드웨어를 비교하고, 팀에 공유하는 것까지. 로컬에서 끝납니다.</p>
+    </div>
+    <div class="bento">
+      <div class="card c-a reveal">
+        <div class="ic">▤</div>
+        <h3>12개 벤치마크, 한 번에</h3>
+        <p>지식·코드·수학·지시 따르기·안전까지. 단일 실행으로 전체 프로필을 얻습니다.</p>
+        <div class="big">12<span class="u"> suites</span></div>
+        <div class="bars">
+          <div class="brow"><span class="lbl">MMLU</span><div class="btrack"><i class="g" data-w="87"></i></div><span class="val">87.2</span></div>
+          <div class="brow"><span class="lbl">HumanEval</span><div class="btrack"><i class="t" data-w="71"></i></div><span class="val">71.4</span></div>
+          <div class="brow"><span class="lbl">GSM8K</span><div class="btrack"><i class="g" data-w="89"></i></div><span class="val">89.0</span></div>
+          <div class="brow"><span class="lbl">MATH</span><div class="btrack"><i class="c" data-w="65"></i></div><span class="val">64.8</span></div>
+          <div class="brow"><span class="lbl">IFEval</span><div class="btrack"><i class="t" data-w="78"></i></div><span class="val">78.3</span></div>
+        </div>
+      </div>
+      <div class="card c-b reveal">
+        <div class="ic">⚡</div>
+        <h3>실시간 성능 프로파일</h3>
+        <p>토큰/초, 첫 토큰 지연, VRAM, 메모리 피크를 런타임에 추적합니다.</p>
+        <div class="stat">1,240 <small>tok/s</small></div>
+        <div class="sub">TTFT 42ms · VRAM 6.2GB</div>
+      </div>
+      <div class="card c-c reveal">
+        <div class="ic">⇄</div>
+        <h3>양자화 비교</h3>
+        <p>FP16 ↔ Q4_K_M ↔ Q8. 정밀도 손실과 속도 이득을 나란히.</p>
+      </div>
+      <div class="card c-d reveal">
+        <div class="ic">⛓</div>
+        <h3>백엔드 아그노스틱</h3>
+        <p>llama.cpp · Ollama · vLLM. 같은 모델, 다른 런타임 비교.</p>
+      </div>
+      <div class="card c-e reveal">
+        <div class="ic">⊞</div>
+        <h3>리더보드 &amp; 리포트</h3>
+        <p>JSON · CSV · HTML 리포트. CI에 붙여 회귀를 잡습니다.</p>
+      </div>
+      <div class="card c-f reveal">
+        <div class="ic">⚙</div>
+        <h3>커스텀 벤치마크</h3>
+        <p>JSONL 문항으로 도메인 특화 테스트를 추가. 프롬프트 템플릿과 채점 함수를 직접 정의합니다.</p>
+      </div>
+      <div class="card c-g reveal">
+        <div class="ic">⛶</div>
+        <h3>완전 오프라인</h3>
+        <p>네트워크 불필요. 데이터는 로컬에 남고, 측정만 남습니다. 프라이버시 민감 환경에 적합.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section>
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">워크플로우</span>
+      <h2>실행에서 리포트까지 4단계</h2>
+    </div>
+    <div class="pipe reveal">
+      <div class="step">
+        <div class="num">01</div>
+        <div class="n">1</div>
+        <h3>모델 로드</h3>
+        <p>GGUF·safetensors를 자동 감지하고 백엔드에 올립니다. 컨텍스트·양자화 자동 설정.</p>
+      </div>
+      <div class="step">
+        <div class="num">02</div>
+        <div class="n">2</div>
+        <h3>벤치마크 실행</h3>
+        <p>선택한 스위트의 문항을 병렬로 돌립니다. 재현 가능한 시드와 샘플링을 고정합니다.</p>
+      </div>
+      <div class="step">
+        <div class="num">03</div>
+        <div class="n">3</div>
+        <h3>채점 &amp; 프로파일</h3>
+        <p>항목별 점수와 런타임 지표를 함께 기록합니다. 회귀 감지를 위한 베이스라인 저장.</p>
+      </div>
+      <div class="step">
+        <div class="num">04</div>
+        <div class="n">4</div>
+        <h3>리포트 &amp; 공유</h3>
+        <p>JSON·CSV·HTML로 내보내고 리더보드에 올립니다. CI 게이트로 자동 차단.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HARDWARE -->
+<section id="hw">
+  <div class="wrap hw">
+    <div class="intro reveal">
+      <span class="eyebrow">하드웨어 매트릭스</span>
+      <h2>어디서든,<br>같은 숫자.</h2>
+      <p>GPU가 없어도 됩니다. CPU·Apple Silicon·NVIDIA·AMD까지. 각 플랫폼의 실측 성능을 비교해 어떤 기기에 어떤 모델을 올릴지 결정합니다.</p>
+    </div>
+    <div class="list reveal">
+      <div class="row">
+        <div class="name">NVIDIA RTX 4090<small>CUDA · 24GB</small></div>
+        <div class="spec"><b>2,400</b><span>tok/s · 7B Q4</span></div>
+      </div>
+      <div class="row">
+        <div class="name">Apple M3 Max<small>Unified 36GB</small></div>
+        <div class="spec"><b>1,150</b><span>tok/s · 7B Q4</span></div>
+      </div>
+      <div class="row">
+        <div class="name">AMD RX 7900 XTX<small>ROCm · 24GB</small></div>
+        <div class="spec"><b>1,680</b><span>tok/s · 7B Q4</span></div>
+      </div>
+      <div class="row">
+        <div class="name">CPU · Ryzen 9 7950X<small>AVX-512 · 64GB</small></div>
+        <div class="spec"><b>38</b><span>tok/s · 7B Q4</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CODE -->
+<section id="code">
+  <div class="wrap code-grid">
+    <div class="txt reveal">
+      <span class="eyebrow">개발자</span>
+      <h2>CLI, Python,<br>그리고 CI.</h2>
+      <p>터미널에서 바로 실행하고, 코드에서 임베드하고, 파이프라인에 붙입니다. 재현 가능한 실행이 기본입니다.</p>
+      <ul>
+        <li>단일 바이너리, 의존성 없음</li>
+        <li>Python API · JSON 출력</li>
+        <li>CI 게이트 &amp; 베이스라인 회귀</li>
+        <li>커스텀 스위트 정의</li>
+      </ul>
+    </div>
+    <div class="codebox reveal">
+      <div class="hd"><span class="tab">localeval.py</span><span style="margin-left:auto">python 3.11</span></div>
+<pre><span class="cm"># 로컬 LLM 벤치마크 — 재현 가능한 실행</span>
+<span class="kw">from</span> localeval <span class="kw">import</span> Runner, Suite
+
+runner = <span class="fn">Runner</span>(
+    model=<span class="st">"qwen2.5-7b-instruct"</span>,
+    backend=<span class="st">"llama.cpp"</span>,
+    quant=<span class="st">"Q4_K_M"</span>,
+    context=<span class="nu">8192</span>,
+    seed=<span class="nu">42</span>,
+)
+
+<span class="cm"># 지식 · 코드 · 수학 · 지시 따르기</span>
+suite = <span class="fn">Suite</span>(<span class="st">"full"</span>)   <span class="cm"># MMLU, HumanEval, GSM8K, MATH, IFEval…</span>
+
+result = runner.<span class="fn">run</span>(suite)
+result.<span class="fn">report</span>(<span class="st">"html"</span>, <span class="st">"out/"</span>)
+result.<span class="fn">save_baseline</span>(<span class="st">"ci"</span>)   <span class="cm"># 회귀 감지용</span>
+
+<span class="kw">print</span>(result.summary())
+<span class="cm"># MMLU 87.2 · HumanEval 71.4 · 1,240 tok/s · 6.2 GB</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAND -->
+<section class="band">
+  <div class="wrap">
+    <div class="grid">
+      <div class="cell reveal"><div class="n" data-count="12">0</div><div class="l">벤치마크 스위트</div></div>
+      <div class="cell reveal"><div class="n" data-count="40" data-suffix="+">0</div><div class="l">지원 모델</div></div>
+      <div class="cell reveal"><div class="n" data-count="3">0</div><div class="l">실행 백엔드</div></div>
+      <div class="cell reveal"><div class="n" data-count="0">0</div><div class="l">네트워크 요청</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">가격</span>
+      <h2>핵심은 무료.<br>팀용은 합리적으로.</h2>
+    </div>
+    <div class="price">
+      <div class="plan reveal">
+        <div class="tier">Community</div>
+        <div class="amt">$0</div>
+        <div class="desc">개인 연구와 학습용. 로컬에서 자유롭게.</div>
+        <ul>
+          <li>12개 벤치마크 스위트</li>
+          <li>llama.cpp · Ollama 백엔드</li>
+          <li>JSON · CSV 리포트</li>
+          <li>커스텀 스위트</li>
+          <li class="off">리더보드 업로드</li>
+          <li class="off">CI 게이트</li>
+        </ul>
+        <a class="btn ghost" href="#">무료로 시작</a>
+      </div>
+      <div class="plan feat reveal">
+        <div class="tier">Team</div>
+        <div class="amt">$49<small>/mo</small></div>
+        <div class="desc">팀 리포팅과 CI 통합이 필요한 곳.</div>
+        <ul>
+          <li>Community 전체 기능</li>
+          <li>리더보드 &amp; 비교 뷰</li>
+          <li>CI 게이트 · 베이스라인</li>
+          <li>vLLM 백엔드</li>
+          <li>5개 시트 · SSO</li>
+          <li>우선 지원</li>
+        </ul>
+        <a class="btn primary" href="#">Team 시작 <span class="ar">→</span></a>
+      </div>
+      <div class="plan reveal">
+        <div class="tier">Enterprise</div>
+        <div class="amt">Custom</div>
+        <div class="desc">프라이빗 배포와 대량 측정 환경.</div>
+        <ul>
+          <li>Team 전체 기능</li>
+          <li>온프레미스 · air-gapped</li>
+          <li>무제한 시트 · SSO/SCIM</li>
+          <li>커스텀 벤치마크 개발</li>
+          <li>SLA · 전용 엔지니어</li>
+          <li>데이터 주권 보장</li>
+        </ul>
+        <a class="btn ghost" href="#">연락하기</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head reveal" style="text-align:center;margin:0 auto 44px">
+      <span class="eyebrow" style="justify-content:center">자주 묻는 질문</span>
+      <h2>궁금한 것</h2>
+    </div>
+    <div class="faq reveal">
+      <div class="q">
+        <button>정말 네트워크가 필요 없나요?<span class="pm">+</span></button>
+        <div class="a"><p>네. 모델 로딩부터 채점, 리포트 생성까지 전부 로컬에서 처리됩니다. 벤치마크 문항 데이터만 최초 1회 로컬에 캐시되며, 이후 실행은 오프라인으로 동작합니다. air-gapped 환경에도 배포할 수 있습니다.</p></div>
+      </div>
+      <div class="q">
+        <button>어떤 모델을 지원하나요?<span class="pm">+</span></button>
+        <div class="a"><p>GGUF와 safetensors 형식의 오픈 웨이트 모델을 지원합니다. Llama, Qwen, Gemma, Mistral, Phi, Gemma-2 등 40개 이상 모델을 기본 프로필로 제공하며, 커스텀 모델은 경로를 지정해 바로 실행할 수 있습니다.</p></div>
+      </div>
+      <div class="q">
+        <button>양자화 모델도 측정할 수 있나요?<span class="pm">+</span></button>
+        <div class="a"><p>가능합니다. FP16, Q8_0, Q4_K_M 등 양자화 수준을 지정해 실행하고, 정밀도 손실과 속도 이득을 나란히 비교합니다. 같은 모델의 여러 양자화를 한 실행에서 비교할 수도 있습니다.</p></div>
+      </div>
+      <div class="q">
+        <button>CI에 통합할 수 있나요?<span class="pm">+</span></button>
+        <div class="a"><p>네. JSON 출력을 파서로 받아 베이스라인과 비교하고, 임계값을 넘으면 빌드를 실패시키는 게이트를 제공합니다. GitHub Actions, GitLab CI, Jenkins 모두에서 동작합니다.</p></div>
+      </div>
+      <div class="q">
+        <button>벤치마크 점수는 재현 가능한가요?<span class="pm">+</span></button>
+        <div class="a"><p>재현 가능성이 기본 설계입니다. 시드, 샘플링 파라미터, 컨텍스트 길이, 하드웨어를 고정하고 실행 메타데이터를 리포트에 기록합니다. 같은 조건이면 같은 결과가 나옵니다.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section>
+  <div class="wrap">
+    <div class="cta-band reveal">
+      <h2>모델을 숫자로 말하게 해보세요.</h2>
+      <p>설치 없이 시작합니다. 로컬에서 실행하고, 클라우드에 올리지 않습니다.</p>
+      <div class="cta">
+        <a class="btn primary" href="#">지금 설치 <span class="ar">→</span></a>
+        <a class="btn ghost" href="#code">문서 보기</a>
+      </div>
+      <div class="cmdline"><span class="p">$</span> curl -fsSL get.localeval.dev | sh</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap foot">
+    <div class="brand-col">
+      <a class="brand" href="#"><span class="dot"></span>LOCALEVAL <small>v2.4</small></a>
+      <p class="tag">로컬 LLM 벤치마크 도구. 네트워크 없이, 클라우드 없이, 숫자만 남깁니다.</p>
+    </div>
+    <div class="col">
+      <h4>제품</h4>
+      <a href="#bench">벤치마크</a>
+      <a href="#features">기능</a>
+      <a href="#hw">하드웨어</a>
+      <a href="#pricing">가격</a>
+    </div>
+    <div class="col">
+      <h4>개발</h4>
+      <a href="#code">문서</a>
+      <a href="#code">Python API</a>
+      <a href="#code">CLI</a>
+      <a href="#code">CI 통합</a>
+    </div>
+    <div class="col">
+      <h4>회사</h4>
+      <a href="#">소개</a>
+      <a href="#">블로그</a>
+      <a href="#">채용</a>
+      <a href="#">연락처</a>
+    </div>
+    <div class="bottom" style="grid-column:1/-1">
+      <span>© 2024 LOCALEVAL · 로컬에서 측정, 로컬에 남김</span>
+      <span>run 7ac201d4 · 오프라인 · v2.4.0</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ---------- ambient canvas ---------- */
+(function(){
+  const c=document.getElementById('bg'),x=c.getContext('2d');
+  let w,h,dpr=Math.min(window.devicePixelRatio||1,2);
+  function size(){w=c.width=innerWidth*dpr;h=c.height=innerHeight*dpr;c.style.width=innerWidth+'px';c.style.height=innerHeight+'px';}
+  size();addEventListener('resize',size);
+  const N=70,pts=[];
+  for(let i=0;i<N;i++)pts.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.25*dpr,vy:(Math.random()-.5)*.25*dpr});
+  function draw(){
+    x.clearRect(0,0,w,h);
+    for(let i=0;i<N;i++){
+      const p=pts[i];p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;
+      x.beginPath();x.arc(p.x,p.y,1.4*dpr,0,7);x.fillStyle='rgba(255,180,84,.5)';x.fill();
+      for(let j=i+1;j<N;j++){
+        const q=pts[j],dx=p.x-q.x,dy=p.y-q.y,d=dx*dx+dy*dy;
+        if(d<120*1

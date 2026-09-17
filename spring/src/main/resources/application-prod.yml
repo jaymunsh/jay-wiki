@@ -1,0 +1,60 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+  jpa:
+    properties:
+      hibernate.format_sql: false
+server:
+  servlet:
+    session:
+      cookie:
+        secure: true
+        same-site: lax
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+app:
+  partner-simulator:
+    url: ${APP_PARTNER_SIMULATOR_URL:http://jaywiki-partner-simulator.backend.svc.cluster.local:8000}
+    callback-url: ${APP_PARTNER_CALLBACK_URL:http://jaywiki-backend.backend.svc.cluster.local:8080/api/domain-scenarios/partner-api/callbacks}
+    callback-secret: ${APP_PARTNER_CALLBACK_SECRET}
+  minio:
+    endpoint: ${APP_MINIO_ENDPOINT:http://minio.data.svc.cluster.local:9000}
+    access-key: ${APP_MINIO_ACCESS_KEY}
+    secret-key: ${APP_MINIO_SECRET_KEY}
+    bucket: ${APP_MINIO_BUCKET:wiki-assets}
+  admin:
+    password: ${APP_ADMIN_PASSWORD:}
+    totp:
+      enabled: ${APP_ADMIN_TOTP_ENABLED:false}
+      secret: ${APP_ADMIN_TOTP_SECRET:}
+  auth:
+    cookie:
+      secure: true
+  jwt:
+    secret: ${APP_JWT_SECRET}
+  blog-comment:
+    # local-dev-salt 기본값 없음: 운영에서 값이 없으면 JWT secret 과 동일하게 기동이 실패한다.
+    ip-salt: ${APP_BLOG_COMMENT_IP_SALT}
+  board:
+    rate-limit:
+      enabled: true
+      capacity: ${APP_BOARD_RATE_LIMIT_CAPACITY:20}
+      window: ${APP_BOARD_RATE_LIMIT_WINDOW:1m}
+  opensearch:
+    enabled: ${APP_OPENSEARCH_ENABLED:true}
+    url: ${APP_OPENSEARCH_URL:http://opensearch-cluster-master.data.svc.cluster.local:9200}
+    board-index: ${APP_OPENSEARCH_BOARD_INDEX:jaywiki-posts-v1}
+    wiki-index: ${APP_OPENSEARCH_WIKI_INDEX:jaywiki-articles-v1}
+  payment-service:
+    url: ${APP_PAYMENT_SERVICE_URL:http://jaywiki-payment-api.backend.svc.cluster.local:8000}
+  shipping-service:
+    url: ${APP_SHIPPING_SERVICE_URL:http://jaywiki-shipping-api.backend.svc.cluster.local:8000}

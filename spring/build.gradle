@@ -1,0 +1,81 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.16'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'cloud.leneu'
+version = '0.0.1-SNAPSHOT'
+description = 'jaywiki'
+
+// Security patches beyond the Boot 3.5.16 BOM, verified by runtime JAR scanning.
+// Revisit these overrides when upgrading Boot; keep each library on its existing major line.
+ext['tomcat.version'] = '10.1.59'
+ext['netty.version'] = '4.1.137.Final'
+ext['postgresql.version'] = '42.7.13'
+ext['jackson-bom.version'] = '2.21.5'
+ext['commons-lang3.version'] = '3.18.0'
+ext['log4j2.version'] = '2.25.5'
+ext['opentelemetry.version'] = '1.62.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    constraints {
+        implementation('at.yawk.lz4:lz4-java:1.11.1') {
+            because 'CVE-2026-59949 decompression bounds fix'
+        }
+    }
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.session:spring-session-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+    // JWT (jjwt)
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    implementation 'dev.samstevens.totp:totp:1.7.1'
+    implementation 'io.minio:minio:9.0.1'
+    implementation 'org.apache.poi:poi-ooxml:5.4.1'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+    compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'org.postgresql:postgresql'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+    testCompileOnly 'org.projectlombok:lombok'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.register('generateAdminTotp', JavaExec) {
+    group = 'application'
+    description = 'Generate a local one-time Google Authenticator QR bundle'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'cloud.leneu.jaywiki.auth.AdminTotpSetupCli'
+}

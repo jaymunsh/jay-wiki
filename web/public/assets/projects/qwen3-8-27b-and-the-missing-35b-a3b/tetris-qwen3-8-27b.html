@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>테트리스</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+    color: #e0e0e0;
+    user-select: none;
+  }
+
+  #game-container {
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+    margin-bottom: 16px;
+    background: linear-gradient(90deg, #00d4d4, #9b30ff, #ff3030);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 8px;
+  }
+
+  #game-area {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .info-box {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 12px 18px;
+    min-width: 110px;
+  }
+
+  .info-box .label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #888;
+    margin-bottom: 4px;
+  }
+
+  .info-box .value {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  #score { color: #00d4d4; }
+  #level { color: #9b30ff; }
+  #lines { color: #ff8c00; }
+
+  #board-wrapper {
+    position: relative;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(100, 60, 200, 0.25);
+  }
+
+  #board { display: block; }
+
+  #next-canvas {
+    display: block;
+    margin: 0 auto;
+  }
+
+  .controls {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 0.78rem;
+    line-height: 1.9;
+    text-align: left;
+    color: #999;
+  }
+
+  .controls kbd {
+    background: rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 0.72rem;
+    color: #ccc;
+  }
+
+  /* ── 오버레이 ── */
+  #overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 10, 30, 0.82);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    z-index: 10;
+    transition: opacity 0.3s;
+  }
+
+  #overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #overlay-text {
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 4px;
+  }
+
+  #overlay-btn {
+    background: linear-gradient(135deg, #6c3ce0, #3a86ff);
+    border: none;
+    color: #fff;
+    font-size: 1rem;
+    padding: 12px 36px;
+    border-radius: 30px;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+
+  #overlay-btn:hover {
+    transform: scale(1.06);
+    box-shadow: 0 0 20px rgba(100, 60, 220, 0.5);
+  }
+
+  #overlay-btn:active { transform: scale(0.97); }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+  <h1>테트리스</h1>
+  <div id="game-area">
+
+    <!-- 왼쪽 패널 -->
+    <div class="panel">
+      <div class="info-box"><div class="label">점수</div><div class="value" id="score">0</div></div>
+      <div class="info-box"><div class="label">레벨</div><div class="value" id="level">1</div></div>
+      <div class="info-box"><div class="label">라인</div><div class="value" id="lines">0</div></div>
+    </div>
+
+    <!-- 보드 -->
+    <div id="board-wrapper">
+      <canvas id="board" width="300" height="600"></canvas>
+      <div id="overlay">
+        <div id="overlay-text">테트리스</div>
+        <button id="overlay-btn">시작</button>
+      </div>
+    </div>
+
+    <!-- 오른쪽 패널 -->
+    <div class="panel">
+      <div class="info-box" style="text-align:center">
+        <div class="label">다음</div>
+        <canvas id="next-canvas" width="120" height="100"></canvas>
+      </div>
+      <div class="controls">
+        <kbd>←</kbd> <kbd>→</kbd> 이동<br>
+        <kbd>↑</kbd> 회전<br>
+        <kbd>↓</kbd> 소프트 드롭<br>
+        <kbd>Space</kbd> 하드 드롭<br>
+        <kbd>P</kbd> 일시정지<br>
+        <kbd>R</kbd> 리스타트
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ═══════════════ 상수 ═══════════════ */
+const COLS = 10, ROWS = 20, BLOCK = 30;
+
+const SHAPES = {
+  I: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+  O: [[1,1],[1,1]],
+  T: [[0,1,0],[1,1,1],[0,0,0]],
+  S: [[0,1,1],[1,1,0],[0,0,0]],
+  Z: [[1,1,0],[0,1,1],[0,0,0]],
+  J: [[1,0,0],[1,1,1],[0,0,0]],
+  L: [[0,0,1],[1,1,1],[0,0,0]]
+};
+
+const COLORS = {
+  I:'#00d4d4', O:'#d4d400', T:'#9b30ff',
+  S:'#00d400', Z:'#ff3030', J:'#3050ff', L:'#ff8c00'
+};
+
+const TYPES = Object.keys(SHAPES);
+const SCORE_TABLE = [0, 100, 300, 500, 800];
+
+/* ═══════════════ DOM ═══════════════ */
+const cvs  = document.getElementById('board');
+const ctx  = cvs.getContext('2d');
+const nCvs = document.getElementById('next-canvas');
+const nCtx = nCvs.getContext('2d');
+const elScore  = document.getElementById('score');
+const elLevel  = document.getElementById('level');
+const elLines  = document.getElementById('lines');
+const elOv     = document.getElementById('overlay');
+const elOvTxt  = document.getElementById('overlay-text');
+const elOvBtn  = document.getElementById('overlay-btn');
+
+/* ═══════════════ 상태 ═══════════════ */
+let board, cur, nxt;
+let score, level, lines;
+let dropInt, dropCnt, lastT;
+let running, paused, over;
+let raf;
+
+/* ═══════════════ 유틸 ═══════════════ */
+const mkBoard = () => Array.from({length:ROWS},()=>Array(COLS).fill(0));
+
+function rndPiece(){
+  const t = TYPES[Math.random()*TYPES.length|0];
+  return { type:t, shape:SHAPES[t].map(r=>[...r]),
+           x: (COLS - SHAPES[t][0].length)/2|0, y:0 };
+}
+
+function rot(m){
+  const n=m.length, r=Array.from({length:n},()=>Array(n).fill(0));
+  for(let y=0;y<n;y++) for(let x=0;x<n;x++) r[x][n-1-y]=m[y][x];
+  return r;
+}
+
+function fit(shape,px,py){
+  for(let y=0;y<shape.length;y++)
+    for(let x=0;x<shape[y].length;x++){
+      if(!shape[y][x]) continue;
+      const bx=px+x, by=py+y;
+      if(bx<0||bx>=COLS||by>=ROWS) return false;
+      if(by>=0 && board[by][bx]) return false;
+    }
+  return true;
+}
+
+/* ═══════════════ 게임 로직 ═══════════════ */
+function merge(){
+  cur.shape.forEach((row,y)=>row.forEach((v,x)=>{
+    if(v && cur.y+y>=0) board[cur.y+y][cur.x+x]=cur.type;
+  }));
+}
+
+function clearLines(){
+  let c=0;
+  for(let y=ROWS-1;y>=0;y--){
+    if(board[y].every(v=>v)){
+      board.splice(y,1);
+      board.unshift(Array(COLS).fill(0));
+      c++; y++;
+    }
+  }
+  if(c){
+    score += SCORE_TABLE[c]*level;
+    lines += c;
+    level = lines/10|0 + 1;
+    dropInt = Math.max(80, 800-(level-1)*65);
+    ui();
+  }
+}
+
+function ghostY(){
+  let gy=cur.y;
+  while(fit(cur.shape,cur.x,gy+1)) gy++;
+  return gy;
+}
+
+function drop(){
+  if(fit(cur.shape,cur.x,cur.y+1)){ cur.y++; }
+  else{
+    merge(); clearLines();
+    cur=nxt; nxt=rndPiece();
+    if(!fit(cur.shape,cur.x,cur.y)) endGame();
+  }
+  dropCnt=0;
+}
+
+function hardDrop(){
+  let d=0;
+  while(fit(cur.shape,cur.x,cur.y+1)){cur.y++;d++;}
+  score+=d*2; ui(); drop();
+}
+
+function moveL(){ if(fit(cur.shape,cur.x-1,cur.y)) cur.x--; }
+function moveR(){ if(fit(cur.shape,cur.x+1,cur.y)) cur.x++; }
+
+function rotate(){
+  const r=rot(cur.shape);
+  for(const k of [0,-1,1,-2,2]){
+    if(fit(r,cur.x+k,cur.y)){cur.shape=r;cur.x+=k;return;}
+    if(fit(r,cur.x+k,cur.y-1)){cur.shape=r;cur.x+=k;cur.y--;return;}
+  }
+}
+
+/* ═══════════════ 렌더링 ═══════════════ */
+function blk(c,x,y,col,s,a=1){
+  c.globalAlpha=a;
+  c.fillStyle=col;
+  c.fillRect(x*s+1,y*s+1,s-2,s-2);
+  c.fillStyle='rgba(255,255,255,.18)';
+  c.fillRect(x*s+1,y*s+1,s-2,3);
+  c.fillStyle='rgba(0,0,0,.18)';
+  c.fillRect(x*s+1,y*s+s-4,s-2,3);
+  c.globalAlpha=1;
+}
+
+function draw(){
+  // 배경
+  ctx.fillStyle='#0e0e20';
+  ctx.fillRect(0,0,cvs.width,cvs.height);
+
+  // 격자
+  ctx.strokeStyle='rgba(255,255,255,.04)';
+  ctx.lineWidth=1;
+  for(let x=0;x<=COLS;x++){ctx.beginPath();ctx.moveTo(x*BLOCK,0);ctx.lineTo(x*BLOCK,cvs.height);ctx.stroke();}
+  for(let y=0;y<=ROWS;y++){ctx.beginPath();ctx.moveTo(0,y*BLOCK);ctx.lineTo(cvs.width,y*BLOCK);ctx.stroke();}
+
+  // 쌓인 블록
+  for(let y=0;y<ROWS;y++)
+    for(let x=0;x<COLS;x++)
+      if(board[y][x]) blk(ctx,x,y,COLORS[board[y][x]],BLOCK);
+
+  if(cur){
+    // 고스트
+    const gy=ghostY();
+    cur.shape.forEach((row,y)=>row.forEach((v,x)=>{
+      if(v&&gy+y>=0) blk(ctx,cur.x+x,gy+y,COLORS[cur.type],BLOCK,.25);
+    }));
+    // 현재 블록
+    cur.shape.forEach((row,y)=>row.forEach((v,x)=>{
+      if(v&&cur.y+y>=0) blk(ctx,cur.x+x,cur.y+y,COLORS[cur.type],BLOCK);
+    }));
+  }
+
+  // 다음 조각
+  nCtx.fillStyle='#0e0e20';
+  nCtx.fillRect(0,0,nCvs.width,nCvs.height);
+  if(nxt){
+    const s=22;
+    const ox=(nCvs.width-nxt.shape[0].length*s)/2/s|0;
+    const oy=(nCvs.height-nxt.shape.length*s)/2/s|0;
+    nxt.shape.forEach((row,y)=>row.forEach((v,x)=>{
+      if(v) blk(nCtx,x+ox,y+oy,COLORS[nxt.type],s);
+    }));
+  }
+}
+
+function ui(){
+  elScore.textContent=score;
+  elLevel.textContent=level;
+  elLines.textContent=lines;
+}
+
+/* ═══════════════ 루프 ═══════════════ */
+function loop(t){
+  if(!running) return;
+  if(paused){ lastT=t; raf=requestAnimationFrame(loop); return; }
+
+  dropCnt += t - lastT;
+  lastT = t;
+  if(dropCnt > dropInt) drop();
+
+  draw();
+  raf = requestAnimationFrame(loop);
+}
+
+/* ═══════════════ 시작 / 종료 ═══════════════ */
+function start(){
+  board=mkBoard(); score=0; level=1; lines=0;
+  dropInt=800; dropCnt=0; lastT=performance.now();
+  over=false; paused=false; running=true;
+  cur=rndPiece(); nxt=rndPiece();
+  ui(); hideOv();
+  cancelAnimationFrame(raf);
+  raf=requestAnimationFrame(loop);
+}
+
+function endGame(){
+  over=true; running=false;
+  showOv('GAME OVER','다시 시작');
+}
+
+function togglePause(){
+  if(over) return;
+  paused=!paused;
+  if(paused) showOv('일시정지','계속');
+  else { hideOv(); lastT=performance.now(); }
+}
+
+function showOv(t,b){ elOvTxt.textContent=t; elOvBtn.textContent=b; elOv.classList.remove('hidden'); }
+function hideOv(){ elOv.classList.add('hidden'); }
+
+/* ═══════════════ 입력 ═══════════════ */
+document.addEventListener('keydown',e=>{
+  /* 고친 곳 2/2: e.key 는 한글 입력 상태에서 'ㄱ'·'ㅔ' 로 와서 r·p 가 안 먹었다. e.code 로 본다. */
+  if(e.code==='KeyP'){ togglePause(); return; }
+  if(e.code==='KeyR'){ start(); return; }
+  if(!running||paused||over) return;
+
+  switch(e.key){
+    case 'ArrowLeft':  e.preventDefault(); moveL(); break;
+    case 'ArrowRight': e.preventDefault(); moveR(); break;
+    case 'ArrowDown':  e.preventDefault();
+      if(fit(cur.shape,cur.x,cur.y+1)){cur.y++;score++;ui();}
+      dropCnt=0; break;
+    case 'ArrowUp':    e.preventDefault(); rotate(); break;
+    case ' ':          e.preventDefault(); hardDrop(); break;
+  }
+});
+
+elOvBtn.addEventListener('click',()=>{
+  /* 고친 곳 1/2: 원본은 if(over) 라서 첫 화면의 「시작」이 일시정지 토글로 갔다. */
+  if(!running||over) start();
+  else togglePause();
+});
+
+/* ═══════════════ 초기화 ═══════════════ */
+board=mkBoard(); score=0; level=1; lines=0;
+dropInt=800; dropCnt=0; lastT=0;
+running=false; paused=false; over=false;
+cur=null; nxt=null;
+
+draw();
+showOv('테트리스','시작');
+</script>
+</body>
+</html>

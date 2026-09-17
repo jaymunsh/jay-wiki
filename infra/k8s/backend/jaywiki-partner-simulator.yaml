@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaywiki-partner-simulator
+  namespace: backend
+  labels:
+    app: jaywiki-partner-simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaywiki-partner-simulator
+  template:
+    metadata:
+      labels:
+        app: jaywiki-partner-simulator
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: ghcr-pull
+      containers:
+        - name: jaywiki-partner-simulator
+          image: jaywiki-partner-simulator:local
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - containerPort: 8000
+          env:
+            - name: TZ
+              value: Asia/Seoul
+            - name: PARTNER_CALLBACK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jaywiki-secrets
+                  key: APP_PARTNER_CALLBACK_SECRET
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 192Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaywiki-partner-simulator
+  namespace: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: jaywiki-partner-simulator
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000

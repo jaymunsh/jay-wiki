@@ -1,0 +1,37 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: opensearch-allow-backend
+  namespace: data
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: osearch
+      app.kubernetes.io/name: opensearch
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: backend
+          podSelector:
+            matchLabels:
+              app: jaywiki
+      ports:
+        - protocol: TCP
+          port: 9200
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: osearch
+              app.kubernetes.io/name: opensearch
+      ports:
+        - protocol: TCP
+          port: 9300
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: obs
+      ports:
+        - protocol: TCP
+          port: 9600

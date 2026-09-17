@@ -1,0 +1,1105 @@
+<title>요청 경로 도면</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+  /* 재료가 둘이다. 종이가 기본이고 청사진은 단추로 갈아입는다. host 의 명·암 설정을
+     따라가지 않는다 -- 도면은 그 자체가 한 재료라서, 재료를 host 가 정하면 그림이 흔들린다.
+     모든 색을 값으로 명시해 어디서 열어도 같게 선다. (초록 칠판을 한 번 입혔다가 되돌렸다 --
+     초록은 잉크 셋 중 초록 하나를 바탕에 묻어 버려서 갈래가 덜 갈렸다.) */
+  /* 종이 도면이 기본이다. 잉크가 종이 위에서 가장 잘 읽힌다. */
+  :root {
+    color-scheme: light;
+    --board:   #f2ece0;
+    --board-2: #ebe4d4;
+    --chalk:   #1b1813;
+    --chalk-2: #4c463a;
+    --chalk-3: #7a7364;
+    --rule:    #d3cab6;
+    --grid:    #e3dac6;
+    --line:    #6f6653;
+
+    --adr:  #1f66c0;
+    --pm:   #c9552a;
+    --iv:   #157f5c;
+    --plain:#8a8271;
+    --mark: #b07d09;
+
+    --fill:   rgb(255 253 247 / 0.72);
+    --fill-2: rgb(255 253 247 / 0.45);
+    --fill-3: rgb(255 253 247 / 0.80);
+    --hover:  rgb(27 24 19 / 0.06);
+    --self:   rgb(27 24 19 / 0.08);
+    --hit-bg: rgb(176 125 9 / 0.16);
+    --shade:  rgb(60 50 30 / 0.14);
+    --wash-1: rgb(255 255 255 / 0.55);
+    --wash-2: rgb(120 100 60 / 0.05);
+
+    --f-disp: 'Gothic A1', 'Apple SD Gothic Neo', system-ui, sans-serif;
+    --f-body: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif;
+    --f-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  }
+
+  /* 청사진. 같은 도면을 다른 재료에 옮긴 것이라 값만 갈아 끼운다. */
+  :root[data-sheet="blueprint"] {
+    color-scheme: dark;
+    --board:   #0d2537;
+    --board-2: #0a1e2d;
+    --chalk:   #e2edf5;
+    --chalk-2: #a7c4da;
+    --chalk-3: #7b9db6;
+    --rule:    #1d3f58;
+    --grid:    #14344a;
+    --line:    #6ba0c6;
+
+    --adr:  #4a90d9;
+    --pm:   #d9713c;
+    --iv:   #44a882;
+    --plain:#93aec4;
+    --mark: #f0b429;
+
+    /* 면은 토큰으로 둔다. 종이로 갈아입을 때 값을 한 자리에서만 바꾸기 위해서다. */
+    --fill:   rgb(5 18 29 / 0.45);
+    --fill-2: rgb(5 18 29 / 0.30);
+    --fill-3: rgb(5 18 29 / 0.55);
+    --hover:  rgb(226 237 245 / 0.08);
+    --self:   rgb(226 237 245 / 0.11);
+    --hit-bg: rgb(240 180 41 / 0.15);
+    --shade:  rgb(0 0 0 / 0.40);
+    --wash-1: rgb(255 255 255 / 0.035);
+    --wash-2: rgb(255 255 255 / 0.028);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; overflow: hidden;
+    background: var(--board);
+    color: var(--chalk);
+    font-family: var(--f-body); font-size: 14px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; border-radius: 3px; }
+
+  /* 왼쪽은 읽는 자리, 오른쪽은 보는 자리. 설명을 판 위에 얹으면 확대할 때 같이 작아져서
+     안 읽힌다 -- 그래서 배율을 안 타는 기둥으로 떼어 낸다. 도면의 «주기란» 이 그 자리다. */
+  .app { display: grid; grid-template-columns: 372px minmax(0, 1fr); height: 100vh; }
+
+  .notes {
+    background: var(--board-2); border-right: 1.5px solid var(--rule);
+    display: flex; flex-direction: column; min-height: 0; min-width: 0;
+  }
+  .notes-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--rule); }
+  .notes-head .eyebrow {
+    font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--chalk-3); margin: 0 0 6px;
+  }
+  .notes-head h1 {
+    font-family: var(--f-disp); font-weight: 700; font-size: 21px;
+    margin: 0 0 8px; line-height: 1.28;
+  }
+  .notes-head p { margin: 0 0 7px; font-size: 12.5px; color: var(--chalk-2); }
+  .notes-head .facts {
+    font-family: var(--f-mono); font-size: 10.5px; color: var(--chalk-3);
+    font-variant-numeric: tabular-nums; margin: 10px 0 0;
+    padding-top: 9px; border-top: 1px dashed var(--rule);
+  }
+  .notes-tools { padding: 12px 20px; border-bottom: 1px solid var(--rule); }
+  .notes-tools input {
+    width: 100%; padding: 7px 9px;
+    background: var(--board); color: var(--chalk);
+    border: 1px solid var(--rule); border-radius: 2px; font: inherit; font-size: 12.5px;
+  }
+  .notes-tools input::placeholder { color: var(--chalk-3); }
+  .notes-body { overflow-y: auto; flex: 1 1 auto; min-height: 0; padding: 0 0 28px; }
+  .note-item {
+    display: block; width: 100%; text-align: left;
+    padding: 13px 20px 15px; margin: 0;
+    background: none; border: 0; border-bottom: 1px solid var(--rule);
+    font: inherit; color: inherit; cursor: pointer;
+  }
+  .note-item:hover { background: var(--hover); }
+  .note-item .no {
+    font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.14em;
+    color: var(--chalk-3); display: flex; align-items: baseline; gap: 8px;
+  }
+  .note-item .no .go { margin-left: auto; letter-spacing: 0; }
+  .note-item h2 {
+    font-family: var(--f-disp); font-weight: 700; font-size: 15px;
+    margin: 3px 0 5px; line-height: 1.3;
+  }
+  .note-item p { margin: 0; font-size: 12.5px; color: var(--chalk-2); line-height: 1.62; }
+  .note-item .tally {
+    margin-top: 8px; font-family: var(--f-mono); font-size: 10.5px;
+    color: var(--chalk-3); font-variant-numeric: tabular-nums;
+  }
+
+  #stage {
+    position: relative; overflow: hidden; cursor: grab; touch-action: none;
+    background-color: var(--board);
+    background-image:
+      radial-gradient(ellipse 60% 40% at 22% 18%, var(--wash-1), transparent 70%),
+      radial-gradient(ellipse 50% 45% at 78% 72%, var(--wash-2), transparent 70%),
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: auto, auto, 28px 28px, 28px 28px;
+  }
+  #stage.dragging { cursor: grabbing; }
+  #world { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+  #wires { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
+
+  /* 선으로 세운 상자. 채우지 않고 선으로만 세운다 -- 도면의 규칙이다. */
+  .card {
+    position: absolute;
+    border: 1.5px solid var(--line);
+    border-radius: 2px;
+    background: var(--fill);
+    padding: 12px 14px 11px;
+  }
+  .card.band { border-style: dashed; background: var(--fill-2); }
+  .card.entry { border-style: dashed; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+
+  /* 도면의 모서리 표식. 장식이 아니라 «이건 재서 그린 것» 이라는 신호다. */
+  .card::before, .card::after {
+    content: ''; position: absolute; width: 7px; height: 7px;
+    border: 1.5px solid var(--line); pointer-events: none;
+  }
+  .card::before { top: -1.5px; left: -1.5px; border-right: 0; border-bottom: 0; }
+  .card::after  { bottom: -1.5px; right: -1.5px; border-left: 0; border-top: 0; }
+
+  .card > .head { display: flex; align-items: baseline; gap: 9px; margin-bottom: 2px; }
+  .card > .head h2 {
+    font-family: var(--f-disp); font-weight: 700; font-size: 18px;
+    margin: 0; letter-spacing: 0.01em; color: var(--chalk);
+  }
+  .card > .head .n {
+    margin-left: auto; font-family: var(--f-mono); font-size: 10.5px;
+    color: var(--chalk-3); font-variant-numeric: tabular-nums;
+  }
+  .card > .sub {
+    margin: 0 0 5px; font-family: var(--f-mono); font-size: 10.5px;
+    color: var(--chalk-3); letter-spacing: 0.02em;
+  }
+  .card > .role {
+    margin: 0 0 9px; padding-top: 7px; border-top: 1px dashed var(--rule);
+    font-size: 12px; color: var(--chalk-2);
+  }
+
+  /* 기술 표식. 멀리서 볼 때 글자보다 이것이 먼저 읽힌다. */
+  .glyphs {
+    display: flex; flex-wrap: wrap; gap: 9px 14px;
+    margin: 9px 0 2px; padding-top: 9px; border-top: 1px dashed var(--rule);
+  }
+  .glyph { display: flex; align-items: center; gap: 6px; color: var(--chalk-2); }
+  .glyph svg { display: block; width: 20px; height: 20px; flex: 0 0 auto; }
+  .glyph span { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.02em; }
+  /* 뼈대 단계에서는 표식만 크게. 이 단계는 «무엇으로 되어 있나» 만 답한다. */
+  .lod1 .glyphs { gap: 14px 20px; border-top: 0; padding-top: 12px; }
+  .lod1 .glyph svg { width: 38px; height: 38px; }
+  .lod1 .glyph span { font-size: 13px; }
+
+  /* 그림은 어느 단계에서나 보인다. 확대는 «글자» 를 더하는 일만 한다 --
+     멀리서 볼 때 도형이 사라지면 빈 상자만 남아 판이 아무 말도 안 한다. */
+  .seq h3 {
+    font-family: var(--f-disp); font-weight: 700; font-size: 14px;
+    margin: 0 0 2px; color: var(--chalk);
+  }
+  .seq .why { margin: 0 0 8px; font-size: 11.5px; color: var(--chalk-3); }
+  .seq svg { display: block; width: 100%; height: auto; }
+
+  .items { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+  .band .items { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px 20px; }
+
+  .item {
+    display: grid; grid-template-columns: 10px minmax(0, 1fr) auto;
+    align-items: baseline; gap: 8px;
+    width: 100%; padding: 3px 5px; margin: 0;
+    background: none; border: 0; border-radius: 3px;
+    font: inherit; font-size: 12.5px; line-height: 1.4;
+    color: var(--chalk-2); text-align: left; cursor: pointer;
+  }
+  /* 갈래는 색과 «모양» 둘로 말한다. 색만 쓰면 색으로 못 가르는 사람에게는 한 갈래가 된다. */
+  .item .tick { font-family: var(--f-mono); font-size: 11px; line-height: 1; }
+  .item .t { overflow-wrap: anywhere; }
+  .item .deg {
+    font-family: var(--f-mono); font-size: 9.5px; color: var(--chalk-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .item .note {
+    grid-column: 2 / -1; display: none;
+    font-size: 11px; color: var(--chalk-3); line-height: 1.45; margin-top: 1px;
+  }
+  .item:hover { background: var(--hover); color: var(--chalk); }
+  .item.dim { opacity: 0.22; }
+  .item.hit {
+    color: var(--chalk); background: var(--hit-bg);
+    box-shadow: inset 2px 0 0 var(--mark);
+  }
+  .item.self {
+    color: var(--chalk); font-weight: 600;
+    background: var(--self); box-shadow: inset 2px 0 0 var(--chalk);
+  }
+
+  /* 줌 단계. 사라지는 것은 «글 목록» 하나뿐이다. */
+  .lod1 .items { display: none; }
+  .lod1 .card > .head h2 { font-size: 22px; }
+  .lod1 .seq .why, .lod1 .mind .why, .lod1 .pipe .why { display: none; }
+  .lod3 .item .note { display: block; }
+
+  /* 구역 이름표. 판 위에서 «여기부터는 다른 종류의 그림» 이라고 말한다. */
+  .zone {
+    position: absolute; display: flex; align-items: baseline; gap: 11px;
+    font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--chalk-3);
+  }
+  .zone::after {
+    content: ''; flex: 1 1 auto; height: 1px;
+    background: repeating-linear-gradient(90deg, var(--rule) 0 6px, transparent 6px 12px);
+    transform: translateY(-4px);
+  }
+  .zone b { font-family: var(--f-body); font-weight: 500; font-size: 12px; letter-spacing: 0; text-transform: none; color: var(--chalk-2); }
+
+  /* ---------- 얹혀 있는 것들 ---------- */
+  .hud {
+    position: absolute; z-index: 20;
+    background: var(--board-2); border: 1.5px solid var(--rule); border-radius: 3px;
+    box-shadow: 0 6px 24px var(--shade);
+  }
+  .hud.zoom { left: 14px; bottom: 14px; padding: 5px; display: flex; align-items: center; gap: 4px; }
+  .hud.zoom button {
+    height: 29px; min-width: 29px; padding: 0 9px;
+    background: none; border: 0; border-radius: 2px;
+    color: var(--chalk-2); font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .hud.zoom button:hover { background: var(--hover); color: var(--chalk); }
+  .hud.zoom .wide { font-size: 12px; }
+  .hud.zoom .z {
+    font-family: var(--f-mono); font-size: 10.5px; color: var(--chalk-3);
+    min-width: 52px; text-align: center; font-variant-numeric: tabular-nums;
+  }
+  .hud.zoom .sep { width: 1px; align-self: stretch; background: var(--rule); margin: 0 3px; }
+  .lodpick { display: flex; gap: 2px; }
+  .lodpick button {
+    padding: 0 9px; height: 26px; font-size: 11.5px;
+    border: 1px solid transparent; border-radius: 2px;
+  }
+  .lodpick button[aria-pressed="true"] {
+    color: var(--chalk); border-color: var(--line);
+    background: var(--hover);
+  }
+
+  .hud.read { right: 14px; bottom: 14px; width: min(380px, calc(100vw - 28px)); padding: 13px 15px; }
+  .hud.read[hidden] { display: none; }
+  .hud.read .kind {
+    font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--chalk-3);
+    display: flex; align-items: center; gap: 7px; margin-bottom: 5px;
+  }
+  .hud.read .kind .deg { margin-left: auto; letter-spacing: 0; text-transform: none; }
+  .hud.read h3 { font-family: var(--f-disp); font-weight: 700; font-size: 15px; margin: 0 0 5px; line-height: 1.3; }
+  .hud.read p { margin: 0; font-size: 12px; color: var(--chalk-2); }
+  .hud.read a { display: inline-block; margin-top: 9px; font-size: 12px; color: var(--mark); text-decoration: none; }
+  .hud.read a:hover { text-decoration: underline; }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 46vh) minmax(0, 54vh); }
+    .notes { border-right: 0; border-bottom: 1.5px solid var(--rule); order: 2; }
+    #stage { order: 1; }
+    .hud.read { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="app">
+  <aside class="notes">
+    <div class="notes-head">
+      <p class="eyebrow">portfolio.leneu.cloud · 도면</p>
+      <h1>요청 하나가 지나는 길</h1>
+      <p>miniPC 한 대 위의 k3s 에 전부 올라가 있습니다. 오른쪽 도면은 그 한 대를 여섯 층으로 갈라 그린 것이고, 층마다 그 자리를 적은 글이 매달려 있습니다.</p>
+      <p>아래 여섯 줄이 도면의 차례입니다. <strong>누르면 그 자리로 옮겨 갑니다.</strong></p>
+      <p class="facts" id="facts"></p>
+    </div>
+    <div class="notes-tools">
+      <input id="q" type="search" placeholder="제목 · slug · 태그로 좁히기" aria-label="글 좁히기" autocomplete="off">
+      <div class="keys" id="keys"></div>
+    </div>
+    <div class="notes-body" id="notesBody"></div>
+  </aside>
+
+  <div id="stage">
+    <div id="world"><svg id="wires" aria-hidden="true"></svg></div>
+
+<div class="hud zoom">
+  <button type="button" id="zout" aria-label="축소">－</button>
+  <span class="z" id="zlabel"></span>
+  <button type="button" id="zin" aria-label="확대">＋</button>
+  <span class="sep"></span>
+  <div class="lodpick" id="lodpick" role="group" aria-label="적히는 양"></div>
+  <span class="sep"></span>
+  <button type="button" id="sheet" class="wide" aria-pressed="false">청사진</button>
+  <button type="button" id="fit" class="wide">전체</button>
+</div>
+
+<div class="hud read" id="read" hidden>
+  <span class="kind" id="rkind"></span>
+  <h3 id="rtitle"></h3>
+  <p id="rnote"></p>
+  <a id="rgo" href="#" target="_blank" rel="noopener">위키에서 열기 ↗</a>
+</div>
+
+  </div>
+</div>
+
+<script>
+const DATA = {"builtAt":"2026-09-03T16:53:54.228Z","groups":[{"id":"start","title":"대시보드","dir":"00-start","count":2},{"id":"infra","title":"인프라","dir":"01-infra","count":9},{"id":"backend","title":"백엔드","dir":"02-backend","count":11},{"id":"data","title":"데이터","dir":"03-data","count":11},{"id":"frontend","title":"프론트엔드","dir":"04-frontend","count":6},{"id":"operations","title":"운영·관측","dir":"05-operations","count":19},{"id":"demo","title":"시나리오·시연","dir":"07-demo","count":5},{"id":"security","title":"보안","dir":"08-security","count":4},{"id":"verification","title":"운영 검증","dir":"09-verification","count":10},{"id":"development-process","title":"개발 방식·AI","dir":"10-development-process","count":6},{"id":"content-quality","title":"콘텐츠·품질","dir":"11-content-quality","count":5},{"id":"interview","title":"면접 준비","dir":"docs/interview","count":12}],"nodes":[{"id":"jaywiki-full-map","kind":"wiki","tab":"start","title":"jay-wiki 전체 지도","note":"이 사이트가 어떤 묶음으로 나뉘고, 무엇이 어디까지 만들어져 있고, 어디부터 읽으면 되나?","doc":"wiki","tags":["overview","architecture","portfolio"],"href":"https://portfolio.leneu.cloud/wiki/jaywiki-full-map"},{"id":"jaywiki-main-map","kind":"wiki","tab":"start","title":"jay-wiki 한눈에 보기","note":"클라우드가 대신해 주는 일을 직접 해보려고 miniPC 한 대에 서버를 올렸고, 그 위에서 이 사이트가 지금 돌고 있다.","doc":"wiki","tags":["overview","architecture","portfolio"],"href":"https://portfolio.leneu.cloud/wiki/jaywiki-main-map"},{"id":"cloudflare-tunnel-config-postmortem","kind":"wiki","tab":"infra","title":"Cloudflare Tunnel 설정 위치를 잘못 짚은 날","note":"대시보드에서 고친 Tunnel ingress가 왜 실제 요청 경로에 반영되지 않았나?","doc":"postmortem","tags":["cloudflare","tunnel","traefik","incident","infra"],"href":"https://portfolio.leneu.cloud/wiki/cloudflare-tunnel-config-postmortem"},{"id":"cloudflared-reload-cut-the-ssh-path","kind":"wiki","tab":"infra","title":"터널을 고치려다 터널로 들어가는 문을 닫은 날","note":"cloudflared에 보낸 SIGHUP 하나가 왜 공개 hostname 전부와 SSH 복구 경로까지 함께 끊었나?","doc":"postmortem","tags":["cloudflare","tunnel","systemd","incident","infra"],"href":"https://portfolio.leneu.cloud/wiki/cloudflared-reload-cut-the-ssh-path"},{"id":"k3s-manifest-boundaries","kind":"wiki","tab":"infra","title":"k3s 매니페스트를 서비스 경계로 나눈 기준","note":"매니페스트를 어떤 경계로 나눠야 클린 클러스터에서 같은 설치를 재현할 수 있나?","doc":"wiki","tags":["k3s","kubernetes","manifest","helm","secret"],"href":"https://portfolio.leneu.cloud/wiki/k3s-manifest-boundaries"},{"id":"minipc-boundary-decision","kind":"wiki","tab":"infra","title":"miniPC 한 대를 서비스 경계로 선택한 이유","note":"왜 클라우드가 아니라 miniPC 한 대인가, 그 대신 무엇을 인정했나?","doc":"wiki","tags":["minipc","k3s","architecture","operations"],"href":"https://portfolio.leneu.cloud/wiki/minipc-boundary-decision"},{"id":"minipc-hardware-capacity-design","kind":"wiki","tab":"infra","title":"GenMachine 4700U를 Kubernetes 노드로 준비한 과정","note":"86달러에 구한 miniPC 한 대를 어떻게 24시간 Kubernetes 노드로 준비했고, 무엇을 아직 측정하지 못했나?","doc":"wiki","tags":["minipc","hardware","ryzen","thermal","kubernetes","capacity","aws"],"href":"https://portfolio.leneu.cloud/wiki/minipc-hardware-capacity-design"},{"id":"minipc-k3s-cloudflare","kind":"wiki","tab":"infra","title":"miniPC k3s와 Cloudflare Tunnel 배포 구조","note":"포트포워딩 없는 miniPC에서 무엇을 외부 hostname으로 내보내고 무엇을 내보내지 않았나?","doc":"wiki","tags":["minipc","k3s","cloudflare","deploy"],"href":"https://portfolio.leneu.cloud/wiki/minipc-k3s-cloudflare"},{"id":"minipc-reboot-recovery-drill","kind":"wiki","tab":"infra","title":"miniPC를 재부팅해 서비스 복구 시간을 재봤다","note":"재부팅 뒤 k3s, Tunnel, runner, 상태 저장소와 공개 사이트가 어떤 순서와 시각으로 돌아오나?","doc":"wiki","tags":["minipc","k3s","reboot","recovery","systemd"],"href":"https://portfolio.leneu.cloud/wiki/minipc-reboot-recovery-drill"},{"id":"orchestration-map-walkthrough","kind":"wiki","tab":"infra","title":"오케스트레이션 지도를 한 칸씩 읽는 법","note":"오케스트레이션 지도에 있는 스물세 개 칸이 각각 무엇이고, 이 프로젝트에서 무엇을 하며, 무엇을 일부러 안 쓰나?","doc":"wiki","tags":["architecture","k3s","kubernetes","observability","cicd","overview"],"href":"https://portfolio.leneu.cloud/wiki/orchestration-map-walkthrough"},{"id":"zero-downtime-on-one-machine","kind":"wiki","tab":"infra","title":"기계가 한 대인데 무중단 배포를 말할 수 있나","note":"노드가 하나이고 파드도 하나인데 무중단 배포라고 부를 수 있나?","doc":"wiki","tags":["kubernetes","deploy","rolling-update","availability","k3s"],"href":"https://portfolio.leneu.cloud/wiki/zero-downtime-on-one-machine"},{"id":"admin-user-role-boundary","kind":"wiki","tab":"backend","title":"USER 역할이 지키는 경로가 하나도 없다는 것을 나중에 알았다","note":"둘로 나눠 설계한 역할 중 USER가 실제로는 아무 경로도 지키지 않고 있었다는 발견이다.","doc":"wiki","tags":["auth","authorization","admin","privacy"],"href":"https://portfolio.leneu.cloud/wiki/admin-user-role-boundary"},{"id":"api-error-contract","kind":"wiki","tab":"backend","title":"장애를 HTTP 응답으로 숨기지 않는 기준","note":"입력 오류, 상태 충돌, 의존 서비스 장애, 예상 못 한 예외를 각각 어떤 HTTP 응답으로 구분하나?","doc":"wiki","tags":["api","error","rfc7807","bff","resilience"],"href":"https://portfolio.leneu.cloud/wiki/api-error-contract"},{"id":"bff-was-already-the-gateway","kind":"wiki","tab":"backend","title":"Spring Cloud Gateway를 넣을 자리에 BFF 프록시가 이미 서 있었다","note":"MSA 확장에서 Spring Cloud Gateway 를 어디에 넣을 것인가에 대한 결정 기록이다.","doc":"adr","tags":["spring-cloud-gateway","bff","nextjs","msa","architecture"],"href":"https://portfolio.leneu.cloud/wiki/bff-was-already-the-gateway"},{"id":"idempotency-key-in-payment-row","kind":"wiki","tab":"backend","title":"멱등성 키를 Redis 대신 결제 행의 유니크 컬럼에 뒀다","note":"결제 멱등성 키를 Redis와 PostgreSQL 중 어디에 둘 것인가를 정한 기록이다.","doc":"adr","tags":["postgresql","redis","idempotency","saga","transaction"],"href":"https://portfolio.leneu.cloud/wiki/idempotency-key-in-payment-row"},{"id":"msa-data-ownership-split","kind":"wiki","tab":"backend","title":"결제·배송 데이터 소유권을 계정과 NetworkPolicy로 강제한 이유","note":"프로세스 분리·독립 배포·Kafka·분산 추적을 다 갖춘 시스템이 왜 여전히 모놀리스였고, 무엇을 하나 채워야 마이크로서비스가 되나?","doc":"adr","tags":["msa","architecture","postgresql","kubernetes","networkpolicy"],"href":"https://portfolio.leneu.cloud/wiki/msa-data-ownership-split"},{"id":"oauth-logout-session","kind":"wiki","tab":"backend","title":"로그아웃은 쿠키 하나가 아니라 발급한 쿠키 전부를 지워야 끝난다","note":"로그아웃에서 JWT 쿠키만 지우면 왜 인증이 되살아날 수 있었나?","doc":"wiki","tags":["spring","oauth","session","cookie","security","bff"],"href":"https://portfolio.leneu.cloud/wiki/oauth-logout-session"},{"id":"oauth-public-origin-smoke","kind":"wiki","tab":"backend","title":"OAuth callback을 고친 뒤 로그인 기능 자체를 걷어낸 이유","note":"프록시를 지나며 http로 잘리던 OAuth callback을 public origin 고정으로 살렸다가, 그 로그인 자체를 왜 걷어냈나?","doc":"wiki","tags":["oauth","privacy","nextjs","spring","cloudflare","security"],"href":"https://portfolio.leneu.cloud/wiki/oauth-public-origin-smoke"},{"id":"participant-down-compensation","kind":"wiki","tab":"backend","title":"결제 서비스를 껐더니 화면은 살았고 재고는 잡힌 채 남았다","note":"payment-api 를 죽였을 때 화면은 살고, 그 뒤의 사가에는 무엇이 남는지를 로컬에서 실측한 기록이다.","doc":"wiki","tags":["saga","fault-isolation","compensation","msa","testing"],"href":"https://portfolio.leneu.cloud/wiki/participant-down-compensation"},{"id":"spring-bff-auth-boundary","kind":"wiki","tab":"backend","title":"Spring HTTP API를 BFF 뒤에 둔 이유","note":"브라우저가 Spring을 직접 보지 않게 만든 BFF 경계가 인증과 장애 전달을 어떻게 책임지나?","doc":"wiki","tags":["spring","nextjs","bff","security"],"href":"https://portfolio.leneu.cloud/wiki/spring-bff-auth-boundary"},{"id":"spring-fastapi-payment-contract","kind":"wiki","tab":"backend","title":"Spring과 FastAPI를 Saga 경계로 나눈 이유","note":"결제 참여자를 왜 별도 FastAPI 서비스로 뗐고, Spring과 어떤 실패 계약을 맺었나?","doc":"wiki","tags":["saga","spring","fastapi","payment","contract"],"href":"https://portfolio.leneu.cloud/wiki/spring-fastapi-payment-contract"},{"id":"why-only-five-services","kind":"wiki","tab":"backend","title":"Eureka·Config Server·메시를 각각 기각하고 워크로드 다섯에서 멈췄다","note":"이 클러스터의 애플리케이션 워크로드는 다섯이다 — Next.js web, Spring 모놀리스, payment-api, shipping-api, partner-simulator. 왜 더 없나?","doc":"wiki","tags":["msa","architecture","kubernetes","gateway","tradeoff"],"href":"https://portfolio.leneu.cloud/wiki/why-only-five-services"},{"id":"content-origin-and-history-boundary","kind":"wiki","tab":"data","title":"시드와 revision은 서로 다른 축이다","note":"시드(글이 어디서 오는가)와 revision(고친 기록을 남기는가)이 왜 별개의 축이고 각각 무슨 대가를 치르나?","doc":"adr","tags":["seed","revision","content","architecture","postgres"],"href":"https://portfolio.leneu.cloud/wiki/content-origin-and-history-boundary"},{"id":"db-schema-erd-map","kind":"wiki","tab":"data","title":"전체 DB 스키마를 도메인별 ERD로 읽기","note":"모놀리스 PostgreSQL 29개 테이블이 어떤 경계로 나뉘어 있고, FK를 건 10곳과 걸지 않은 곳이 왜 갈리나?","doc":"wiki","tags":["postgres","schema","erd","data-model"],"href":"https://portfolio.leneu.cloud/wiki/db-schema-erd-map"},{"id":"minio-portfolio-assets","kind":"wiki","tab":"data","title":"MinIO에서 포트폴리오 자산을 제공하는 이유","note":"기술 로고 같은 포트폴리오 자산을 왜 public 폴더가 아니라 MinIO에 두고 same-origin route로 내보내나?","doc":"wiki","tags":["minio","s3","assets","nextjs","k3s"],"href":"https://portfolio.leneu.cloud/wiki/minio-portfolio-assets"},{"id":"minio-public-asset-governance","kind":"wiki","tab":"data","title":"MinIO 공개 자산을 운영하는 기준","note":"기술 로고, 위키 이미지와 공개 자료 파일을 MinIO에서 누가 쓰고 누가 읽으며 어떤 기준으로 교체·삭제하는가?","doc":"adr","tags":["governance","minio","object-storage","assets","checksum","lifecycle"],"href":"https://portfolio.leneu.cloud/wiki/minio-public-asset-governance"},{"id":"opensearch-nori-image","kind":"wiki","tab":"data","title":"Elasticsearch 대신 OpenSearch와 nori를 선택한 이유","note":"한국어 검색을 위해 왜 Elasticsearch가 아니라 nori를 넣은 OpenSearch custom image인가?","doc":"adr","tags":["opensearch","elasticsearch","nori","docker","search","index","hardware"],"href":"https://portfolio.leneu.cloud/wiki/opensearch-nori-image"},{"id":"postgres-db-wiki-revision","kind":"wiki","tab":"data","title":"Markdown 파일에서 DB 위키로 전환한 이유","note":"위키 본문의 정본을 Markdown 파일에서 PostgreSQL로 옮긴 이유는 무엇이고, 그 뒤 목록 정렬 기준은 어떻게 바뀌었다가 되돌아왔나?","doc":"wiki","tags":["postgres","wiki","revision","architecture"],"href":"https://portfolio.leneu.cloud/wiki/postgres-db-wiki-revision"},{"id":"postgres-restore-drill-1","kind":"wiki","tab":"data","title":"백업 파일이 아니라 복원 결과를 확인하는 방법","note":"백업 파일이 생겼다는 것과 복원된다는 것이 왜 다른가?","doc":"wiki","tags":["postgres","backup","restore","cronjob","pvc"],"href":"https://portfolio.leneu.cloud/wiki/postgres-restore-drill-1"},{"id":"schema-simplification","kind":"wiki","tab":"data","title":"도메인별 PostgreSQL schema 분리를 걷어낸 이유","note":"도메인별 PostgreSQL schema 분리를 검토하다가 왜 걷어냈나?","doc":"adr","tags":["postgres","schema","database","simplicity"],"href":"https://portfolio.leneu.cloud/wiki/schema-simplification"},{"id":"search-comparison-results","kind":"wiki","tab":"data","title":"10만 건 검색 비교에서 실제로 확인한 차이","note":"같은 10만 건 코퍼스에서 LIKE, tsvector, OpenSearch nori가 각각 무엇을 찾고, 얼마나 걸리나?","doc":"wiki","tags":["search","postgres","opensearch","nori","benchmark"],"href":"https://portfolio.leneu.cloud/wiki/search-comparison-results"},{"id":"why-a-second-postgres-instance","kind":"wiki","tab":"data","title":"postgres 인스턴스를 하나 더 세운 근거는 NetworkPolicy 하나뿐이었다","note":"실무 다수가 단일 DB + 스키마 분리로 가는데, 왜 여기서는 postgres 인스턴스를 하나 더 세웠나?","doc":"adr","tags":["postgresql","msa","kubernetes","networkpolicy","backup"],"href":"https://portfolio.leneu.cloud/wiki/why-a-second-postgres-instance"},{"id":"wiki-content-asset-retention-governance","kind":"wiki","tab":"data","title":"문서와 이미지 자산의 소유·보존 기준","note":"위키 본문, revision, 이미지와 권리 정보가 서로 다른 속도로 사라져 설명할 수 없는 상태가 되지 않게 무엇을 원본으로 보고 언제 보존·삭제하는가?","doc":"adr","tags":["governance","revision","minio","retention","provenance"],"href":"https://portfolio.leneu.cloud/wiki/wiki-content-asset-retention-governance"},{"id":"frontend-payload-and-rendering-rules","kind":"wiki","tab":"frontend","title":"프론트엔드 최적화는 큰 것부터 했다 — 512kB를 228kB로","note":"이 사이트의 프론트엔드 최적화를 무엇부터, 무엇을 근거로 했는지 적은 글이다.","doc":"wiki","tags":["frontend","performance","nextjs","react","bundle","lazy-loading"],"href":"https://portfolio.leneu.cloud/wiki/frontend-payload-and-rendering-rules"},{"id":"frontend-performance-measured","kind":"wiki","tab":"frontend","title":"프론트에서 무엇을 고칠지 눈이 아니라 측정으로 골랐다","note":"프론트에서 무엇을 고칠지 무엇을 근거로 골랐나?","doc":"wiki","tags":["frontend","performance","nextjs","react","measurement"],"href":"https://portfolio.leneu.cloud/wiki/frontend-performance-measured"},{"id":"nextjs-frontend-redesign","kind":"wiki","tab":"frontend","title":"프론트 전면 개편의 기준","note":"기능이 늘며 흐려진 화면을 어떤 기준으로 다시 묶었나?","doc":"wiki","tags":["nextjs","frontend","ux"],"href":"https://portfolio.leneu.cloud/wiki/nextjs-frontend-redesign"},{"id":"wiki-information-architecture-rebuild","kind":"wiki","tab":"frontend","title":"위키 정보구조 재개편: 탭 19개를 12개로 줄이며 고친 것","note":"위키 탭을 19개에서 12개로 줄인 재개편에서 실제로 고친 것이 분류 개수가 아니라 무엇이었나?","doc":"postmortem","tags":["postmortem","information-architecture","wiki"],"href":"https://portfolio.leneu.cloud/wiki/wiki-information-architecture-rebuild"},{"id":"wiki-navigation-and-responsive-stability","kind":"wiki","tab":"frontend","title":"운영 위키의 읽기 성능과 반응형 안정성을 개선한 방법","note":"문서를 오갈 때 선택 상태가 흔들리지 않고 좁은 화면에서도 본문과 다이어그램이 읽히게 하려면 무엇을 고쳐야 했나?","doc":"wiki","tags":["nextjs","react","ux","performance","responsive","mermaid"],"href":"https://portfolio.leneu.cloud/wiki/wiki-navigation-and-responsive-stability"},{"id":"wrong-address-routing","kind":"wiki","tab":"frontend","title":"없는 주소, 옮긴 주소, 터진 화면을 각각 다르게 다룬다","note":"글이 옮겨지거나 지워졌을 때 방문자와 크롤러가 무엇을 받는지 상태 코드별로 정한 기록이다.","doc":"wiki","tags":["frontend","nextjs","redirect","http-status","seo","error-handling"],"href":"https://portfolio.leneu.cloud/wiki/wrong-address-routing"},{"id":"alerting-inventory-and-gaps","kind":"wiki","tab":"operations","title":"알림으로 오는 열다섯 개와 아직 오지 않는 둘","note":"운영에서 Alertmanager 를 거쳐 텔레그램으로 오는 알림은 지표 규칙 열넷과 로그 규칙 하나, 합쳐 열다섯이다. 그 밖에 Alertmanager 를 거치지 않는 배포 계열 알림 둘과, 텔레그램이 아니라 클러스터 밖으로 나가는 Watchdog 이 있다.","doc":"wiki","tags":["alerting","alertmanager","prometheus","loki","telegram","observability","operations"],"href":"https://portfolio.leneu.cloud/wiki/alerting-inventory-and-gaps"},{"id":"all-in-one-deploy-build","kind":"wiki","tab":"operations","title":"요청 한 번으로 All-In-One 배포가 끝난다","note":"이 저장소의 배포 전체를 한 장으로 그린 글이다. 구조와 이유만 담고, 자주 바뀌는 명세(단계 목록·테스트 개수·스크립트 이름)는 링크 너머에 둔다 — 같은 사실을 두 글에 적으면 한쪽이 반드시 먼저 낡는다.","doc":"wiki","tags":["deployment","automation","operations","content-sync","helm","github-actions"],"href":"https://portfolio.leneu.cloud/wiki/all-in-one-deploy-build"},{"id":"backup-r2-phase-b-plan","kind":"wiki","tab":"operations","title":"PostgreSQL 백업을 miniPC 밖으로 복제하는 계획","note":"로컬 PVC에만 있는 PostgreSQL 백업을 어디로, 어떻게 miniPC 밖에 복제할 것인가?","doc":"adr","tags":["postgres","backup","r2","cloudflare","disaster-recovery"],"href":"https://portfolio.leneu.cloud/wiki/backup-r2-phase-b-plan"},{"id":"backup-scope-drift","kind":"wiki","tab":"operations","title":"DB가 셋이 되는 동안 백업 대상을 같은 커밋으로 늘렸다","note":"DB 를 하나에서 셋으로 늘리는 동안 백업 CronJob 이 그대로면 무슨 일이 나나? 아무 일도 안 난다 — 그게 문제다.","doc":"wiki","tags":["backup","operations","postgresql","kubernetes","msa"],"href":"https://portfolio.leneu.cloud/wiki/backup-scope-drift"},{"id":"cicd-ghcr-runner","kind":"wiki","tab":"operations","title":"GHCR와 self-hosted runner로 자동 배포하기","note":"수동 tar 배포를 GitHub Actions·GHCR·self-hosted runner 파이프라인으로 바꾼 기록이고, 지금 이 파이프라인은 배포만 하지 않고 PostgreSQL 백업과 위키 콘텐츠 시드까지 돌린다.","doc":"wiki","tags":["github-actions","ghcr","k3s","cicd"],"href":"https://portfolio.leneu.cloud/wiki/cicd-ghcr-runner"},{"id":"deploy-automation-boundary","kind":"wiki","tab":"operations","title":"자동화의 경계는 할 수 있느냐가 아니라 되돌릴 수 있느냐로 긋는다","note":"배포 한 번이 어디까지 자동으로 갈 수 있고, 무엇은 사람 손에 남겨야 하나?","doc":"adr","tags":["deployment","automation","helm","rollback","operations","github-actions"],"href":"https://portfolio.leneu.cloud/wiki/deploy-automation-boundary"},{"id":"deploy-rules-and-harness","kind":"wiki","tab":"operations","title":"배포는 머지 한 번이고, 그 한 번이 어디까지 하는지 정해 둔다","note":"이 저장소에서 배포는 develop 을 main 에 머지하는 행동 하나이고, 그 뒤는 파이프라인이 사람 없이 끝까지 간다.","doc":"wiki","tags":["deployment","github-actions","k3s","rollback","operations","release"],"href":"https://portfolio.leneu.cloud/wiki/deploy-rules-and-harness"},{"id":"gitops-wiki-content-sync-boundary","kind":"wiki","tab":"operations","title":"TOTP를 우회하지 않고 위키 기준 콘텐츠를 자동 배포하는 방법","note":"관리자 인증을 약하게 만들지 않고 검토된 위키 기준 콘텐츠를 운영 DB에 반복 반영하는 경계를 어떻게 나눴나?","doc":"adr","tags":["gitops","kubernetes","security","content-sync","totp","backup"],"href":"https://portfolio.leneu.cloud/wiki/gitops-wiki-content-sync-boundary"},{"id":"helm-releases-and-boundary","kind":"wiki","tab":"operations","title":"Helm 릴리스의 자동 배포 경계를 다시 그은 기록","note":"이 저장소에서 Helm 은 무엇을 맡고 있고, 그중 어디까지가 배포 파이프라인 밖인가?","doc":"wiki","tags":["helm","kubernetes","k3s","operations","release","observability"],"href":"https://portfolio.leneu.cloud/wiki/helm-releases-and-boundary"},{"id":"minipc-command-runbook","kind":"wiki","tab":"operations","title":"miniPC 상태를 확인할 때 매번 쓰는 명령을 한 곳에 모은 기록","note":"miniPC 배포·상태를 확인할 때 매번 찾아 쓰던 명령을 어디에 모아 뒀나?","doc":"wiki","tags":["minipc","kubectl","ssh","runbook","operations"],"href":"https://portfolio.leneu.cloud/wiki/minipc-command-runbook"},{"id":"never-exercised-code","kind":"wiki","tab":"operations","title":"한 번도 안 돌아본 코드는 없는 코드다","note":"스크립트가 있고 규칙이 있으면 그 기능이 있는 것인가, 아니면 한 번 돌아야 있는 것인가?","doc":"wiki","tags":["backup","restore","alerting","rollback","deploy","verification"],"href":"https://portfolio.leneu.cloud/wiki/never-exercised-code"},{"id":"observability-loki-tempo-grafana","kind":"wiki","tab":"operations","title":"Metrics·Logs·Traces를 연결한 관측 경계","note":"Metrics·Logs·Traces·Alert가 각각 어떤 경로로 모이고, 요청 하나를 어떤 순서로 따라가나?","doc":"wiki","tags":["loki","tempo","grafana","observability"],"href":"https://portfolio.leneu.cloud/wiki/observability-loki-tempo-grafana"},{"id":"observability-telegram","kind":"wiki","tab":"operations","title":"알림은 설정이 아니라 수신 채널에서 검증이 끝난다","note":"Alertmanager에서 Telegram으로 알림이 실제로 오가는지 어떻게 검증했나?","doc":"wiki","tags":["observability","alertmanager","telegram","prometheus","verification"],"href":"https://portfolio.leneu.cloud/wiki/observability-telegram"},{"id":"postgres-backup-restore","kind":"wiki","tab":"operations","title":"백업은 복원해보기 전까지 백업이 아니다","note":"PostgreSQL 백업을 매일 만들고, 그 파일이 정말 복원되는지, 그 기계가 죽어도 남는지 어떻게 확인하나?","doc":"wiki","tags":["postgres","backup","restore","kubernetes","alert"],"href":"https://portfolio.leneu.cloud/wiki/postgres-backup-restore"},{"id":"reboot-cadence-and-storage-growth-boundary","kind":"wiki","tab":"operations","title":"재부팅·로그 보존·이미지 정리를 어디까지 자동화할지","note":"고정 주기 재부팅, 로그 보존 설정, 이미지 정리 cron을 넣을지 말지를 무엇으로 정했나?","doc":"adr","tags":["minipc","k3s","operations","unattended-upgrades","retention","evidence"],"href":"https://portfolio.leneu.cloud/wiki/reboot-cadence-and-storage-growth-boundary"},{"id":"reboot-visibility-alerts","kind":"wiki","tab":"operations","title":"자동 재부팅이 두 달간 아무에게도 알려지지 않았다","note":"켜 둔 자동화가 도는 것을 아무도 모르면 그 자동화를 신뢰할 수 있나?","doc":"wiki","tags":["minipc","unattended-upgrades","alerting","prometheus","cronjob","observability"],"href":"https://portfolio.leneu.cloud/wiki/reboot-visibility-alerts"},{"id":"silent-500-alert-gap","kind":"wiki","tab":"operations","title":"오류는 났는데 알림이 울리지 않았다","note":"운영에서 500이 한 건 났는데 왜 아무도 몰랐고, 다음에는 어떻게 알게 만들었나?","doc":"postmortem","tags":["prometheus","alerting","loki","observability","incident"],"href":"https://portfolio.leneu.cloud/wiki/silent-500-alert-gap"},{"id":"watchdog-outside-the-cluster","kind":"wiki","tab":"operations","title":"알림 체계가 죽었다는 것은 그 체계 밖에서만 알 수 있다","note":"알림 체계가 죽었다는 사실을 그 죽은 알림 체계로 알릴 수는 없는데, 이 사이트의 관측과 알림은 전부 miniPC 한 대 안에 있다.","doc":"wiki","tags":["alerting","observability","alertmanager","prometheus","operations","monitoring"],"href":"https://portfolio.leneu.cloud/wiki/watchdog-outside-the-cluster"},{"id":"wiki-image-asset-lifecycle","kind":"wiki","tab":"operations","title":"위키 이미지와 MinIO 자산 수명주기를 관리하는 방법","note":"위키 이미지가 MinIO 주소 변경·환경 차이·과거 revision에서도 깨지지 않게 어떻게 저장하나?","doc":"adr","tags":["minio","image","markdown","proxy","revision","lifecycle"],"href":"https://portfolio.leneu.cloud/wiki/wiki-image-asset-lifecycle"},{"id":"kafka-that-never-crossed-a-process","kind":"wiki","tab":"demo","title":"아웃박스 릴레이의 발행자와 소비자가 같은 프로세스 안에 있었다","note":"카프카와 아웃박스 릴레이가 돌고 있어도 발행자와 소비자가 같은 프로세스면 비동기 통신이 있다고 셀 수 없다. 코드 품질과 아키텍처적 의미는 다른 축이다.","doc":"wiki","tags":["kafka","outbox","saga","msa"],"href":"https://portfolio.leneu.cloud/wiki/kafka-that-never-crossed-a-process"},{"id":"redis-random-chat-queue","kind":"wiki","tab":"demo","title":"랜덤채팅 대기열을 Redis ZSET으로 만든 이유","note":"랜덤채팅의 방 정원과 대기열 상태를 왜 Pod 메모리가 아니라 Redis에 두고, 왜 백업하지 않나?","doc":"wiki","tags":["redis","websocket","queue","chat"],"href":"https://portfolio.leneu.cloud/wiki/redis-random-chat-queue"},{"id":"saga-kafka-outbox-order","kind":"wiki","tab":"demo","title":"Saga, Outbox, Kafka를 주문 시나리오로 분리한 이유","note":"Saga·Outbox·Kafka를 왜 위키 도메인이 아니라 별도 주문 시나리오로 만들었고, 만들면서 무엇이 드러났나?","doc":"wiki","tags":["saga","kafka","outbox","order"],"href":"https://portfolio.leneu.cloud/wiki/saga-kafka-outbox-order"},{"id":"scenario-badges-two-axes","kind":"wiki","tab":"demo","title":"시나리오 배지를 한 축이 아니라 두 축으로 나눈 판단","note":"시나리오 스물세 편에 「실무 기반」「운영 검증」 같은 배지를 다는데, 왜 한 줄이 아니라 두 줄인가?","doc":"adr","tags":["scenarios","information-architecture","taxonomy","frontend"],"href":"https://portfolio.leneu.cloud/wiki/scenario-badges-two-axes"},{"id":"search-comparison-100k","kind":"wiki","tab":"demo","title":"10만 게시판과 검색 비교를 만든 이유","note":"LIKE, tsvector+GIN, OpenSearch+nori를 왜 같은 10만 건 데이터에서 비교하는 장치로 만들었나?","doc":"wiki","tags":["postgres","opensearch","search","board"],"href":"https://portfolio.leneu.cloud/wiki/search-comparison-100k"},{"id":"account-secret-least-privilege-boundary","kind":"wiki","tab":"security","title":"관리자·사용자·서비스 계정과 Secret의 권한을 나눈 방법","note":"관리자·가입 사용자·애플리케이션·배포 Job이 자격 증명을 공유하지 않도록 권한을 어떻게 나눴나?","doc":"adr","tags":["security","secrets","least-privilege","totp","kubernetes","service-account"],"href":"https://portfolio.leneu.cloud/wiki/account-secret-least-privilege-boundary"},{"id":"audit-before-incident-default-open","kind":"wiki","tab":"security","title":"막아 뒀다고 믿은 네 곳이 기본값으로 열려 있었다","note":"사고가 나기 전에 점검으로 찾은 구멍 네 개를, 왜 있다고 믿었던 방어가 실제로는 없었는지와 함께 기록한다.","doc":"postmortem","tags":["security","spring-security","rate-limit","websocket","totp","audit"],"href":"https://portfolio.leneu.cloud/wiki/audit-before-incident-default-open"},{"id":"markdown-security-and-admin-edit-boundary","kind":"wiki","tab":"security","title":"Markdown XSS와 관리자 편집 경계를 막은 방법","note":"DB에 저장된 Markdown을 브라우저 HTML로 바꾸는 경계와 관리자 변경 요청 경계를 어떻게 따로 방어했나?","doc":"wiki","tags":["security","markdown","xss","nextjs","admin","csrf"],"href":"https://portfolio.leneu.cloud/wiki/markdown-security-and-admin-edit-boundary"},{"id":"personal-service-legal-launch-boundary","kind":"wiki","tab":"security","title":"개인 포트폴리오 서비스를 공개하기 전 확인한 법적 경계","note":"로그인, 자유게시판, 채팅과 이미지 업로드가 있는 개인 서비스를 공개하기 전에 어떤 법적 공백을 닫아야 했는가?","doc":"adr","tags":["governance","privacy","copyright","launch-checklist"],"href":"https://portfolio.leneu.cloud/wiki/personal-service-legal-launch-boundary"},{"id":"hpa-service-control","kind":"wiki","tab":"verification","title":"HPA 임계값을 60%에서 80%로 올린 이유와 서비스 제어판 시연","note":"HPA 스케일 아웃과 서비스 제어판이 실제로 동작하는지, 임계값은 적절한지 어떻게 확인했나?","doc":"wiki","tags":["kubernetes","hpa","autoscaling","rbac","verification"],"href":"https://portfolio.leneu.cloud/wiki/hpa-service-control"},{"id":"image-that-never-pulled","kind":"wiki","tab":"verification","title":"없는 이미지로 배포를 깨뜨렸지만, 옛 파드 둘은 66번의 요청을 모두 받았다","note":"롤백 스크립트는 만들어 두고 운영에서 한 번도 돌려 본 적이 없었다. 뜨지 않는 이미지로 일부러 깨뜨려 태워 봤다.","doc":"wiki","tags":["rollback","deployment","kubernetes","verification","drill"],"href":"https://portfolio.leneu.cloud/wiki/image-that-never-pulled"},{"id":"kafka-dlq-rehearsal","kind":"wiki","tab":"verification","title":"주문 세 건으로 DLQ를 재현하고 알림 규칙을 고친 기록","note":"재시도와 DLQ 를 만들어 두기만 하고 한 번도 재 본 적이 없어서, 운영에서 주문 세 건으로 정상·한 번 실패·계속 실패를 각각 돌렸다.","doc":"wiki","tags":["kafka","dlq","retry","alerting","verification","operations"],"href":"https://portfolio.leneu.cloud/wiki/kafka-dlq-rehearsal"},{"id":"postgres-backup-artifact-verification","kind":"wiki","tab":"verification","title":"백업 파일을 복구 가능한 운영 증거로 검증한 방법","note":"backup Job의 성공 상태가 아니라 무엇을 봐야 백업이 복구 가능하다고 말할 수 있나?","doc":"wiki","tags":["postgresql","backup","restore","sha256","cronjob"],"href":"https://portfolio.leneu.cloud/wiki/postgres-backup-artifact-verification"},{"id":"production-content-sync-and-rollout","kind":"wiki","tab":"verification","title":"기준 콘텐츠를 운영 DB와 rollout까지 맞춘 기록","note":"2026-07-11 commit 0e3cd19 시점에 기준 콘텐츠 10개 탭 28편을 운영 DB·rollout과 맞춘 절차의 기록이다.","doc":"wiki","tags":["production","seed","rollout","postgresql","smoke"],"href":"https://portfolio.leneu.cloud/wiki/production-content-sync-and-rollout"},{"id":"production-static-asset-recovery","kind":"wiki","tab":"verification","title":"운영 favicon과 MinIO 기술 로고를 복구한 기록","note":"운영 배포 뒤 favicon 404와 사라진 기술 로고의 원인이 각각 어디에 있었나?","doc":"wiki","tags":["nextjs","minio","static-assets","production","recovery"],"href":"https://portfolio.leneu.cloud/wiki/production-static-asset-recovery"},{"id":"release-record-one-run","kind":"wiki","tab":"verification","title":"배포 한 판을 run 번호부터 공개 smoke 까지 한 글에 적었다","note":"「배포는 머지 한 번이면 끝난다」고 여러 글에 적어 두고, 정작 그 한 번이 실제로 무엇을 얼마나 하는지 숫자로 남긴 글이 없었다.","doc":"wiki","tags":["deploy","release","rollout","cicd","verification"],"href":"https://portfolio.leneu.cloud/wiki/release-record-one-run"},{"id":"responsive-navigation-regression-check","kind":"wiki","tab":"verification","title":"문서 탐색과 반응형 읽기 기준을 실제 화면에서 확인한 기록","note":"문서 딥링크와 390·768·1280px 화면 폭에서 읽기 계약이 유지되는지 어떻게 확인했나?","doc":"wiki","tags":["frontend","responsive","deep-link","mermaid","regression"],"href":"https://portfolio.leneu.cloud/wiki/responsive-navigation-regression-check"},{"id":"saga-trace-service-graph-verification","kind":"wiki","tab":"verification","title":"배송 실패 요청 하나를 trace와 Service Graph로 확인한 기록","note":"배송 실패 주문 하나의 보상 호출이 관측 신호에서도 같은 요청 흐름으로 묶이는지 어떻게 확인했나?","doc":"wiki","tags":["saga","otel","tempo","prometheus","service-graph"],"href":"https://portfolio.leneu.cloud/wiki/saga-trace-service-graph-verification"},{"id":"session-crossed-three-pods","kind":"wiki","tab":"verification","title":"세션을 파드 셋에서 이어 준 것은 내 스위치가 아니라 Boot 자동설정이었다","note":"파드를 상시 둘로 바꿨다. 그러면 「세션을 안 만든다」는 선택이 실제로 무엇을 피한 것인지 잴 수 있다.","doc":"wiki","tags":["session","load-balancing","redis","kubernetes","verification"],"href":"https://portfolio.leneu.cloud/wiki/session-crossed-three-pods"},{"id":"ai-agent-keychain-production-auth-boundary","kind":"wiki","tab":"development-process","title":"AI 에이전트가 운영 비밀번호를 기억하지 않게 만든 방법","note":"AI 에이전트가 운영 관리자 비밀번호를 대화, 파일, 로그 어디에도 남기지 않고 운영 콘텐츠 반영을 실행하게 만든 방법이다.","doc":"adr","tags":["ai","keychain","totp","secrets","automation","operations"],"href":"https://portfolio.leneu.cloud/wiki/ai-agent-keychain-production-auth-boundary"},{"id":"ai-assisted-development-harness","kind":"wiki","tab":"development-process","title":"AI 에이전트와 jay-wiki를 개발한 방식","note":"AI 에이전트를 제품 기능이 아니라 개발 도구로 쓰면서 결과를 어떤 규칙과 증거로 통제했는가?","doc":"wiki","tags":["ai","codex","claude","harness","workflow","verification"],"href":"https://portfolio.leneu.cloud/wiki/ai-assisted-development-harness"},{"id":"development-delivery-evidence-loop","kind":"wiki","tab":"development-process","title":"요청을 코드가 아니라 운영 증거까지 연결하는 개발 루프","note":"기능이 끝났다는 판단을 코드가 아니라 방문자가 보는 운영 화면과 증거로 내리는 개발 루프를 어떻게 돌리는가?","doc":"wiki","tags":["development-process","delivery","testing","visual-qa","documentation","operations"],"href":"https://portfolio.leneu.cloud/wiki/development-delivery-evidence-loop"},{"id":"evidence-maturity-and-claim-boundary","kind":"wiki","tab":"development-process","title":"Mock·로컬 실측·운영 검증을 같은 성과로 쓰지 않는 기준","note":"시뮬레이션, 로컬 실측과 운영 검증을 같은 성과처럼 말하지 않기 위한 증거 수준과 표현의 기준이다.","doc":"adr","tags":["development-process","evidence","benchmark","mock","portfolio","verification"],"href":"https://portfolio.leneu.cloud/wiki/evidence-maturity-and-claim-boundary"},{"id":"hypothesis-driven-debugging-loop","kind":"wiki","tab":"development-process","title":"증상을 바로 고치지 않고 가설과 증거로 원인을 좁힌 방법","note":"처음 떠오른 원인에 바로 코드를 맞추지 않고, 반증 가능한 가설과 측정으로 장애 원인을 좁히는 절차다.","doc":"wiki","tags":["development-process","debugging","hypothesis","evidence","observability","regression"],"href":"https://portfolio.leneu.cloud/wiki/hypothesis-driven-debugging-loop"},{"id":"troubleshooting-log","kind":"wiki","tab":"development-process","title":"트러블슈팅 12건에서 상태·환경·경계의 가정을 좁힌 회고","note":"이번 프로젝트에서 막힌 문제 12건이 기술 자체보다 상태, 환경, 경계에 대한 가정에서 나왔다는 회고다.","doc":"wiki","tags":["troubleshooting","flyway","cloudflare","nextjs"],"href":"https://portfolio.leneu.cloud/wiki/troubleshooting-log"},{"id":"open-source-license-content-governance","kind":"wiki","tab":"content-quality","title":"오픈소스 라이선스와 콘텐츠 출처를 관리하는 기준","note":"폰트, 아이콘, 기술 로고, 의존성, 컨테이너와 위키 이미지가 어디서 왔고 어떤 조건으로 쓰는지 설명할 수 있는 상태를 어떻게 유지하는가?","doc":"adr","tags":["license","copyright","open-source","content-governance"],"href":"https://portfolio.leneu.cloud/wiki/open-source-license-content-governance"},{"id":"portfolio-retrospective-map","kind":"wiki","tab":"content-quality","title":"운영 회고를 포트폴리오에서 읽히게 만드는 방법","note":"회고·로드맵 탭의 글이 무엇을 붙였는가가 아니라 왜 그렇게 했고 어디서 실패했으며 어떻게 복구했는가로 읽히게 만드는 형식이다.","doc":"wiki","tags":["portfolio","postmortem","operations"],"href":"https://portfolio.leneu.cloud/wiki/portfolio-retrospective-map"},{"id":"roadmap-after-content","kind":"wiki","tab":"content-quality","title":"콘텐츠 이식 이후 로드맵","note":"콘텐츠 이식이 끝난 지금 기능을 더 붙이는 대신 어떤 증거를 어떤 순서로 남길 것인가?","doc":"note","tags":["roadmap","content","operations"],"href":"https://portfolio.leneu.cloud/wiki/roadmap-after-content"},{"id":"wiki-fact-check-51-articles","kind":"wiki","tab":"content-quality","title":"위키 사실 검증: 검증받은 적 없던 51편을 저장소에 대조했다","note":"재개편 때 검증 없이 옮겨 온 위키 51편을 저장소에 대조하면 무엇이 나오나?","doc":"wiki","tags":["fact-check","verification","wiki"],"href":"https://portfolio.leneu.cloud/wiki/wiki-fact-check-51-articles"},{"id":"wiki-writing-harness","kind":"wiki","tab":"content-quality","title":"위키에 글 한 편을 쓰면 실제로 무엇이 도는가","note":"이 위키에 글 한 편을 쓰면 진입부터 운영 화면까지 실제로 무엇이 어떤 순서로 도는가?","doc":"wiki","tags":["development-process","ai","harness","content","seed","verification"],"href":"https://portfolio.leneu.cloud/wiki/wiki-writing-harness"},{"id":"iv:00-질문-색인","kind":"interview","tab":"interview","title":"00. 질문 색인 — 이 질문이 오면 어디를 보나","note":"00-질문-색인.md · 134줄","doc":"interview","tags":[],"href":null,"file":"00-질문-색인.md"},{"id":"iv:01-거래-정합성","kind":"interview","tab":"interview","title":"01. 거래 · 정합성","note":"01-거래-정합성.md · 1,138줄","doc":"interview","tags":[],"href":null,"file":"01-거래-정합성.md"},{"id":"iv:02-분산-연동","kind":"interview","tab":"interview","title":"02. 분산 처리 · 외부 연동","note":"02-분산-연동.md · 1,567줄","doc":"interview","tags":[],"href":null,"file":"02-분산-연동.md"},{"id":"iv:03-성능-데이터","kind":"interview","tab":"interview","title":"03. 성능 · 데이터","note":"03-성능-데이터.md · 1,477줄","doc":"interview","tags":[],"href":null,"file":"03-성능-데이터.md"},{"id":"iv:04-인프라-복구","kind":"interview","tab":"interview","title":"04. 인프라 · 복구","note":"04-인프라-복구.md · 986줄","doc":"interview","tags":[],"href":null,"file":"04-인프라-복구.md"},{"id":"iv:05-운영-거버넌스","kind":"interview","tab":"interview","title":"05. 운영 도구 · 거버넌스","note":"05-운영-거버넌스.md · 1,643줄","doc":"interview","tags":[],"href":null,"file":"05-운영-거버넌스.md"},{"id":"iv:06-프로젝트-설명-가이드","kind":"interview","tab":"interview","title":"jay-wiki 면접 설명 가이드","note":"06-프로젝트-설명-가이드.md · 281줄","doc":"interview","tags":[],"href":null,"file":"06-프로젝트-설명-가이드.md"},{"id":"iv:07-경력-사례-인벤토리","kind":"interview","tab":"interview","title":"운영의 그림자 노동: 경력 사례 인벤토리","note":"07-경력-사례-인벤토리.md · 123줄","doc":"interview","tags":[],"href":null,"file":"07-경력-사례-인벤토리.md"},{"id":"iv:08-개선-리뷰","kind":"interview","tab":"interview","title":"개발자 면접 관점 프로젝트 개선 평가","note":"08-개선-리뷰.md · 265줄","doc":"interview","tags":[],"href":null,"file":"08-개선-리뷰.md"},{"id":"iv:09-장애-사례집","kind":"interview","tab":"interview","title":"09. 장애 사례집 — 무엇이 났고 무엇을 규칙으로 남겼나","note":"09-장애-사례집.md · 168줄","doc":"interview","tags":[],"href":null,"file":"09-장애-사례집.md"},{"id":"iv:10-기술영역-종합","kind":"interview","tab":"interview","title":"10. 기술 영역 종합 — 시나리오 밖에서 물어보는 것","note":"10-기술영역-종합.md · 287줄","doc":"interview","tags":[],"href":null,"file":"10-기술영역-종합.md"},{"id":"iv:11-인프라와-배포-운영","kind":"interview","tab":"interview","title":"11. 인프라 · 배포 · 운영 — 한 대로 운영한다는 것","note":"11-인프라와-배포-운영.md · 223줄","doc":"interview","tags":[],"href":null,"file":"11-인프라와-배포-운영.md"}],"edges":[{"from":"jaywiki-full-map","to":"jaywiki-main-map","kind":"wiki"},{"from":"jaywiki-full-map","to":"orchestration-map-walkthrough","kind":"wiki"},{"from":"jaywiki-full-map","to":"db-schema-erd-map","kind":"wiki"},{"from":"jaywiki-main-map","to":"cloudflared-reload-cut-the-ssh-path","kind":"wiki"},{"from":"jaywiki-main-map","to":"minipc-reboot-recovery-drill","kind":"wiki"},{"from":"jaywiki-main-map","to":"jaywiki-full-map","kind":"wiki"},{"from":"jaywiki-main-map","to":"orchestration-map-walkthrough","kind":"wiki"},{"from":"cloudflare-tunnel-config-postmortem","to":"minipc-k3s-cloudflare","kind":"wiki"},{"from":"cloudflared-reload-cut-the-ssh-path","to":"cloudflare-tunnel-config-postmortem","kind":"wiki"},{"from":"k3s-manifest-boundaries","to":"minipc-k3s-cloudflare","kind":"wiki"},{"from":"minipc-k3s-cloudflare","to":"cloudflare-tunnel-config-postmortem","kind":"wiki"},{"from":"minipc-k3s-cloudflare","to":"k3s-manifest-boundaries","kind":"wiki"},{"from":"orchestration-map-walkthrough","to":"alerting-inventory-and-gaps","kind":"wiki"},{"from":"orchestration-map-walkthrough","to":"jaywiki-main-map","kind":"wiki"},{"from":"zero-downtime-on-one-machine","to":"never-exercised-code","kind":"wiki"},{"from":"zero-downtime-on-one-machine","to":"minipc-boundary-decision","kind":"wiki"},{"from":"zero-downtime-on-one-machine","to":"image-that-never-pulled","kind":"wiki"},{"from":"zero-downtime-on-one-machine","to":"kafka-dlq-rehearsal","kind":"wiki"},{"from":"bff-was-already-the-gateway","to":"why-only-five-services","kind":"wiki"},{"from":"bff-was-already-the-gateway","to":"spring-bff-auth-boundary","kind":"wiki"},{"from":"idempotency-key-in-payment-row","to":"saga-kafka-outbox-order","kind":"wiki"},{"from":"idempotency-key-in-payment-row","to":"redis-random-chat-queue","kind":"wiki"},{"from":"msa-data-ownership-split","to":"saga-kafka-outbox-order","kind":"wiki"},{"from":"msa-data-ownership-split","to":"why-a-second-postgres-instance","kind":"wiki"},{"from":"msa-data-ownership-split","to":"k3s-manifest-boundaries","kind":"wiki"},{"from":"msa-data-ownership-split","to":"db-schema-erd-map","kind":"wiki"},{"from":"participant-down-compensation","to":"msa-data-ownership-split","kind":"wiki"},{"from":"participant-down-compensation","to":"saga-kafka-outbox-order","kind":"wiki"},{"from":"spring-bff-auth-boundary","to":"admin-user-role-boundary","kind":"wiki"},{"from":"spring-bff-auth-boundary","to":"api-error-contract","kind":"wiki"},{"from":"why-only-five-services","to":"orchestration-map-walkthrough","kind":"wiki"},{"from":"why-only-five-services","to":"k3s-manifest-boundaries","kind":"wiki"},{"from":"why-only-five-services","to":"minipc-boundary-decision","kind":"wiki"},{"from":"why-only-five-services","to":"spring-bff-auth-boundary","kind":"wiki"},{"from":"why-only-five-services","to":"bff-was-already-the-gateway","kind":"wiki"},{"from":"content-origin-and-history-boundary","to":"postgres-db-wiki-revision","kind":"wiki"},{"from":"db-schema-erd-map","to":"msa-data-ownership-split","kind":"wiki"},{"from":"db-schema-erd-map","to":"postgres-db-wiki-revision","kind":"wiki"},{"from":"db-schema-erd-map","to":"opensearch-nori-image","kind":"wiki"},{"from":"db-schema-erd-map","to":"postgres-restore-drill-1","kind":"wiki"},{"from":"db-schema-erd-map","to":"minio-portfolio-assets","kind":"wiki"},{"from":"db-schema-erd-map","to":"saga-kafka-outbox-order","kind":"wiki"},{"from":"minio-portfolio-assets","to":"minio-public-asset-governance","kind":"wiki"},{"from":"minio-public-asset-governance","to":"wiki-image-asset-lifecycle","kind":"wiki"},{"from":"opensearch-nori-image","to":"search-comparison-results","kind":"wiki"},{"from":"postgres-db-wiki-revision","to":"db-schema-erd-map","kind":"wiki"},{"from":"why-a-second-postgres-instance","to":"minipc-boundary-decision","kind":"wiki"},{"from":"why-a-second-postgres-instance","to":"k3s-manifest-boundaries","kind":"wiki"},{"from":"why-a-second-postgres-instance","to":"postgres-backup-restore","kind":"wiki"},{"from":"why-a-second-postgres-instance","to":"db-schema-erd-map","kind":"wiki"},{"from":"alerting-inventory-and-gaps","to":"kafka-dlq-rehearsal","kind":"wiki"},{"from":"backup-r2-phase-b-plan","to":"postgres-backup-restore","kind":"wiki"},{"from":"backup-scope-drift","to":"never-exercised-code","kind":"wiki"},{"from":"backup-scope-drift","to":"postgres-backup-restore","kind":"wiki"},{"from":"backup-scope-drift","to":"postgres-backup-artifact-verification","kind":"wiki"},{"from":"backup-scope-drift","to":"backup-r2-phase-b-plan","kind":"wiki"},{"from":"cicd-ghcr-runner","to":"image-that-never-pulled","kind":"wiki"},{"from":"minipc-command-runbook","to":"minipc-reboot-recovery-drill","kind":"wiki"},{"from":"minipc-command-runbook","to":"cloudflared-reload-cut-the-ssh-path","kind":"wiki"},{"from":"never-exercised-code","to":"postgres-backup-restore","kind":"wiki"},{"from":"never-exercised-code","to":"backup-r2-phase-b-plan","kind":"wiki"},{"from":"observability-loki-tempo-grafana","to":"saga-trace-service-graph-verification","kind":"wiki"},{"from":"postgres-backup-restore","to":"postgres-restore-drill-1","kind":"wiki"},{"from":"postgres-backup-restore","to":"backup-r2-phase-b-plan","kind":"wiki"},{"from":"wiki-image-asset-lifecycle","to":"minio-public-asset-governance","kind":"wiki"},{"from":"kafka-that-never-crossed-a-process","to":"saga-kafka-outbox-order","kind":"wiki"},{"from":"saga-kafka-outbox-order","to":"db-schema-erd-map","kind":"wiki"},{"from":"saga-kafka-outbox-order","to":"spring-fastapi-payment-contract","kind":"wiki"},{"from":"saga-kafka-outbox-order","to":"api-error-contract","kind":"wiki"},{"from":"scenario-badges-two-axes","to":"wrong-address-routing","kind":"wiki"},{"from":"search-comparison-100k","to":"search-comparison-results","kind":"wiki"},{"from":"account-secret-least-privilege-boundary","to":"gitops-wiki-content-sync-boundary","kind":"wiki"},{"from":"personal-service-legal-launch-boundary","to":"admin-user-role-boundary","kind":"wiki"},{"from":"image-that-never-pulled","to":"deploy-rules-and-harness","kind":"wiki"},{"from":"image-that-never-pulled","to":"zero-downtime-on-one-machine","kind":"wiki"},{"from":"image-that-never-pulled","to":"kafka-dlq-rehearsal","kind":"wiki"},{"from":"kafka-dlq-rehearsal","to":"saga-kafka-outbox-order","kind":"wiki"},{"from":"kafka-dlq-rehearsal","to":"roadmap-after-content","kind":"wiki"},{"from":"kafka-dlq-rehearsal","to":"alerting-inventory-and-gaps","kind":"wiki"},{"from":"kafka-dlq-rehearsal","to":"silent-500-alert-gap","kind":"wiki"},{"from":"kafka-dlq-rehearsal","to":"zero-downtime-on-one-machine","kind":"wiki"},{"from":"kafka-dlq-rehearsal","to":"session-crossed-three-pods","kind":"wiki"},{"from":"release-record-one-run","to":"deploy-rules-and-harness","kind":"wiki"},{"from":"release-record-one-run","to":"zero-downtime-on-one-machine","kind":"wiki"},{"from":"release-record-one-run","to":"never-exercised-code","kind":"wiki"},{"from":"session-crossed-three-pods","to":"zero-downtime-on-one-machine","kind":"wiki"},{"from":"portfolio-retrospective-map","to":"roadmap-after-content","kind":"wiki"},{"from":"roadmap-after-content","to":"saga-trace-service-graph-verification","kind":"wiki"},{"from":"roadmap-after-content","to":"search-comparison-results","kind":"wiki"},{"from":"roadmap-after-content","to":"minipc-reboot-recovery-drill","kind":"wiki"},{"from":"roadmap-after-content","to":"backup-scope-drift","kind":"wiki"},{"from":"roadmap-after-content","to":"release-record-one-run","kind":"wiki"},{"from":"roadmap-after-content","to":"kafka-dlq-rehearsal","kind":"wiki"},{"from":"roadmap-after-content","to":"image-that-never-pulled","kind":"wiki"},{"from":"roadmap-after-content","to":"zero-downtime-on-one-machine","kind":"wiki"},{"from":"roadmap-after-content","to":"minipc-boundary-decision","kind":"wiki"},{"from":"roadmap-after-content","to":"backup-r2-phase-b-plan","kind":"wiki"},{"from":"roadmap-after-content","to":"session-crossed-three-pods","kind":"wiki"},{"from":"wiki-fact-check-51-articles","to":"wiki-writing-harness","kind":"wiki"},{"from":"wiki-writing-harness","to":"ai-assisted-development-harness","kind":"wiki"},{"from":"wiki-writing-harness","to":"deploy-rules-and-harness","kind":"wiki"},{"from":"wiki-writing-harness","to":"wiki-fact-check-51-articles","kind":"wiki"},{"from":"iv:02-분산-연동","to":"msa-data-ownership-split","kind":"iv"},{"from":"iv:04-인프라-복구","to":"silent-500-alert-gap","kind":"iv"},{"from":"iv:09-장애-사례집","to":"never-exercised-code","kind":"iv"},{"from":"iv:09-장애-사례집","to":"image-that-never-pulled","kind":"iv"},{"from":"iv:09-장애-사례집","to":"cloudflared-reload-cut-the-ssh-path","kind":"iv"},{"from":"iv:09-장애-사례집","to":"cloudflare-tunnel-config-postmortem","kind":"iv"},{"from":"iv:09-장애-사례집","to":"silent-500-alert-gap","kind":"iv"},{"from":"iv:09-장애-사례집","to":"watchdog-outside-the-cluster","kind":"iv"},{"from":"iv:09-장애-사례집","to":"backup-scope-drift","kind":"iv"},{"from":"iv:09-장애-사례집","to":"audit-before-incident-default-open","kind":"iv"},{"from":"iv:09-장애-사례집","to":"session-crossed-three-pods","kind":"iv"},{"from":"iv:09-장애-사례집","to":"production-static-asset-recovery","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"bff-was-already-the-gateway","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"why-only-five-services","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"api-error-contract","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"idempotency-key-in-payment-row","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"admin-user-role-boundary","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"oauth-public-origin-smoke","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"oauth-logout-session","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"participant-down-compensation","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"spring-fastapi-payment-contract","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"spring-bff-auth-boundary","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"db-schema-erd-map","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"schema-simplification","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"why-a-second-postgres-instance","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"opensearch-nori-image","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"search-comparison-results","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"minio-portfolio-assets","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"minio-public-asset-governance","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"content-origin-and-history-boundary","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"postgres-db-wiki-revision","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"postgres-restore-drill-1","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"wiki-content-asset-retention-governance","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"wiki-image-asset-lifecycle","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"frontend-payload-and-rendering-rules","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"frontend-performance-measured","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"wiki-information-architecture-rebuild","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"wiki-navigation-and-responsive-stability","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"wrong-address-routing","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"nextjs-frontend-redesign","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"markdown-security-and-admin-edit-boundary","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"account-secret-least-privilege-boundary","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"personal-service-legal-launch-boundary","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"ai-assisted-development-harness","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"ai-agent-keychain-production-auth-boundary","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"evidence-maturity-and-claim-boundary","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"hypothesis-driven-debugging-loop","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"development-delivery-evidence-loop","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"troubleshooting-log","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"wiki-fact-check-51-articles","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"wiki-writing-harness","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"open-source-license-content-governance","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"portfolio-retrospective-map","kind":"iv"},{"from":"iv:10-기술영역-종합","to":"roadmap-after-content","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"minipc-boundary-decision","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"minipc-hardware-capacity-design","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"minipc-k3s-cloudflare","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"zero-downtime-on-one-machine","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"deploy-rules-and-harness","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"all-in-one-deploy-build","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"cicd-ghcr-runner","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"helm-releases-and-boundary","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"k3s-manifest-boundaries","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"deploy-automation-boundary","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"gitops-wiki-content-sync-boundary","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"reboot-cadence-and-storage-growth-boundary","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"observability-loki-tempo-grafana","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"alerting-inventory-and-gaps","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"observability-telegram","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"postgres-backup-restore","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"postgres-backup-artifact-verification","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"backup-r2-phase-b-plan","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"reboot-visibility-alerts","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"minipc-reboot-recovery-drill","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"kafka-dlq-rehearsal","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"saga-trace-service-graph-verification","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"hpa-service-control","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"release-record-one-run","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"production-content-sync-and-rollout","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"responsive-navigation-regression-check","kind":"iv"},{"from":"iv:11-인프라와-배포-운영","to":"minipc-command-runbook","kind":"iv"}]};
+
+/* 갈래는 색과 모양 둘로 말한다. 도면 위에서 색만 쓰면 선색끼리 묻힌다. */
+const KIND = {
+  adr:        { label: '설계 결정', v: '--adr',   tick: '◆' },
+  postmortem: { label: '사고 기록', v: '--pm',    tick: '▲' },
+  interview:  { label: '면접 문서', v: '--iv',    tick: '■' },
+  wiki:       { label: '일반 글',   v: '--plain', tick: '·' },
+};
+const kindOf = (n) => (n.kind === 'interview' ? 'interview' : (KIND[n.doc] ? n.doc : 'wiki'));
+const colorOf = (n) => `var(${KIND[kindOf(n)].v})`;
+
+const byId = new Map(DATA.nodes.map((n) => [n.id, n]));
+const nodesOf = (gid) => DATA.nodes.filter((n) => n.tab === gid);
+
+const near = new Map();
+const tie = (a, b) => { if (!near.has(a)) near.set(a, new Set()); near.get(a).add(b); };
+for (const e of DATA.edges) { tie(e.from, e.to); tie(e.to, e.from); }
+
+/* ------------------------------------------------------------------ *
+ * 기술 표식. 바깥에서 그림을 못 불러온다(CSP) -- 도면 선으로 직접 긋는다.
+ * 브랜드 로고를 흉내 내지 않는다. 그 자리가 «무엇을 하는가» 를 그린다:
+ * 터널은 관, 라우터는 갈래, 큐는 줄, 저장소는 통.
+ * ------------------------------------------------------------------ */
+const GLYPH = {
+  tunnel:  ['M3 8 h18 M3 16 h18', 'M3 8 a3 8 0 0 0 0 8', 'M21 8 a3 8 0 0 1 0 8'],
+  router:  ['M4 12 h6', 'M10 12 L20 5', 'M10 12 L20 12', 'M10 12 L20 19'],
+  k8s:     ['M12 3 L20 7.5 v9 L12 21 L4 16.5 v-9 Z', 'M12 8.5 L15.5 10.5 v3 L12 15.5 L8.5 13.5 v-3 Z'],
+  browser: ['M3 5 h18 v14 H3 Z', 'M3 9 h18', 'M6 7 h1.5 M9.5 7 h1.5'],
+  server:  ['M3 5 h18 v6 H3 Z', 'M3 13 h18 v6 H3 Z', 'M6.5 8 h.01 M6.5 16 h.01'],
+  bolt:    ['M13 3 L6 13 h5 l-1 8 L18 11 h-5 Z'],
+  db:      ['M4 6.5 a8 3.2 0 1 0 16 0 a8 3.2 0 1 0 -16 0', 'M4 6.5 v11 a8 3.2 0 0 0 16 0 v-11', 'M4 12 a8 3.2 0 0 0 16 0'],
+  cache:   ['M4 7 h16 v4 H4 Z', 'M4 13 h16 v4 H4 Z', 'M7 9 h.01 M7 15 h.01'],
+  queue:   ['M3 12 h18', 'M6 8.5 v7', 'M11 8.5 v7', 'M16 8.5 v7', 'M19 9.5 L21.5 12 L19 14.5'],
+  search:  ['M11 4 a6.5 6.5 0 1 0 0 13 a6.5 6.5 0 1 0 0 -13', 'M15.7 15.7 L21 21'],
+  bucket:  ['M4 7 h16 l-2 13 H6 Z', 'M4 7 a8 2.4 0 0 1 16 0'],
+  person:  ['M12 5 a3 3 0 1 0 0 6 a3 3 0 1 0 0 -6', 'M5 21 a7 6 0 0 1 14 0'],
+};
+function glyphSvg(id) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  for (const d of GLYPH[id] ?? []) {
+    const path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'currentColor');
+    path.setAttribute('stroke-width', '1.5');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+    svg.append(path);
+  }
+  return svg;
+}
+
+/* 그 자리에서 실제로 무엇이 오가는지. 확대해야 펼쳐진다 -- 뼈대 단계에 있으면 도면이 막힌다. */
+const SEQ = {
+  infra: {
+    title: '배포 한 판',
+    why: 'develop → main 머지 하나가 여기까지 간다. 실패하면 이미지 캡처 이후 어디서든 되감긴다.',
+    lanes: ['개발자', 'Actions', 'k3s'],
+    msgs: [
+      { a: 0, b: 1, t: 'main 머지' },
+      { a: 1, b: 1, t: 'verify · build', self: true },
+      { a: 1, b: 2, t: 'rollout' },
+      { a: 2, b: 1, t: '기동 실패', hot: true },
+      { a: 1, b: 2, t: '이전 이미지로 되감기', hot: true },
+    ],
+  },
+  backend: {
+    title: '주문 Saga 와 보상',
+    why: '결제가 실패하면 앞서 잡은 재고를 되돌린다. 롤백이 아니라 «반대 동작» 이다.',
+    lanes: ['주문', '재고', '결제 API'],
+    msgs: [
+      { a: 0, b: 1, t: '재고 선점' },
+      { a: 0, b: 2, t: '결제 요청' },
+      { a: 2, b: 0, t: 'read timeout', hot: true },
+      { a: 0, b: 1, t: '선점 취소 (보상)', hot: true },
+      { a: 0, b: 0, t: '실패로 확정', self: true },
+    ],
+  },
+  data: {
+    title: '아웃박스에서 DLQ 까지',
+    why: 'DB 쓰기와 발행을 한 트랜잭션에 못 묶는다. 그래서 같은 트랜잭션의 표에 적고 따로 흘린다.',
+    lanes: ['주문 DB', 'Relay', '소비자'],
+    msgs: [
+      { a: 0, b: 0, t: '주문 + 아웃박스 한 트랜잭션', self: true },
+      { a: 0, b: 1, t: '미발행 행을 읽는다' },
+      { a: 1, b: 2, t: '발행 (at-least-once)' },
+      { a: 2, b: 2, t: '멱등 키로 중복 무시', self: true },
+      { a: 2, b: 1, t: '세 번 실패 → DLQ', hot: true },
+    ],
+  },
+};
+
+const PATH = [
+  { entry: true, id: '__entry', x: 40, w: 148, title: '사람', sub: '브라우저',
+    glyphs: [['person', '사람'], ['browser', '브라우저']] },
+  { id: 'infra',    x: 238, w: 430, title: '들어오는 길', sub: 'Cloudflare Tunnel · Traefik · k3s',
+    role: '집 공유기에 포트를 열지 않는다. 서버가 먼저 바깥으로 연결을 만들고 그 길로만 요청을 받는다.',
+    glyphs: [['tunnel', 'Cloudflare Tunnel'], ['router', 'Traefik'], ['k8s', 'k3s']] },
+  { id: 'frontend', x: 718, w: 400, title: '화면', sub: 'Next.js · 미들웨어',
+    role: 'host 를 보고 위키와 블로그를 가른다. 사람이 보는 것과 그것이 깨지는 방식.',
+    glyphs: [['browser', 'Next.js'], ['router', '미들웨어']] },
+  { id: 'backend',  x: 1168, w: 450, title: '서버', sub: 'Spring Boot · FastAPI',
+    role: '틀리면 안 되는 일이 도는 자리. 되풀이해도 한 번만 처리되게 만드는 곳.',
+    glyphs: [['server', 'Spring Boot'], ['bolt', 'FastAPI']] },
+  { id: 'data',     x: 1668, w: 450, title: '저장', sub: 'PostgreSQL · Redis · Kafka · OpenSearch · MinIO',
+    role: '남는 것, 흐르는 것, 찾아지는 것. 지우면 못 되돌리는 유일한 자리.',
+    glyphs: [['db', 'PostgreSQL'], ['cache', 'Redis'], ['queue', 'Kafka'], ['search', 'OpenSearch'], ['bucket', 'MinIO']] },
+];
+const BANDS = [
+  { id: 'operations',   title: '보이게 만드는 일', sub: '로그 · 지표 · 추적 · 알림',
+    role: '위 길 전체를 감싼다. 사고를 「났다」가 아니라 「알았다」로 바꾸는 자리다.' },
+  { id: 'verification', title: '정말 되는지 증명하는 일', sub: '복원 리허설 · 대조 · 스모크',
+    role: '「돌았다」와 「맞다」는 다르다. 선언 대신 실제로 밟아 본 기록.' },
+  { id: 'security',     title: '막는 일', sub: '인증 · 권한 · 비밀값',
+    role: '열려 있으면 나머지가 전부 무의미해지는 자리.' },
+];
+const ASIDE = [
+  { id: 'demo',                title: '보여주는 것', sub: '시나리오 23편',
+    role: '실제로 도는 9편과 결과가 미리 적힌 14편. 그 경계를 내가 먼저 말한다.' },
+  { id: 'development-process', title: '만드는 방식', sub: 'AI 를 도구로 쓰는 경계' },
+  { id: 'content-quality',     title: '글로 남기는 방식', sub: '사실 검증 · 자산 관리' },
+  { id: 'start',               title: '들어오는 입구', sub: '처음 오는 사람이 보는 것' },
+  { id: 'interview',           title: '입으로 말하는 자리', sub: '면접 대본',
+    role: '위의 글들을 말할 수 있게 다시 쓴 것. 이 자리가 위키 전체를 가리킨다.' },
+];
+/* 배포 파이프라인. 시퀀스와 다른 그림이다 -- 시퀀스는 «누가 누구에게» 이고
+   파이프라인은 «어디까지 갔나» 다. 되감기는 분기로 그려야 그 차이가 보인다. */
+const PIPE = {
+  title: '배포 파이프라인',
+  why: 'develop → main 머지 하나가 여기까지 간다. 괄호는 소요가 아니라 넘으면 죽이는 상한이다.',
+  steps: [
+    { t: 'verify',  s: '테스트 · 시드 검사 · 크기 가드', cap: '20분' },
+    { t: 'build',   s: '이미지 두 장 · SHA 태그',        cap: '30분' },
+    { t: 'deploy',  s: '시드 반영 · rollout · 열두 단계', cap: '25분' },
+    { t: 'smoke',   s: '공개 화면 · /sync 가 404 인가',   cap: '15분' },
+    { t: 'notify',  s: '텔레그램',                        cap: '5분' },
+  ],
+  fail: { from: 2, t: '실패하면 이미지 캡처 이후 어디서든 이전 이미지로 되감긴다' },
+};
+
+/* 관통 개념. 이 아홉이 88편을 하나로 묶는다 -- 면접 문서가 「가장 강한 답변은
+   이 연결을 말하는 것」이라고 적어 둔 자리이고, 표로는 한 번에 한 줄만 읽힌다. */
+const MIND = {
+  title: '되풀이되는 아홉 가지',
+  why: '한 편에서 배운 것이 다른 편에서 그대로 다시 나온다. 이 연결이 88편을 한 덩어리로 만든다.',
+  items: [
+    ['멱등성', '제휴 API', ['상품권·쿠폰·정산', '트래픽 중복', '알림 재처리']],
+    ['조건부 UPDATE', '주문 재고', ['상품권·쿠폰', '데이터 정정', 'HPA 락']],
+    ['이중 쓰기 문제', 'Kafka 아웃박스', ['정산 체크포인트', '검색 색인', '알림']],
+    ['at-least-once → 멱등 소비', 'Kafka', ['이미지 job', '알림 재처리']],
+    ['DLQ · 사람에게 올리기', 'Kafka', ['정산 대조', 'Saga 보상 실패', '알림']],
+    ['「돌았다」 ≠ 「맞다」', '정산 대조', ['복원 리허설', '불변조건·지표 비교']],
+    ['경계 분리 ↔ 원자성 상실', '커넥션 풀', ['Saga 보상']],
+    ['synchronized 는 JVM 안에서만', '채팅 정원', ['HPA 가 이걸 깨뜨린다']],
+    ['신호 말고 시간으로 판단', '채팅 heartbeat', ['예약 만료', 'HPA', '알림 상태 추적']],
+  ],
+};
+
+const COL_X = 2178, COL_W = 470, TOP = 178, GAP = 40, BAND_W = 2080;
+
+const world = document.getElementById('world');
+const wires = document.getElementById('wires');
+const itemEls = new Map();
+
+function card(spec, x, w, cls = '') {
+  const box = document.createElement('div');
+  box.className = `card ${cls}`.trim();
+  box.style.left = `${x}px`;
+  box.style.width = `${w}px`;
+
+  const items = spec.id && !spec.entry ? nodesOf(spec.id) : [];
+  const head = document.createElement('div');
+  head.className = 'head';
+  head.innerHTML = '<h2></h2><span class="n"></span>';
+  head.querySelector('h2').textContent = spec.title;
+  head.querySelector('.n').textContent = items.length ? `${items.length}편` : '';
+  box.append(head);
+
+  if (spec.sub) {
+    const s = document.createElement('p');
+    s.className = 'sub';
+    s.textContent = spec.sub;
+    box.append(s);
+  }
+  if (spec.role) {
+    const r = document.createElement('p');
+    r.className = 'role';
+    r.textContent = spec.role;
+    box.append(r);
+  }
+  if (spec.glyphs) {
+    const g = document.createElement('div');
+    g.className = 'glyphs';
+    for (const [id, label] of spec.glyphs) {
+      const one = document.createElement('span');
+      one.className = 'glyph';
+      one.append(glyphSvg(id));
+      const t = document.createElement('span');
+      t.textContent = label;
+      one.append(t);
+      g.append(one);
+    }
+    box.append(g);
+  }
+  if (items.length) {
+    const ul = document.createElement('ul');
+    ul.className = 'items';
+    for (const n of items) {
+      const li = document.createElement('li');
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'item';
+      b.innerHTML = '<span class="tick"></span><span class="t"></span><span class="deg"></span><span class="note"></span>';
+      const k = KIND[kindOf(n)];
+      const tick = b.querySelector('.tick');
+      tick.textContent = k.tick;
+      tick.style.color = colorOf(n);
+      b.querySelector('.t').textContent = n.title;
+      const d = near.get(n.id)?.size ?? 0;
+      b.querySelector('.deg').textContent = d ? `${d}` : '';
+      b.querySelector('.note').textContent = n.note || '';
+      b.title = `${k.label} · ${n.kind === 'interview' ? n.file : n.id}`;
+      b.addEventListener('pointerenter', () => hold(n.id));
+      b.addEventListener('focus', () => hold(n.id));
+      b.addEventListener('click', () => { if (n.href) window.open(n.href, '_blank', 'noopener'); });
+      li.append(b);
+      ul.append(li);
+      itemEls.set(n.id, b);
+    }
+    box.append(ul);
+  }
+  world.append(box);
+  return box;
+}
+
+const NSVG = 'http://www.w3.org/2000/svg';
+const mkS = (t, a, txt) => {
+  const e = document.createElementNS(NSVG, t);
+  for (const k in a) e.setAttribute(k, a[k]);
+  if (txt !== undefined) e.textContent = txt;
+  return e;
+};
+/** 제목·설명·그림을 담은 도면 카드 하나. 세 그림이 같은 틀을 쓴다. */
+function figureCard(cls, x, w, title, why, svg) {
+  const box = document.createElement('div');
+  box.className = `card ${cls}`;
+  box.style.left = `${x}px`;
+  box.style.width = `${w}px`;
+  const h = document.createElement('h3');
+  h.textContent = title;
+  const p = document.createElement('p');
+  p.className = 'why';
+  p.textContent = why;
+  box.append(h, p, svg);
+  world.append(box);
+  return box;
+}
+
+/* 배포 파이프라인. 칸을 잇는 굵은 선 하나와, 아래로 갈라지는 되감기 분기. */
+function pipeSvg(width) {
+  const H = 132;
+  const svg = mkS('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': PIPE.title });
+  const n = PIPE.steps.length;
+  const gap = 16;
+  const bw = (width - gap * (n - 1)) / n;
+  PIPE.steps.forEach((st, i) => {
+    const x = i * (bw + gap);
+    svg.append(mkS('rect', { x, y: 8, width: bw, height: 48, rx: 2,
+      fill: 'var(--fill)', stroke: 'var(--line)', 'stroke-width': 1.4 }));
+    svg.append(mkS('text', { x: x + 12, y: 28, fill: 'var(--chalk)',
+      'font-family': 'var(--f-mono)', 'font-size': 13, 'font-weight': 500 }, st.t));
+    svg.append(mkS('text', { x: x + bw - 12, y: 28, 'text-anchor': 'end', fill: 'var(--chalk-3)',
+      'font-family': 'var(--f-mono)', 'font-size': 10.5 }, st.cap));
+    svg.append(mkS('text', { x: x + 12, y: 45, fill: 'var(--chalk-2)',
+      'font-family': 'var(--f-body)', 'font-size': 11 }, st.s));
+    if (i < n - 1) {
+      svg.append(mkS('line', { x1: x + bw, y1: 32, x2: x + bw + gap - 5, y2: 32,
+        stroke: 'var(--line)', 'stroke-width': 1.6 }));
+      svg.append(mkS('path', { d: `M ${x + bw + gap - 5} 28 L ${x + bw + gap} 32 L ${x + bw + gap - 5} 36 Z`,
+        fill: 'var(--line)' }));
+    }
+  });
+  // 되감기. 이 판에서 유일하게 «되돌아가는» 선이라 강조색을 준다.
+  const fx = PIPE.fail.from * (bw + gap) + bw / 2;
+  svg.append(mkS('path', {
+    d: `M ${fx} 56 V 86 H ${bw / 2} V 62`,
+    fill: 'none', stroke: 'var(--mark)', 'stroke-width': 1.6, 'stroke-dasharray': '5 4',
+  }));
+  svg.append(mkS('path', { d: `M ${bw / 2 - 4} 68 L ${bw / 2} 58 L ${bw / 2 + 4} 68 Z`, fill: 'var(--mark)' }));
+  svg.append(mkS('text', { x: fx + 12, y: 90, fill: 'var(--mark)',
+    'font-family': 'var(--f-mono)', 'font-size': 10.5 }, PIPE.fail.t));
+  return svg;
+}
+
+/* 관통 개념. 왼쪽 뿌리에서 아홉 갈래가 뻗고, 갈래마다 «다시 나오는 곳» 이 달린다. */
+function mindSvg(width) {
+  const rows = MIND.items.length;
+  const rowH = 40, top = 22;
+  const H = top + rows * rowH + 10;
+  const rootX = 26, midX = 300, leafX = 620;
+  const svg = mkS('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': MIND.title });
+  const cy = top + (rows * rowH) / 2 - rowH / 2;
+  svg.append(mkS('circle', { cx: rootX, cy, r: 7, fill: 'none', stroke: 'var(--mark)', 'stroke-width': 2 }));
+  MIND.items.forEach(([name, first, again], i) => {
+    const y = top + i * rowH;
+    svg.append(mkS('path', {
+      d: `M ${rootX + 9} ${cy} C ${(rootX + midX) / 2} ${cy}, ${(rootX + midX) / 2} ${y}, ${midX - 8} ${y}`,
+      fill: 'none', stroke: 'var(--line)', 'stroke-width': 1.2, opacity: 0.85,
+    }));
+    svg.append(mkS('text', { x: midX, y: y + 4, fill: 'var(--chalk)',
+      'font-family': 'var(--f-body)', 'font-size': 13, 'font-weight': 500 }, name));
+    svg.append(mkS('text', { x: midX, y: y + 19, fill: 'var(--chalk-3)',
+      'font-family': 'var(--f-mono)', 'font-size': 10 }, `처음: ${first}`));
+    let x = leafX;
+    for (const one of again) {
+      const w = one.length * 11 + 22;
+      svg.append(mkS('rect', { x, y: y - 11, width: w, height: 22, rx: 2,
+        fill: 'var(--fill-3)', stroke: 'var(--rule)', 'stroke-width': 1 }));
+      svg.append(mkS('text', { x: x + w / 2, y: y + 4, 'text-anchor': 'middle', fill: 'var(--chalk-2)',
+        'font-family': 'var(--f-body)', 'font-size': 11.5 }, one));
+      svg.append(mkS('line', { x1: x - 10, y1: y, x2: x, y2: y,
+        stroke: 'var(--line)', 'stroke-width': 1, opacity: 0.6 }));
+      x += w + 14;
+    }
+  });
+  return svg;
+}
+
+/* 시퀀스 한 장. 도면과 같은 언어로 긋는다 -- 생명선은 점선, 되감는 화살표만 강조색. */
+function seqSvg(spec, width) {
+  const mk = mkS;
+  const H = 46 + spec.msgs.length * 34;
+  const svg = mk('svg', { viewBox: `0 0 ${width} ${H}`, role: 'img', 'aria-label': spec.title });
+  const lane = (i) => (width / spec.lanes.length) * (i + 0.5);
+  spec.lanes.forEach((name, i) => {
+    svg.append(mk('text', {
+      x: lane(i), y: 13, 'text-anchor': 'middle', fill: 'var(--chalk-2)',
+      'font-family': 'var(--f-mono)', 'font-size': 10.5,
+    }, name));
+    svg.append(mk('line', {
+      x1: lane(i), y1: 22, x2: lane(i), y2: H - 6,
+      stroke: 'var(--line)', 'stroke-width': 1, 'stroke-dasharray': '2 5', opacity: 0.8,
+    }));
+  });
+  spec.msgs.forEach((m, i) => {
+    const y = 44 + i * 34;
+    const col = m.hot ? 'var(--mark)' : 'var(--line)';
+    if (m.self) {
+      // 자기 자신에게 -- 그 칸 안에서 끝나는 일. 갈고리로 그린다.
+      const x = lane(m.a);
+      svg.append(mk('path', {
+        d: `M ${x} ${y - 7} h 22 v 14 h -22`, fill: 'none', stroke: col, 'stroke-width': 1.4,
+      }));
+      svg.append(mk('path', { d: `M ${x + 7} ${y + 3} L ${x} ${y + 7} L ${x + 7} ${y + 11}`, fill: 'none', stroke: col, 'stroke-width': 1.4 }));
+      svg.append(mk('text', {
+        x: x + 28, y: y + 1, fill: m.hot ? 'var(--mark)' : 'var(--chalk-3)',
+        'font-family': 'var(--f-mono)', 'font-size': 10,
+      }, m.t));
+      return;
+    }
+    const x1 = lane(m.a), x2 = lane(m.b), dir = x2 > x1 ? -1 : 1;
+    svg.append(mk('line', { x1, y1: y, x2: x2 + dir * 7, y2: y, stroke: col, 'stroke-width': m.hot ? 1.8 : 1.3 }));
+    svg.append(mk('path', { d: `M ${x2 + dir * 7} ${y - 4} L ${x2} ${y} L ${x2 + dir * 7} ${y + 4} Z`, fill: col }));
+    svg.append(mk('text', {
+      x: (x1 + x2) / 2, y: y - 7, 'text-anchor': 'middle',
+      fill: m.hot ? 'var(--mark)' : 'var(--chalk-3)',
+      'font-family': 'var(--f-mono)', 'font-size': 10,
+    }, m.t));
+  });
+  return svg;
+}
+
+function zoneLabel(text, sub, x, w) {
+  const el = document.createElement('div');
+  el.className = 'zone';
+  el.style.left = `${x}px`;
+  el.style.width = `${w}px`;
+  const a = document.createElement('span');
+  a.textContent = text;
+  const b = document.createElement('b');
+  b.textContent = sub;
+  el.append(a, b);
+  world.append(el);
+  return el;
+}
+
+const pathC  = PATH.map((s) => ({ spec: s, box: card(s, s.x, s.w, s.entry ? 'entry' : '') }));
+const bandC  = BANDS.map((s) => ({ spec: s, box: card(s, PATH[0].x, BAND_W, 'band') }));
+const asideC = ASIDE.map((s) => ({ spec: s, box: card(s, COL_X, COL_W) }));
+
+const X0 = PATH[0].x;
+const SEQ_W = (BAND_W - 2 * 20) / 3;
+const pipeBox = figureCard('pipe', X0, BAND_W, PIPE.title, PIPE.why, pipeSvg(BAND_W - 30));
+const seqBoxes = ['infra', 'backend', 'data'].map((id, i) =>
+  figureCard('seq', X0 + i * (SEQ_W + 20), SEQ_W, SEQ[id].title, SEQ[id].why, seqSvg(SEQ[id], SEQ_W - 30)));
+const mindBox = figureCard('mind', X0, BAND_W, MIND.title, MIND.why, mindSvg(BAND_W - 30));
+
+/* 도면의 주기란. 그림 옆에 붙박여 있어야 하는 글이고, 배율을 안 탄다.
+   각 줄은 «그 구역이 무엇을 말하는가» 를 두세 문장으로 적는다 -- 그림만으로는
+   왜 그렇게 그렸는지가 안 남는다. */
+const NOTES = [
+  {
+    key: 'arch', no: '01', title: '요청 하나가 지나는 길',
+    body: '집 공유기에 포트를 열지 않습니다. 서버가 먼저 Cloudflare 로 연결을 만들고 그 길로만 요청을 받으므로, 바깥에서 집 IP 로 들어오는 문이 아예 없습니다. 들어온 요청은 Traefik 을 지나 Next.js 로 가고, 거기서 host 를 보고 위키와 블로그가 갈립니다. 틀리면 안 되는 일은 그 뒤의 Spring 이 맡습니다.',
+    tally: '인프라 9 · 화면 6 · 서버 11 · 저장 11',
+  },
+  {
+    key: 'pipe', no: '02', title: '그 길을 바꾸는 유일한 방법',
+    body: '운영에 무엇을 올리는 길은 하나입니다 — develop 을 main 에 머지하는 것. 사람이 서버에 붙어 손으로 올리지 않습니다. 다섯 잡이 차례로 돌고, 이미지를 캡처한 뒤로는 어느 단계에서 깨지든 이전 이미지로 자동으로 되감깁니다. 괄호 안 숫자는 걸리는 시간이 아니라 넘으면 죽이는 상한입니다.',
+    tally: '실제 소요는 20분 안팎',
+  },
+  {
+    key: 'seq', no: '03', title: '그 길 위에서 실제로 오가는 것',
+    body: '세 장면을 골랐습니다. 배포가 실패해 되감기는 순간, 결제가 늦어 재고 선점을 되돌리는 순간, 같은 메시지가 두 번 와서 무시되는 순간입니다. 셋 다 «잘 될 때» 가 아니라 «어긋날 때» 를 그렸습니다 — 설계가 드러나는 자리가 거기이기 때문입니다.',
+    tally: '되감거나 실패하는 화살표만 강조색',
+  },
+  {
+    key: 'mind', no: '04', title: '한 편에서 배운 것이 다시 나온다',
+    body: '아홉 개의 원리가 여러 편에 걸쳐 반복됩니다. 멱등성은 제휴 API 에서 처음 나오지만 쿠폰 경합에도, 알림 재처리에도 똑같이 나타납니다. 「Kafka 써봤습니다」보다 「이중 쓰기 문제는 Kafka 에도 검색 색인에도 정산 체크포인트에도 똑같이 나타납니다」가 강한 답변인 이유입니다.',
+    tally: '아홉 갈래 · 88편을 하나로 묶는 자리',
+  },
+  {
+    key: 'band', no: '05', title: '길 전체를 감싸는 일',
+    body: '이 셋은 길의 한 칸이 아니라 길 전체에 걸립니다. 관측은 사고를 「났다」가 아니라 「알았다」로 바꾸고, 검증은 「돌았다」와 「맞다」가 다르다는 것을 실제로 밟아 확인한 기록이며, 보안은 열려 있으면 나머지가 전부 무의미해지는 자리입니다.',
+    tally: '관측 19 · 증명 10 · 방어 4',
+  },
+  {
+    key: 'side', no: '06', title: '그 바깥',
+    body: '시나리오 23편 중 실제 인프라가 도는 것은 9편이고 나머지는 결과가 미리 적힌 대본입니다. 그 경계를 제가 먼저 말하는 것이 이 프로젝트의 규칙입니다. 맨 아래 「입으로 말하는 자리」는 위의 글들을 면접에서 말할 수 있게 다시 쓴 12개 문서입니다.',
+    tally: '시연 5 · 만드는 방식 6 · 글 5 · 입구 2 · 대본 12',
+  },
+];
+
+const ZONES = {
+  arch: zoneLabel('01 · 아키텍처', '요청 하나가 지나는 길', X0, BAND_W),
+  pipe: zoneLabel('02 · 파이프라인', '그 길을 바꾸는 유일한 방법', X0, BAND_W),
+  seq:  zoneLabel('03 · 시퀀스', '그 길 위에서 실제로 오가는 것', X0, BAND_W),
+  mind: zoneLabel('04 · 되풀이되는 것', '한 편에서 배운 것이 다른 편에 다시 나온다', X0, BAND_W),
+  band: zoneLabel('05 · 길 전체를 감싸는 일', '보이게 만들고 · 증명하고 · 막는다', X0, BAND_W),
+  side: zoneLabel('06 · 그 바깥', '보여주는 것 · 만드는 방식 · 말하는 자리', COL_X, COL_W),
+};
+
+let WW = 0, WH = 0;
+/* 구역을 위에서 아래로 쌓는다. 카드 키가 단계마다 달라져서 y 를 미리 못 박는다.
+   순서 자체가 설명이다 -- 아키텍처 → 그걸 바꾸는 법 → 그 위에서 오가는 것 →
+   되풀이되는 것 → 전체를 감싸는 것. */
+const ZGAP = 30;
+function relayout() {
+  ZONES.arch.style.top = `${TOP - 30}px`;
+  for (const c of pathC) c.box.style.top = `${TOP}px`;
+  let y = TOP + Math.max(...pathC.map((c) => c.box.offsetHeight));
+  const pathBottom = y;
+
+  const place = (zone, boxes) => {
+    y += GAP + 14;
+    zone.style.top = `${y}px`;
+    y += ZGAP;
+    let tall = 0;
+    for (const b of boxes) { b.style.top = `${y}px`; tall = Math.max(tall, b.offsetHeight); }
+    y += tall;
+  };
+  place(ZONES.pipe, [pipeBox]);
+  place(ZONES.seq, seqBoxes);
+  place(ZONES.mind, [mindBox]);
+
+  y += GAP + 14;
+  ZONES.band.style.top = `${y}px`;
+  y += ZGAP;
+  const bandTop = y;
+  for (const c of bandC) { c.box.style.top = `${y}px`; y += c.box.offsetHeight + GAP; }
+
+  ZONES.side.style.top = `${TOP - 30}px`;
+  let ay = TOP;
+  for (const c of asideC) { c.box.style.top = `${ay}px`; ay += c.box.offsetHeight + GAP; }
+
+  WW = COL_X + COL_W + 56;
+  WH = Math.max(y, ay) + 40;
+  world.style.width = `${WW}px`;
+  world.style.height = `${WH}px`;
+  drawWires(pathBottom, bandTop);
+}
+
+function drawWires(pathBottom, bandTop) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const mk = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  wires.setAttribute('width', WW);
+  wires.setAttribute('height', WH);
+  wires.replaceChildren();
+
+  const y = TOP + 24;
+  for (let i = 0; i < pathC.length - 1; i += 1) {
+    const a = pathC[i].spec, b = pathC[i + 1].spec;
+    const x1 = a.x + a.w + 4, x2 = b.x - 2;
+    wires.append(mk('line', { x1, y1: y, x2: x2 - 10, y2: y, stroke: 'var(--line)', 'stroke-width': 1.6 }));
+    wires.append(mk('path', { d: `M ${x2 - 10} ${y - 5} L ${x2} ${y} L ${x2 - 10} ${y + 5} Z`, fill: 'var(--line)' }));
+    // 도면의 치수선처럼, 칸과 칸 사이에 무엇이 건너가는지 적는다.
+    const t = mk('text', {
+      x: (x1 + x2) / 2, y: y - 9, 'text-anchor': 'middle',
+      fill: 'var(--chalk-3)', 'font-family': "var(--f-mono)", 'font-size': 10,
+    });
+    t.textContent = ['HTTPS', 'SSR / BFF', 'JDBC · 큐'][i] ?? '';
+    wires.append(t);
+  }
+  // 「05 감싸는 일」이 줄기의 어느 칸에 걸리는지. 구역이 멀어서 선을 끝까지 긋지 않고
+  // 양쪽 끝에만 짧게 남긴다 -- 길게 그으면 다른 구역의 그림을 가로지른다.
+  if (bandTop) {
+    for (const c of pathC.slice(1)) {
+      const cx = c.spec.x + c.spec.w / 2;
+      wires.append(mk('line', { x1: cx, y1: pathBottom + 6, x2: cx, y2: pathBottom + 26,
+        stroke: 'var(--line)', 'stroke-width': 1.2, 'stroke-dasharray': '2 6', opacity: 0.7 }));
+      wires.append(mk('line', { x1: cx, y1: bandTop - 24, x2: cx, y2: bandTop - 4,
+        stroke: 'var(--line)', 'stroke-width': 1.2, 'stroke-dasharray': '2 6', opacity: 0.7 }));
+    }
+  }
+}
+
+/* ---------- 줌과 이동 ---------- */
+const stage = document.getElementById('stage');
+const zlabel = document.getElementById('zlabel');
+let k = 1, tx = 0, ty = 0;
+/* 적히는 양. 배율에 매달아 두면 확대하는 도중에 판이 계속 다시 짜여 답답하다.
+   그래서 두 가지를 한다 -- 올라갈 때와 내려올 때의 경계를 벌려 두고(같은 자리에서 왔다 갔다
+   하지 않는다), 손으로 아예 고정할 수 있게 한다. 고정하면 배율은 크기만 바꾼다. */
+const LOD = [
+  { cls: 'lod1', name: '뼈대만',  up: 0.70, down: 0.52 },
+  { cls: 'lod2', name: '글 제목', up: 1.30, down: 0.95 },
+  { cls: 'lod3', name: '자세히',  up: Infinity, down: Infinity },
+];
+let lodIdx = 1;      // 지금 단계
+let lodPinned = -1;  // -1 이면 배율을 따라간다
+
+function levelFor(scale) {
+  if (lodPinned >= 0) return lodPinned;
+  // 올라가려면 위 경계를, 내려가려면 아래 경계를 넘어야 한다. 그 사이에서는 안 바뀐다.
+  let i = lodIdx;
+  while (i < LOD.length - 1 && scale >= LOD[i].up) i += 1;
+  while (i > 0 && scale < LOD[i].down) i -= 1;
+  return i;
+}
+function apply() {
+  world.style.transform = `translate(${tx}px, ${ty}px) scale(${k})`;
+  // 격자도 같이 움직여야 판이 하나로 보인다. 안 그러면 상자만 미끄러진다.
+  stage.style.backgroundPosition = `${tx}px ${ty}px, ${tx}px ${ty}px, ${tx}px ${ty}px, ${tx}px ${ty}px`;
+  stage.style.backgroundSize = `auto, auto, ${28 * k}px ${28 * k}px, ${28 * k}px ${28 * k}px`;
+  const next = levelFor(k);
+  if (next !== lodIdx || !world.classList.contains(LOD[next].cls)) {
+    lodIdx = next;
+    world.classList.remove('lod1', 'lod2', 'lod3');
+    world.classList.add(LOD[next].cls);
+    paintPick();
+    relayout();
+  }
+  zlabel.textContent = `${Math.round(k * 100)}%`;
+}
+function zoomAt(f, cx, cy) {
+  const next = Math.min(2.6, Math.max(0.16, k * f));
+  if (Math.abs(next - k) < 0.0005) return;
+  tx = cx - (cx - tx) * (next / k);
+  ty = cy - (cy - ty) * (next / k);
+  k = next;
+  apply();
+}
+stage.addEventListener('wheel', (ev) => {
+  ev.preventDefault();
+  const r = stage.getBoundingClientRect();
+  zoomAt(ev.deltaY < 0 ? 1.07 : 1 / 1.07, ev.clientX - r.left, ev.clientY - r.top);
+}, { passive: false });
+
+let drag = null;
+stage.addEventListener('pointerdown', (ev) => {
+  if (ev.target.closest('.item')) return;
+  drag = { x: ev.clientX, y: ev.clientY, tx, ty };
+  stage.classList.add('dragging');
+  stage.setPointerCapture(ev.pointerId);
+});
+stage.addEventListener('pointermove', (ev) => {
+  if (!drag) return;
+  tx = drag.tx + (ev.clientX - drag.x);
+  ty = drag.ty + (ev.clientY - drag.y);
+  apply();
+});
+const stop = () => { drag = null; stage.classList.remove('dragging'); };
+stage.addEventListener('pointerup', stop);
+stage.addEventListener('pointercancel', stop);
+
+function fit() {
+  const pad = 40, bottom = 58;   // 아래 조작 막대가 판을 가리지 않게 비워 둔다
+  const w = stage.clientWidth, h = stage.clientHeight;
+  // 배율이 줌 단계를 바꾸고, 단계가 다시 판 크기를 바꾼다. 안 흔들릴 때까지 다시 잰다.
+  for (let i = 0; i < 4; i += 1) {
+    const next = Math.min(2.6, Math.max(0.16,
+      Math.min((w - pad * 2) / WW, (h - pad - bottom) / WH)));
+    if (Math.abs(next - k) < 0.001) break;
+    k = next;
+    apply();
+  }
+  tx = (w - WW * k) / 2;
+  ty = pad + (h - pad - bottom - WH * k) / 2;
+  apply();
+}
+/* 단계 고르개. 「자동」은 배율을 따라가고, 나머지 셋은 고정한다. */
+const pick = document.getElementById('lodpick');
+const PICKS = [['자동', -1], ['뼈대', 0], ['제목', 1], ['자세히', 2]];
+for (const [label, idx] of PICKS) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.dataset.idx = `${idx}`;
+  b.textContent = label;
+  b.addEventListener('click', () => {
+    lodPinned = idx;
+    if (idx >= 0) lodIdx = idx;
+    world.classList.remove('lod1', 'lod2', 'lod3');
+    world.classList.add(LOD[levelFor(k)].cls);
+    lodIdx = levelFor(k);
+    paintPick();
+    relayout();
+    apply();
+  });
+  pick.append(b);
+}
+function paintPick() {
+  for (const b of pick.children) {
+    const idx = Number(b.dataset.idx);
+    const on = lodPinned === -1 ? idx === -1 : idx === lodPinned;
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.title = idx === -1 ? `배율을 따라간다 — 지금 ${LOD[lodIdx].name}` : `${LOD[idx].name} 로 고정`;
+  }
+}
+
+/* 재료를 갈아입는다. 값만 바뀌고 규칙은 그대로다. 고른 것은 이 브라우저에만 남는다. */
+const sheetBtn = document.getElementById('sheet');
+function setSheet(blueprint) {
+  if (blueprint) document.documentElement.setAttribute('data-sheet', 'blueprint');
+  else document.documentElement.removeAttribute('data-sheet');
+  sheetBtn.textContent = blueprint ? '종이' : '청사진';
+  sheetBtn.title = blueprint ? '종이로' : '청사진으로';
+  sheetBtn.setAttribute('aria-pressed', blueprint ? 'true' : 'false');
+  try { localStorage.setItem('sheet', blueprint ? 'blueprint' : 'ivory'); } catch { /* 막혀 있어도 화면은 선다 */ }
+}
+sheetBtn.addEventListener('click', () => {
+  setSheet(document.documentElement.getAttribute('data-sheet') !== 'blueprint');
+});
+try { if (localStorage.getItem('sheet') === 'blueprint') setSheet(true); } catch { /* 무시 */ }
+
+document.getElementById('zin').addEventListener('click', () => zoomAt(1.35, stage.clientWidth / 2, stage.clientHeight / 2));
+document.getElementById('zout').addEventListener('click', () => zoomAt(1 / 1.35, stage.clientWidth / 2, stage.clientHeight / 2));
+document.getElementById('fit').addEventListener('click', fit);
+addEventListener('resize', fit);
+
+/* ---------- 손을 올린 글 ---------- */
+const read = document.getElementById('read');
+let held = null;
+function hold(id) {
+  held = id;
+  const n = byId.get(id);
+  const set = near.get(id) ?? new Set();
+  for (const [nid, e] of itemEls) {
+    e.classList.toggle('self', nid === id);
+    e.classList.toggle('hit', set.has(nid));
+    e.classList.toggle('dim', nid !== id && !set.has(nid));
+  }
+  const kk = KIND[kindOf(n)];
+  document.getElementById('rkind').innerHTML =
+    `<span class="tick" style="color:${colorOf(n)}">${kk.tick}</span>${kk.label}<span class="deg">이어진 글 ${set.size}편</span>`;
+  document.getElementById('rtitle').textContent = n.title;
+  document.getElementById('rnote').textContent = n.note || '';
+  const go = document.getElementById('rgo');
+  if (n.href) { go.hidden = false; go.href = n.href; } else { go.hidden = true; }
+  read.hidden = false;
+}
+function release() {
+  held = null;
+  for (const e of itemEls.values()) e.classList.remove('self', 'hit', 'dim');
+  read.hidden = true;
+}
+world.addEventListener('pointerleave', release);
+document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') release(); });
+
+/* ---------- 좁히기 ---------- */
+const off = new Set();
+const keys = document.getElementById('keys');
+for (const [key, meta] of Object.entries(KIND)) {
+  const count = DATA.nodes.filter((n) => kindOf(n) === key).length;
+  if (!count) continue;
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.setAttribute('aria-pressed', 'true');
+  b.innerHTML = `<span class="tick" style="color:var(${meta.v})">${meta.tick}</span><span></span><span class="n"></span>`;
+  b.children[1].textContent = meta.label;
+  b.children[2].textContent = `${count}`;
+  b.addEventListener('click', () => {
+    if (off.has(key)) off.delete(key); else off.add(key);
+    b.setAttribute('aria-pressed', off.has(key) ? 'false' : 'true');
+    narrow();
+  });
+  keys.append(b);
+}
+const q = document.getElementById('q');
+function narrow() {
+  const term = q.value.trim().toLowerCase();
+  for (const [nid, e] of itemEls) {
+    const n = byId.get(nid);
+    const ok = !off.has(kindOf(n))
+      && (!term || (`${n.title} ${n.id} ${(n.tags || []).join(' ')}`).toLowerCase().includes(term));
+    e.closest('li').hidden = !ok;
+  }
+  if (held) release();
+  relayout();
+}
+q.addEventListener('input', narrow);
+
+/* 주기란을 채운다. 누르면 그 구역이 화면 가운데로 온다 -- 읽은 것과 본 것을 잇는다. */
+const notesBody = document.getElementById('notesBody');
+for (const n of NOTES) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'note-item';
+  b.innerHTML = '<span class="no"><span></span><span class="go">보러 가기 →</span></span><h2></h2><p></p><span class="tally"></span>';
+  b.querySelector('.no span').textContent = n.no;
+  b.querySelector('h2').textContent = n.title;
+  b.querySelector('p').textContent = n.body;
+  b.querySelector('.tally').textContent = n.tally;
+  b.addEventListener('click', () => goZone(n.key));
+  notesBody.append(b);
+}
+
+/* 그 구역을 화면에 앉힌다. 가로는 구역 전체가 들어오게, 세로는 그 구역의 위쪽에 맞춘다 --
+   가운데 정렬하면 긴 구역은 머리가 잘려 어디를 보는지 모른다. */
+function goZone(key) {
+  const zone = ZONES[key];
+  const top = parseFloat(zone.style.top) || 0;
+  const left = parseFloat(zone.style.left) || 0;
+  const width = parseFloat(zone.style.width) || BAND_W;
+  const view = stage.clientWidth, viewH = stage.clientHeight;
+  k = Math.min(1.6, Math.max(0.2, (view - 96) / width));
+  lodPinned = -1;
+  tx = (view - width * k) / 2 - left * k;
+  ty = 64 - (top - 12) * k;
+  apply();
+}
+
+document.getElementById('facts').textContent =
+  `${DATA.nodes.length}편 · 글끼리 이어진 자리 ${DATA.edges.length}개 · 어디에도 안 이어진 글 0편`;
+
+world.classList.add('lod2');
+paintPick();
+relayout();
+fit();
+</script>

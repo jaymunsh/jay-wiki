@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/portfolio
+    username: portfolio
+    password: changeme
+  data:
+    redis:
+      host: localhost
+      port: 6379
+app:
+  opensearch:
+    enabled: true
+  partner-simulator:
+    url: http://127.0.0.1:8010
+    callback-url: http://127.0.0.1:8080/api/domain-scenarios/partner-api/callbacks
+    callback-secret: local-partner-secret

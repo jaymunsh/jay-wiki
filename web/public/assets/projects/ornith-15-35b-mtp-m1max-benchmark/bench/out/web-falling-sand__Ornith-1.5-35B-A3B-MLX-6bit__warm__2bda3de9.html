@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>모래 물리 샌드박스</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d0d17;
+    color: #c8c8d8;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 12px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  h1 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #e8e8f0;
+    letter-spacing: 1px;
+  }
+  #toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    max-width: 720px;
+  }
+  .grp {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #1a1a2e;
+    border-radius: 8px;
+    padding: 5px 8px;
+  }
+  .grp label { font-size: 12px; color: #9999b3; }
+  button {
+    background: #2a2a44;
+    color: #c8c8d8;
+    border: 1px solid #3a3a58;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  button:hover { background: #3a3a58; }
+  button.active { background: #4a4a78; border-color: #6a6aa8; color: #fff; }
+  .mat-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 62px;
+    justify-content: center;
+  }
+  .swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  input[type="range"] { width: 90px; accent-color: #6a6aa8; cursor: pointer; }
+  #val { font-size: 12px; min-width: 22px; text-align: center; color: #a0a0c0; }
+  #stats {
+    font-size: 12px;
+    font-family: "Consolas", "Courier New", monospace;
+    color: #80ff90;
+    background: #12121f;
+    border-radius: 6px;
+    padding: 4px 10px;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 16px;
+  }
+  #stats .fps { color: #60d0ff; }
+  #canvas-wrap {
+    border: 2px solid #2a2a44;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    line-height: 0;
+  }
+  canvas { image-rendering: pixelated; image-rendering: crisp-edges; cursor: crosshair; }
+  .hint { font-size: 11px; color: #66667a; margin-top: 8px; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>⬛ 모래 물리 샌드박스</h1>
+  <div id="toolbar">
+    <div class="grp">
+      <button class="mat-btn active" data-mat="1"><span class="swatch" style="background:#e0c040"></span>모래</button>
+      <button class="mat-btn" data-mat="2"><span class="swatch" style="background:#3080e0"></span>물</button>
+      <button class="mat-btn" data-mat="3"><span class="swatch" style="background:#888898"></span>벽</button>
+      <button class="mat-btn" data-mat="4"><span class="swatch" style="background:#d04030"></span>산</button>
+    </div>
+    <div class="grp">
+      <label>브러시</label>
+      <input type="range" id="size" min="1" max="30" value="8">
+      <span id="val">8</span>
+    </div>
+    <div class="grp">
+      <button id="pause">⏸ 일시정지</button>
+      <button id="clear">🗑 초기화</button>
+    </div>
+  </div>
+  <div id="stats">
+    <span class="fps">FPS: <span id="fps">0</span></span>
+    <span>입자 수: <span id="count">0</span></span>
+  </div>
+  <div id="canvas-wrap">
+    <canvas id="c"></canvas>
+  </div>
+  <div class="hint">좌클릭: 그리기 · 우클릭: 지우기</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var COLS = 150, ROWS = 112;
+  var CELL = 5;
+  var canvas = document.getElementById("c");
+  var ctx = canvas.getContext("2d");
+  canvas.width = COLS * CELL;
+  canvas.height = ROWS * CELL;
+
+  var EMPTY = 0, SAND = 1, WATER = 2, WALL = 3, ACID = 4;
+
+  var grid = new Uint8Array(COLS * ROWS);
+  var life = new Int16Array(COLS * ROWS);
+  var updated = new Uint8Array(COLS * ROWS);
+
+  function idx(x, y) { return y * COLS + x; }
+  function inb(x, y) { return x >= 0 && x < COLS && y >= 0 && y < ROWS; }
+  function get(x, y) { return inb(x, y) ? grid[idx(x, y)] : WALL; }
+
+  var currentMat = SAND;
+  var brushSize = 8;
+  var paused = false;
+
+  var rand = (function () {
+    var s = 2654435761;
+    return function () {
+      s = (s * 1103515245 + 12345) & 0x7fffffff;
+      return s / 0x7fffffff;
+    };
+  })();
+
+  var imgData = ctx.createImageData(canvas.width, canvas.height);
+  var buf = imgData.data;
+
+  function setCell(x, y, mat) {
+    if (!inb(x, y)) return;
+    var i = idx(x, y);
+    if (mat === EMPTY) { grid[i] = EMPTY; life[i] = 0; return; }
+    if (grid[i] === WALL) return;
+    if (mat === ACID) { grid[i] = ACID; life[i] = 40 + (rand() * 60 | 0); }
+    else { grid[i] = mat; life[i] = 0; }
+  }
+
+  var paint = { down: false, x: -1, y: -1, erase: false };
+
+  function canvasToGrid(e) {
+    var r = canvas.getBoundingClientRect();
+    var gx = Math.floor((e.clientX - r.left) / (r.width / COLS));
+    var gy = Math.floor((e.clientY - r.top) / (r.height / ROWS));
+    return [gx, gy];
+  }
+
+  function applyBrush(gx, gy) {
+    var r = brushSize;
+    for (var dy = -r; dy <= r; dy++) {
+      for (var dx = -r; dx <= r; dx++) {
+        if (dx * dx + dy * dy > r * r) continue;
+        var x = gx + dx, y = gy + dy;
+        if (!inb(x, y)) continue;
+        if (paint.erase) { setCell(x, y, EMPTY); continue; }
+        if (currentMat === WALL) { setCell(x, y, WALL); }
+        else {
+          var i = idx(x, y);
+          if (grid[i] !== EMPTY && grid[i] !== WATER) continue;
+          if (rand() < 0.55) setCell(x, y, currentMat);
+        }
+      }
+    }
+  }
+
+  canvas.addEventListener("mousedown", function (e) {
+    e.preventDefault();
+    var g = canvasToGrid(e);
+    paint.x = g[0]; paint.y = g[1]; paint.erase = (e.button === 2);
+    paint.down = true; applyBrush(paint.x, paint.y);
+  });
+  canvas.addEventListener("mousemove", function (e) {
+    if (!paint.down) return;
+    var g = canvasToGrid(e);
+    paint.x = g[0]; paint.y = g[1]; applyBrush(paint.x, paint.y);
+  });
+  window.addEventListener("mouseup", function () { paint.down = false; });
+  canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+
+  canvas.addEventListener("touchstart", function (e) {
+    e.preventDefault();
+    var t = e.touches[0];
+    var g = canvasToGrid(t);
+    paint.x = g[0]; paint.y = g[1]; paint.erase = false; paint.down = true;
+    applyBrush(paint.x, paint.y);
+  }, { passive: false });
+  canvas.addEventListener("touchmove", function (e) {
+    e.preventDefault();
+    if (!paint.down) return;
+    var t = e.touches[0];
+    var g = canvasToGrid(t);
+    paint.x = g[0]; paint.y = g[1]; applyBrush(paint.x, paint.y);
+  }, { passive: false });
+  canvas.addEventListener("touchend", function () { paint.down = false; });
+
+  var matColors = {
+    SAND: [224, 192, 64],
+    WATER: [48, 128, 224],
+    WALL: [136, 136, 152],
+    ACID: [120, 230, 80]
+  };
+
+  function update() {
+    updated.fill(0);
+    var r = rand;
+
+    for (var y = ROWS - 1; y >= 0; y--) {
+      var leftToRight = (r() < 0.5);
+      for (var k = 0; k < COLS; k++) {
+        var x = leftToRight ? k : (COLS - 1 - k);
+        var i = idx(x, y);
+        if (updated[i] || grid[i] === EMPTY || grid[i] === WALL) continue;
+        var cell = grid[i];
+
+        if (cell === ACID) {
+          updateAcid(x, y, i);
+          continue;
+        }
+
+        var fell = false;
+
+        if (cell === SAND) {
+          var below = get(x, y + 1);
+          if (below === WATER || below === EMPTY) { swap(x, y, x, y + 1); fell = true; }
+          else {
+            var d1 = r() < 0.5 ? -1 : 1;
+            var b1 = get(x + d1, y + 1);
+            if (b1 === WATER || b1 === EMPTY) { swap(x, y, x + d1, y + 1); fell = true; }
+            else {
+              var b2 = get(x - d1, y + 1);
+              if (b2 === WATER || b2 === EMPTY) { swap(x, y, x - d1, y + 1); fell = true; }
+            }
+          }
+        } else if (cell === WATER) {
+          var b = get(x, y + 1);
+          if (b === EMPTY) { swap(x, y, x, y + 1); fell = true; }
+          else {
+            var spread = 0, moved = false;
+            while (spread < 4 && !moved) {
+              spread++;
+              var sd = r() < 0.5 ? -1 : 1;
+              var nb = get(x + sd, y);
+              if (nb === EMPTY) { swap(x, y, x + sd, y); moved = true; }
+            }
+            if (!moved) {
+              var ns = get(x - 1, y), ne = get(x + 1, y);
+              if (ns === EMPTY) { swap(x, y, x - 1, y); moved = true; }
+              else if (ne === EMPTY) { swap(x, y, x + 1, y); moved = true; }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function swap(x1, y1, x2, y2) {
+    if (!inb(x2, y2)) return;
+    var i1 = idx(x1, y1), i2 = idx(x2, y2);
+    var tmpG = grid[i1]; grid[i1] = grid[i2]; grid[i2] = tmpG;
+    var tmpL = life[i1]; life[i1] = life[i2]; life[i2] = tmpL;
+    updated[i2] = 1;
+  }
+
+  function updateAcid(x, y, i) {
+    var d = r() < 0.5 ? -1 : 1;
+    for (var ox = -1; ox <= 1; ox++) {
+      var nx = x + ox, ny = y + 1;
+      if (inb(nx, ny) && (grid[idx(nx, ny)] === SAND || grid[idx(nx, ny)] === WALL)) {
+        if (r() < 0.35) {
+          grid[idx(nx, ny)] = EMPTY;
+          if (r() < 0.55) { grid[i] = EMPTY; return; }
+        }
+      }
+    }
+    var sp = r() < 0.5 ? -1 : 1;
+    if (get(x + sp, y) === EMPTY) { swap(x, y, x + sp, y); }
+    else if (get(x - sp, y) === EMPTY) { swap(x, y, x - sp, y); }
+    else if (get(x, y + 1) === EMPTY) { swap(x, y, x, y + 1); }
+
+    life[i]--;
+    if (life[i] <= 0) {
+      if (r() < 0.25) { grid[i] = EMPTY; }
+      else { grid[i] = WATER; life[i] = 0; }
+    }
+  }
+
+  function render() {
+    var px = 0;
+    for (var i = 0; i < grid.length; i++) {
+      var c = matColors[["", "SAND", "WATER", "WALL", "ACID"][grid[i]]];
+      var shade = 1;
+      if (grid[i] === SAND) shade = 0.82 + rand() * 0.36;
+      else if (grid[i] === WATER) shade = 0.82 + rand() * 0.2;
+      else if (grid[i] === ACID) shade = 0.75 + rand() * 0.4;
+      for (var p = 0; p < CELL * CELL; p++) {
+        buf[px++] = Math.min(255, c[0] * shade) | 0;
+        buf[px++] = Math.min(255, c[1] * shade) | 0;
+        buf[px++] = Math.min(255, c[2] * shade) | 0;
+        buf[px++] = 255;
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+  }
+
+  function countParticles() {
+    var n = 0;
+    for (var i = 0; i < grid.length; i++) if (grid[i] !== EMPTY && grid[i] !== WALL) n++;
+    return n;
+  }
+
+  // UI
+  var matBtns = document.querySelectorAll(".mat-btn");
+  matBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      matBtns.forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      currentMat = parseInt(btn.dataset.mat, 10);
+    });
+  });
+
+  var sizeInput = document.getElementById("size");
+  var sizeVal = document.getElementById("val");
+  sizeInput.addEventListener("input", function () {
+    brushSize = parseInt(sizeInput.value, 10);
+    sizeVal.textContent = brushSize;
+  });
+
+  var pauseBtn = document.getElementById("pause");
+  pauseBtn.addEventListener("click", function () {
+    paused = !paused;
+    pauseBtn.textContent = paused ? "▶ 계속하기" : "⏸ 일시정지";
+    pauseBtn.classList.toggle("active", paused);
+  });
+
+  document.getElementById("clear").addEventListener("click", function () {
+    grid.fill(0); life.fill(0);
+  });
+
+  var fpsEl = document.getElementById("fps");
+  var countEl = document.getElementById("count");
+
+  var lastTime = performance.now();
+  var fpsSmooth = 60;
+  var frameCount = 0;
+
+  function loop() {
+    var now = performance.now();
+    var dt = now - lastTime;
+    lastTime = now;
+    var instFps = dt > 0 ? 1000 / dt : 60;
+    fpsSmooth = fpsSmooth * 0.9 + instFps * 0.1;
+    frameCount++;
+    if (frameCount % 15 === 0) {
+      fpsEl.textContent = fpsSmooth.toFixed(0);
+      countEl.textContent = countParticles();
+    }
+    if (!paused) update();
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  // seed some walls for demo
+  for (var sx = 0; sx < COLS; sx++) {
+    grid[idx(sx, ROWS - 1)] = WALL;
+    if (sx === 0 || sx === COLS - 1) { grid[idx(sx, ROWS - 2)] = WALL; }
+  }
+
+  loop();
+})();
+</script>
+</body>
+</html>

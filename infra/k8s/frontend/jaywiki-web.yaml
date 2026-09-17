@@ -1,0 +1,130 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaywiki-web
+  namespace: frontend
+  labels:
+    app: jaywiki-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaywiki-web
+  template:
+    metadata:
+      labels:
+        app: jaywiki-web
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: ghcr-pull
+      containers:
+        - name: jaywiki-web
+          image: jaywiki-web:local
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - containerPort: 3000
+          env:
+            - name: TZ
+              value: Asia/Seoul
+            - name: NODE_ENV
+              value: production
+            - name: API_INTERNAL_BASE
+              value: http://jaywiki.backend.svc.cluster.local:8080
+            - name: PROMETHEUS_INTERNAL_BASE
+              value: http://prom-prometheus-server.obs.svc.cluster.local
+            - name: MINIO_ASSET_INTERNAL_BASE
+              value: http://minio.data.svc.cluster.local:9000/wiki-assets
+          # backend 와 같은 이유다 -- 엔드포인트가 빠질 시간을 벌고 SIGTERM 을 받는다.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 5"]
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaywiki-web
+  namespace: frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: jaywiki-web
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jaywiki-web
+  namespace: frontend
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: frontend-jaywiki-public-https-origin@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: portfolio.leneu.cloud
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jaywiki-web
+                port:
+                  number: 3000
+    # 블로그는 같은 Deployment 를 쓴다. middleware 가 Host 를 보고 /blog/* 로 rewrite 한다.
+    # 이 규칙만으로는 공개되지 않는다 — cloudflared ingress 와 DNS 가 있어야 밖에서 닿는다.
+    - host: blog.leneu.cloud
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jaywiki-web
+                port:
+                  number: 3000
+    # 관리자도 같은 Deployment 를 쓰며 Host 기반 middleware 가 전용 셸과 API 경계를 적용한다.
+    # Cloudflare Tunnel hostname과 Access 정책이 함께 준비된 뒤에만 외부에서 접근할 수 있다.
+    - host: admin.leneu.cloud
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jaywiki-web
+                port:
+                  number: 3000

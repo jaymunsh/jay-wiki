@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>테트리스</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d0d1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+  .game-container {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    padding: 20px;
+  }
+  #board {
+    border: 3px solid #4a4a6a;
+    background: #12121f;
+    box-shadow: 0 0 30px rgba(100, 100, 200, 0.3);
+  }
+  .side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 160px;
+  }
+  .panel-box {
+    background: #1a1a2e;
+    border: 2px solid #33334d;
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .panel-box h2 {
+    font-size: 14px;
+    color: #8888bb;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .stat-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #66ffcc;
+  }
+  #nextCanvas {
+    background: #12121f;
+    border-radius: 4px;
+    display: block;
+  }
+  #holdCanvas {
+    background: #12121f;
+    border-radius: 4px;
+    display: block;
+  }
+  .controls {
+    font-size: 12px;
+    line-height: 1.8;
+    color: #9999bb;
+  }
+  .controls b { color: #ccccff; }
+  #overlay {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0,0,0,0.75);
+    text-align: center;
+  }
+  #board-wrapper { position: relative; }
+  #overlay h1 { font-size: 36px; color: #ff5577; margin-bottom: 10px; }
+  #overlay p { color: #ccccff; font-size: 16px; }
+</style>
+</head>
+<body>
+<div class="game-container">
+  <div id="board-wrapper">
+    <canvas id="board" width="300" height="600"></canvas>
+    <div id="overlay">
+      <h1 id="overlayTitle">GAME OVER</h1>
+      <p id="overlayText">Enter 키로 다시 시작</p>
+    </div>
+  </div>
+  <div class="side-panel">
+    <div class="panel-box">
+      <h2>점수</h2>
+      <div class="stat-value" id="score">0</div>
+    </div>
+    <div class="panel-box">
+      <h2>라인</h2>
+      <div class="stat-value" id="lines">0</div>
+    </div>
+    <div class="panel-box">
+      <h2>레벨</h2>
+      <div class="stat-value" id="level">1</div>
+    </div>
+    <div class="panel-box">
+      <h2>다음</h2>
+      <canvas id="nextCanvas" width="120" height="120"></canvas>
+    </div>
+    <div class="panel-box">
+      <h2>홀드</h2>
+      <canvas id="holdCanvas" width="120" height="120"></canvas>
+    </div>
+    <div class="panel-box">
+      <h2>조작</h2>
+      <div class="controls">
+        <b>← →</b> 이동<br>
+        <b>↓</b> 소프트드롭<br>
+        <b>↑ / X</b> 회전<br>
+        <b>스페이스</b> 하드드롭<br>
+        <b>C</b> 홀드<br>
+        <b>P</b> 일시정지
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const COLS = 10;
+  const ROWS = 20;
+  const SIZE = 30;
+  const board = document.getElementById('board');
+  const ctx = board.getContext('2d');
+  const nextCanvas = document.getElementById('nextCanvas');
+  const nctx = nextCanvas.getContext('2d');
+  const holdCanvas = document.getElementById('holdCanvas');
+  const hctx = holdCanvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const linesEl = document.getElementById('lines');
+  const levelEl = document.getElementById('level');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlayTitle');
+  const overlayText = document.getElementById('overlayText');
+
+  const COLORS = {
+    I: '#31c7ef',
+    O: '#f7d308',
+    T: '#ad4d9c',
+    S: '#42b642',
+    Z: '#ef2029',
+    J: '#5a65ad',
+    L: '#ef7921'
+  };
+
+  const SHAPES = {
+    I: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+    O: [[1,1],[1,1]],
+    T: [[0,1,0],[1,1,1],[0,0,0]],
+    S: [[0,1,1],[1,1,0],[0,0,0]],
+    Z: [[1,1,0],[0,1,1],[0,0,0]],
+    J: [[1,0,0],[1,1,1],[0,0,0]],
+    L: [[0,0,1],[1,1,1],[0,0,0]]
+  };
+
+  // Wall kick data (SRS)
+  const KICKS_JLSTZ = [
+    [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
+    [[0,0],[1,0],[1,-1],[0,2],[1,2]],
+    [[0,0],[1,0],[1,1],[0,-2],[1,-2]],
+    [[0,0],[-1,0],[-1,-1],[0,2],[-1,2]]
+  ];
+  const KICKS_I = [
+    [[0,0],[-2,0],[1,0],[-2,1],[1,-2]],
+    [[0,0],[2,0],[-1,0],[2,-1],[-1,2]],
+    [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
+    [[0,0],[-2,0],[1,0],[-2,-1],[1,2]]
+  ];
+
+  let grid, current, nextPiece, holdPiece, canHold;
+  let score, lines, level;
+  let dropCounter, dropInterval, lastTime;
+  let gameOver, paused, running;
+  let rafId;
+
+  function createGrid() {
+    return Array.from({length: ROWS}, () => Array(COLS).fill(null));
+  }
+
+  const bag = [];
+  function nextFromBag() {
+    if (bag.length === 0) {
+      const types = Object.keys(SHAPES);
+      for (let i = types.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [types[i], types[j]] = [types[j], types[i]];
+      }
+      bag.push(...types);
+    }
+    return bag.pop();
+  }
+
+  function createPiece(type) {
+    const shape = SHAPES[type].map(row => row.slice());
+    return {
+      type: type,
+      shape: shape,
+      x: Math.floor((COLS - shape[0].length) / 2),
+      y: type === 'I' ? -1 : 0
+    };
+  }
+
+  function rotate(matrix, dir) {
+    const N = matrix.length;
+    const result = Array.from({length: N}, () => Array(N).fill(0));
+    for (let y = 0; y < N; y++) {
+      for (let x = 0; x < N; x++) {
+        if (dir > 0) {
+          result[x][N - 1 - y] = matrix[y][x];
+        } else {
+          result[N - 1 - x][y] = matrix[y][x];
+        }
+      }
+    }
+    return result;
+  }
+
+  function collides(piece, grid) {
+    const s = piece.shape;
+    for (let y = 0; y < s.length; y++) {
+      for (let x = 0; x < s[y].length; x++) {
+        if (!s[y][x]) continue;
+        const gx = piece.x + x;
+        const gy = piece.y + y;
+        if (gx < 0 || gx >= COLS || gy >= ROWS) return true;
+        if (gy >= 0 && grid[gy][gx]) return true;
+      }
+    }
+    return false;
+  }
+
+  function merge(piece, grid) {
+    const s = piece.shape;
+    for (let y = 0; y < s.length; y++) {
+      for (let x = 0; x < s[y].length; x++) {
+        if (s[y][x]) {
+          const gy = piece.y + y;
+          const gx = piece.x + x;
+          if (gy >= 0) grid[gy][gx] = piece.type;
+        }
+      }
+    }
+  }
+
+  function clearLines() {
+    let cleared = 0;
+    for (let y = ROWS - 1; y >= 0; y--) {
+      if (grid[y].every(cell => cell)) {
+        grid.splice(y, 1);
+        grid.unshift(Array(COLS).fill(null));
+        cleared++;
+        y++;
+      }
+    }
+    if (cleared > 0) {
+      const points = [0, 100, 300, 500, 800];
+      score += points[cleared] * level;
+      lines += cleared;
+      level = Math.floor(lines / 10) + 1;
+      dropInterval = Math.max(50, 1000 - (level - 1) * 90);
+      updateStats();
+    }
+  }
+
+  function spawnPiece() {
+    current = createPiece(nextPiece);
+    nextPiece = nextFromBag();
+    canHold = true;
+    if (collides(current, grid)) {
+      endGame();
+    }
+    drawNext();
+  }
+
+  function endGame() {
+    gameOver = true;
+    running = false;
+    overlay.style.display = 'flex';
+    overlayTitle.textContent = 'GAME OVER';
+    overlayText.textContent = 'Enter 키로 다시 시작';
+  }
+
+  function lockPiece() {
+    merge(current, grid);
+    clearLines();
+    spawnPiece();
+  }
+
+  function softDrop() {
+    current.y++;
+    if (collides(current, grid)) {
+      current.y--;
+      lockPiece();
+    }
+    dropCounter = 0;
+  }
+
+  function hardDrop() {
+    let dist = 0;
+    while (!collides(current, grid)) {
+      current.y++;
+      dist++;
+    }
+    current.y--;
+    dist--;
+    score += dist * 2;
+    updateStats();
+    lockPiece();
+    dropCounter = 0;
+  }
+
+  function move(dir) {
+    current.x += dir;
+    if (collides(current, grid)) {
+      current.x -= dir;
+    }
+  }
+
+  function tryRotate() {
+    const oldShape = current.shape;
+    const newShape = rotate(current.shape, 1);
+    const oldKicks = current.kickIndex;
+    let kickTable;
+    if (current.type === 'I') kickTable = KICKS_I;
+    else kickTable = KICKS_JLSTZ;
+
+    for (let k = 0; k < 5; k++) {
+      const kick = kickTable[oldKicks][k];
+      const testPiece = {
+        type: current.type,
+        shape: newShape,
+        x: current.x + kick[0],
+        y: current.y - kick[1]
+      };
+      if (!collides(testPiece, grid)) {
+        current.shape = newShape;
+        current.x = testPiece.x;
+        current.y = testPiece.y;
+        return;
+      }
+    }
+    current.shape = oldShape;
+  }
+
+  function doHold() {
+    if (!canHold) return;
+    if (holdPiece === null) {
+      holdPiece = current.type;
+      spawnPiece();
+    } else {
+      const tmp = holdPiece;
+      holdPiece = current.type;
+      current = createPiece(tmp);
+      if (collides(current, grid)) endGame();
+    }
+    canHold = false;
+    drawHold();
+  }
+
+  function ghostY() {
+    const ghost = { shape: current.shape, x: current.x, y: current.y };
+    while (!collides(ghost, grid)) ghost.y++;
+    return ghost.y - 1;
+  }
+
+  function drawCell(context, x, y, type, size, alpha) {
+    const px = x * size;
+    const py = y * size;
+    context.globalAlpha = alpha || 1;
+    context.fillStyle = COLORS[type];
+    context.fillRect(px, py, size, size);
+    context.globalAlpha = 1;
+    context.lineWidth = 2;
+    context.strokeStyle = 'rgba(255,255,255,0.25)';
+    context.strokeRect(px + 1, py + 1, size - 2, size - 2);
+    context.fillStyle = 'rgba(255,255,255,0.18)';
+    context.fillRect(px + 2, py + 2, size - 4, 4);
+  }
+
+  function drawGridLines() {
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let x = 1; x < COLS; x++) {
+      ctx.beginPath();
+      ctx.moveTo(x * SIZE, 0);
+      ctx.lineTo(x * SIZE, ROWS * SIZE);
+      ctx.stroke();
+    }
+    for (let y = 1; y < ROWS; y++) {
+      ctx.beginPath();
+      ctx.moveTo(0, y * SIZE);
+      ctx.lineTo(COLS * SIZE, y * SIZE);
+      ctx.stroke();
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, board.width, board.height);
+    drawGridLines();
+
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        if (grid[y][x]) drawCell(ctx, x, y, grid[y][x], SIZE);
+      }
+    }
+
+    if (current) {
+      // ghost
+      const gy = ghostY();
+      const s = current.shape;
+      for (let y = 0; y < s.length; y++) {
+        for (let x = 0; x < s[y].length; x++) {
+          if (s[y][x] && gy + y >= 0) {
+            drawCell(ctx, current.x + x, gy + y, current.type, SIZE, 0.25);
+          }
+        }
+      }
+      // active piece
+      for (let y = 0; y < s.length; y++) {
+        for (let x = 0; x < s[y].length; x++) {
+          if (s[y][x] && current.y + y >= 0) {
+            drawCell(ctx, current.x + x, current.y + y, current.type, SIZE);
+          }
+        }
+      }
+    }
+  }
+
+  function drawMini(context, canvas, type) {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    if (!type) return;
+    const shape = SHAPES[type];
+    let minX = 4, maxX = -1, minY = 4, maxY = -1;
+    for (let y = 0; y < shape.length; y++) {
+      for (let x = 0; x < shape[y].length; x++) {
+        if (shape[y][x]) {
+          minX = Math.min(minX, x);
+          maxX = Math.max(maxX, x);
+          minY = Math.min(minY, y);
+          maxY = Math.max(maxY, y);
+        }
+      }
+    }
+    const w = (maxX - minX + 1);
+    const h = (maxY - minY + 1);
+    const size = 25;
+    const offX = (canvas.width - w * size) / 2;
+    const offY = (canvas.height - h * size) / 2;
+    for (let y = 0; y < shape.length; y++) {
+      for (let x = 0; x < shape[y].length; x++) {
+        if (shape[y][x]) {
+          const px = offX + (x - minX) * size;
+          const py = offY + (y - minY) * size;
+          context.fillStyle = COLORS[type];
+          context.fillRect(px, py, size, size);
+          context.lineWidth = 2;
+          context.strokeStyle = 'rgba(255,255,255,0.25)';
+          context.strokeRect(px + 1, py + 1, size - 2, size - 2);
+        }
+      }
+    }
+  }
+
+  function drawNext() {
+    drawMini(nctx, nextCanvas, nextPiece);
+  }
+
+  function drawHold() {
+    drawMini(hctx, holdCanvas, holdPiece);
+  }
+
+  function updateStats() {
+    scoreEl.textContent = score;
+    linesEl.textContent = lines;
+    levelEl.textContent = level;
+  }
+
+  function update(time) {
+    if (!running) return;
+    if (!paused) {
+      if (gameOver) return;
+      const delta = time - lastTime;
+      lastTime = time;
+      dropCounter += delta;
+      if (dropCounter > dropInterval) {
+        softDrop();
+      }
+      draw();
+    }
+    rafId = requestAnimationFrame(update);
+  }
+
+  function resetGame() {
+    grid = createGrid();
+    score = 0;
+    lines = 0;
+    level = 1;
+    dropCounter = 0;
+    dropInterval = 1000;
+    lastTime = performance.now();
+    gameOver = false;
+    paused = false;
+    running = true;
+    holdPiece = null;
+    canHold = true;
+    bag.length = 0;
+    nextPiece = nextFromBag();
+    spawnPiece();
+    drawHold();
+    updateStats();
+    overlay.style.display = 'none';
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(update);
+  }
+
+  let holdLock = false;
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      if (gameOver || !running) resetGame();
+      return;
+    }
+    if (!running) return;
+    if (e.key === 'p' || e.key === 'P') {
+      paused = !paused;
+      if (paused) {
+        overlay.style.display = 'flex';
+        overlayTitle.textContent = '일시정지';
+        overlayText.textContent = 'P 키로 계속하기';
+      } else {
+        overlay.style.display = 'none';
+        lastTime = performance.now();
+      }
+      return;
+    }
+    if (paused) return;
+    switch (e.key) {
+      case 'ArrowLeft': move(-1); break;
+      case 'ArrowRight': move(1); break;
+      case 'ArrowDown': softDrop(); break;
+      case 'ArrowUp':
+      case 'x': case 'X': tryRotate(); break;
+      case ' ': e.preventDefault(); hardDrop(); break;
+      case 'c': case 'C': doHold(); break;
+      default: return;
+    }
+    draw();
+  });
+
+  resetGame();
+})();
+</script>
+</body>
+</html>

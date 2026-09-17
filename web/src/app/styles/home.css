@@ -1,0 +1,248 @@
+/* ============================================================
+   Main / Hero
+   ============================================================ */
+main { width: 100%; min-width: 0; max-width: 1320px; margin: 0 auto; padding: 32px 28px 80px; }
+
+.home-hub {
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  gap: 22px; border-radius: var(--r-lg); padding: 30px 36px 26px;
+  background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+  border: 1px solid var(--border); position: relative; overflow: hidden;
+}
+.home-hub::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--grad-glow); opacity: .4; pointer-events: none;
+}
+.home-hub > * { position: relative; z-index: 1; }
+.home-hub-intro {
+  min-width: 0;
+}
+.eyebrow {
+  font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--accent-2); margin-bottom: 14px;
+}
+.home-hub h1 {
+  font-size: var(--fs-hero); line-height: 1.18; letter-spacing: 0; margin: 0 0 14px;
+  font-weight: 800; word-break: keep-all;
+}
+.home-hub h1 .accent {
+  background: var(--grad-1); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.home-title-line { white-space: nowrap; }
+.home-hub p { color: var(--text-dim); font-size: var(--fs-lg); max-width: none; margin: 0; word-break: keep-all; }
+.home-proof-list {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 2px; border-top: 1px solid var(--border);
+}
+.home-proof {
+  position: relative; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px;
+  padding: 16px 32px 0 0;
+}
+.home-proof + .home-proof { padding-left: 18px; border-left: 1px solid var(--border); }
+.home-proof:not(:last-child)::after {
+  content: '→'; position: absolute; top: 19px; right: 12px;
+  color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-md);
+}
+.home-proof > span { color: var(--accent-2); font-family: var(--mono); font-size: var(--fs-2xs); font-weight: 800; }
+.home-proof small {
+  display: block; margin-bottom: 5px; color: var(--accent-2); font-family: var(--mono);
+  font-size: var(--fs-2xs); font-weight: 800; letter-spacing: .08em;
+}
+.home-proof strong { display: block; font-size: var(--fs-lg); line-height: 1.35; }
+.home-proof p { margin-top: 6px; font-size: var(--fs-sm); line-height: 1.55; }
+
+
+/* 좌: 히어로 카드, 우: 최근 발행 + 운영 지표 카드.
+   히어로 카드 안에 카드를 중첩하지 않는다 — 우측은 형제 카드 열이라 높이도 서로 안 묶인다.
+   비율(1fr / 360px, gap 24)과 끊는 폭(1024)은 아래 content-grid 와 같다. 그래서
+   우측 열이 「이 카테고리의 문서」와 정확히 같은 선에 선다. */
+@media (min-width: 1025px) {
+  /* stretch 라 두 열의 카드 높이가 같아진다. 좌우 중 긴 쪽이 기준이 된다. */
+  .home-top { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: stretch; }
+  .home-hub-side { height: 100%; }
+  /* 열은 stretch 로 늘어나는데 안의 카드는 제 내용만큼만 서서, 목록 카드 바닥이 히어로보다
+     짧게 끝났다(1200 이상 1px, 1025~1199 는 제목이 한 줄 더 접혀 66px). 남는 세로를
+     목록이 받아 두 카드의 바닥선을 맞춘다. */
+  .home-recent { flex: 1; }
+  /* BUILD/OPERATE/IMPROVE — 열 하나가 245px 뿐이라 제목·설명이 각각 한 줄로 떨어지게 조인다.
+     번호를 라벨 옆으로 붙여 30px 열을 없애고, 넘치면 감아서 접지 말고 …로 끊는다. */
+  .home-proof { grid-template-columns: minmax(0, 1fr); padding: 10px 22px 0 0; }
+  /* 번호는 장식이고 뜻은 BUILD/OPERATE/IMPROVE 가 나른다. 숨겨서 한 줄과 폭을 같이 번다. */
+  .home-proof > span { display: none; }
+  .home-proof strong { font-size: var(--fs-sm); line-height: 1.4; margin-top: 3px; }
+  .home-proof p { margin-top: 3px; font-size: var(--fs-xs); line-height: 1.4; }
+  .home-proof strong,
+  .home-proof p,
+  .home-proof > div > small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* 폭이 좁아졌으니 제목은 줄 단위 nowrap 을 풀고 균형 잡아 접는다.
+     다만 강조구는 쪼개지면 읽기 나쁘므로 붙여 둔다. */
+  .home-title-line { white-space: normal; }
+  .home-hub h1 { text-wrap: balance; }
+  .home-hub h1 .accent { white-space: nowrap; }
+  /* 제목이 두 줄로 접히는 만큼 여백에서 돌려받아 home-top 을 370~380 에 둔다.
+     좁은 폭에서는 1열이라 이 압박이 없으므로 기본 여백을 그대로 쓴다. */
+  .home-hub { gap: 14px; padding-bottom: 18px; }
+  .home-proof { padding-top: 10px; }
+}
+.home-hub-side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+@media (max-width: 1024px) {
+  .home-hub-side { margin-top: 14px; }
+}
+
+.home-recent, .home-ops {
+  padding: 14px 16px;
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-md);
+}
+.home-recent h2, .home-ops h2 {
+  margin: 0; font-size: var(--fs-2xs); font-weight: 800;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--text-mute);
+}
+/* 글 수와 조회수는 탭 위에 둔다. 배지로 띄우지 않고 TRAFFIC 카드 값들과 같은 어두운 톤이다.
+   숫자가 먼저 서고, 고르는 줄이 목록에 바로 붙는다.
+   원래 탭이 먼저였다. 알약이 한 줄에 다 못 들어가면 알약을 쪼개지 말고 카운터를 아래로 내린다
+   — 알약이 쪼개지면 넷째 하나만 둘째 줄에 떨어져 무리에서 빠진 것처럼 보인다.
+   탭이 셋일 때(최근 수정이 없을 때)는 그대로 한 줄에 같이 선다. */
+.home-recent-head {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin-bottom: 8px;
+}
+/* 이름표는 왼쪽, 숫자는 오른쪽. 위 TRAFFIC 줄과 같은 배치다.
+   미는 쪽은 이름표 하나뿐이다 — 양쪽에 auto 를 주면 둘 다 가운데로 몰린다. */
+.home-recent-label { margin-right: auto; font-weight: 800; letter-spacing: .07em; }
+/* 이름표는 span 이 아니라 링크다(전체 목록으로 나간다). 아래 글꼴 규칙이 span 선택자로만
+   걸려 있어서, 태그가 바뀌는 순간 mono 와 11px 이 통째로 빠져 이름표가 혼자 커졌다.
+   그래서 태그가 아니라 이름으로도 걸어 둔다. */
+.home-recent-head span,
+.home-recent-head .home-recent-label {
+  color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.home-recent-head strong { color: var(--text); font-weight: 700; }
+
+/* 목록 전환 다섯. 라벨은 넉 자로 맞춘다 — 길이가 들쭉날쭉하면 칸이 리듬을 잃는다.
+   알약 다섯이 흩어져 있으면 어디까지가 한 벌인지 안 보인다. 한 덩어리로 묶고 칸 사이를
+   선으로만 가른다 — 테두리가 하나뿐이라 알약 다섯보다 좁고, '이 중 하나를 고른다'가 꼴로 드러난다.
+   overflow:hidden 이 양끝 칸의 모서리를 컨테이너 곡률로 깎는다.
+   칸을 균등하게 늘려 카드 폭을 채운다 — 줄여 넣은 것이 아니라 의도한 꼴로 보이고,
+   라벨 길이가 한 자 달라져도 칸 너비가 흔들리지 않는다. */
+.home-recent-tabs {
+  display: flex; align-items: stretch; width: 100%;
+  border: 1px solid var(--border); border-radius: var(--r-xs); overflow: hidden;
+}
+.home-recent-tabs button {
+  flex: 1 1 0; min-width: 0;
+  padding: 3px 4px; border: 0; background: none; cursor: pointer;
+  font: inherit; letter-spacing: inherit; text-transform: inherit;
+  color: var(--text-mute);
+}
+.home-recent-tabs button + button { border-left: 1px solid var(--border); }
+.home-recent-tabs button[aria-pressed='true'] { color: var(--text); background: var(--hover); }
+.home-recent-tabs button:hover { color: var(--text); }
+/* outline-offset 을 음수로 준다. overflow:hidden 이라 바깥으로 그리면 잘린다. */
+.home-recent-tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* 한 줄 유지. 히어로 첫 줄(최신 반영)이 쓴다.
+   총 조회수도 같은 꼴의 카드였는데, 숫자 하나에 카드 한 장을 쓰던 것이라
+   최근 목록 헤더로 합쳤다(글 N · 조회 N). */
+.home-synced {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  margin: 0; padding: 11px 16px;
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--r-md);
+  font-family: var(--mono); font-size: var(--fs-2xs);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.home-synced span { color: var(--text-mute); font-weight: 800; letter-spacing: .07em; }
+.home-synced time, .home-synced strong { color: var(--text); font-weight: 700; }
+
+/* 히어로 첫 줄: 왼쪽 eyebrow, 오른쪽 반영 시각. 카드 안이라 테두리와 배경은 빼고 글자만 둔다 */
+.home-eyebrow-row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+/* 제목보다 먼저 읽히면 안 된다. 카드 껍데기를 벗기고 색과 굵기를 한 단씩 내린다 */
+.home-eyebrow-row .home-synced {
+  padding: 0; background: none; border: 0; gap: 8px;
+  /* tokens.css: --fs-2xs(11px) 가 한글 판독성 하한이다. 더 줄이지 않는다 */
+  font-size: var(--fs-2xs);
+}
+.home-eyebrow-row .home-synced span { color: var(--text-mute); font-weight: 600; }
+.home-eyebrow-row .home-synced time { color: var(--text-dim); font-weight: 500; }
+.home-recent ul { list-style: none; padding: 0; margin: 0; }
+.home-recent li + li { border-top: 1px dashed var(--border); }
+.home-recent a {
+  display: grid; grid-template-columns: minmax(0, 1fr) max-content; gap: 10px; align-items: baseline;
+  padding: 6px 0; color: var(--text-dim); text-decoration: none;
+}
+.home-recent a:hover { color: var(--accent); }
+.home-recent a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.home-recent a span {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--fs-sm); font-weight: 600;
+}
+/* 오른쪽 칸. '조회 순위'에서는 날짜 대신 조회수가 온다(em). 기울이지 않는다 — 값이지 강조가 아니다. */
+.home-recent a time, .home-recent a em {
+  color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs); white-space: nowrap;
+  font-style: normal; font-variant-numeric: tabular-nums;
+}
+
+/* 운영 지표 — 히어로의 '직접 운영한다'는 문장에 붙는 근거.
+   두 줄로 눌러 담고 남는 높이를 그래프에 준다. 라벨/값 2단으로 세우면 자리를 두 배로 먹는다.
+   그래프는 카드 바닥에 딱 붙인다 — 아래 여백을 띠가 대신하고 overflow:hidden 이 모서리를 깎는다. */
+.home-ops { position: relative; padding: 12px 16px 58px; overflow: hidden; }
+
+.home-ops-line {
+  margin: 0; color: var(--text-dim); font-family: var(--mono); font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+/* 라벨과 지표를 양끝으로 미는 건 첫 줄뿐이다. 아래 줄까지 flex 로 두면 값들이 흩어진다. */
+.home-ops-head-line { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.home-ops-line + .home-ops-line { margin-top: 5px; }
+/* /monitoring 의 TRAFFIC 라벨과 같은 꼴 */
+.home-ops-label {
+  color: var(--text-mute); font-family: var(--mono); font-size: var(--fs-2xs); font-weight: 800;
+  letter-spacing: .07em;
+}
+.home-ops-values { color: var(--text-mute); font-size: var(--fs-2xs); }
+.home-ops-values strong { color: var(--text); font-weight: 700; }
+/* 5px 이었을 때 라벨+값이 카드 안쪽 폭을 3px 남기고 꽉 찼다. 우측 열은 360px 고정이라
+   창을 넓혀도 이 폭이 안 늘고, CPU 가 세 자리가 되는 순간(100%) 바로 넘친다.
+   글꼴은 못 줄인다 — 11px 이 토큰의 하한이다. 구분자 여백 여섯 자리에서 12px 을 번다. */
+.home-ops-sep { margin: 0 3px; color: var(--border); }
+/* 첫 응답 전. 값 줄과 그래프 자리를 가려서, 값이 없는 카드와 아직 안 온 카드를 구분한다.
+   /monitoring 의 .live-operations.is-loading 과 같은 처리다 — 두 카드가 같은 상태를 다르게 보이면 안 된다. */
+.home-ops.is-loading .home-ops-head-line .home-ops-values,
+.home-ops.is-loading .operations-plot {
+  color: transparent; border-radius: 4px;
+  background: linear-gradient(90deg, var(--bg-2), var(--hover), var(--bg-2));
+  background-size: 200% 100%; animation: home-ops-skeleton 1.2s ease-in-out infinite;
+}
+.home-ops.is-loading .home-ops-sep { color: transparent; }
+@keyframes home-ops-skeleton { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .home-ops.is-loading .home-ops-head-line .home-ops-values,
+  .home-ops.is-loading .operations-plot { animation: none; }
+}
+
+/* 라벨 줄 아래를 그래프가 통째로 깐다. 값이 튀어 선이 위로 붙어도 잘리지 않고,
+   시각·req/s 는 z-index 로 그 위에 얹힌다. 카드의 overflow:hidden 이 아래 모서리를 깎는다. */
+.home-ops-band {
+  position: absolute; left: 0; right: 0; top: 46px; bottom: 0; z-index: 0; display: block;
+}
+.home-ops-band .operations-plot { margin: 0; width: 100%; height: 100%; aspect-ratio: auto; }
+.home-ops-band:hover .operations-spark { opacity: .85; }
+.home-ops-band:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.home-ops-line { position: relative; z-index: 1; }
+/* 그래프 위에 가운데로 얹는 줄. 클릭은 아래 그래프가 받도록 통과시킨다. */
+.home-ops-footer {
+  position: absolute; left: 16px; right: 16px; bottom: 14px;
+  text-align: center; pointer-events: none;
+}
+
+/* 히어로 CTA — 첫 화면에서 바로 실행 데모로 보내는 주 행동 버튼 */
+.home-cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.home-cta .btn { height: 40px; padding: 0 18px; font-size: var(--fs-md); }
+
+/* BUILD/OPERATE/IMPROVE 카드가 링크가 되면서 hover 어포던스를 준다 */
+a.home-proof { border-radius: var(--r-sm); padding-bottom: 12px; transition: background .15s ease; }
+a.home-proof:hover { background: var(--hover); }
+a.home-proof:hover strong { color: var(--accent); }
+a.home-proof:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

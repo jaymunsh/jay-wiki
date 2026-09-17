@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>플랫폼 게임 — 1 스테이지</title>
+<style>
+body{margin:0;background:#10141c;color:#eef2f8;font-family:-apple-system,"Segoe UI","Noto Sans KR",sans-serif;display:flex;flex-direction:column;align-items:center}
+h1{font-size:18px;margin:12px 0 4px}
+#hud{display:flex;gap:16px;font-size:14px;margin-bottom:6px}
+canvas{background:#0b1220;border:1px solid #2b3a52;border-radius:8px}
+.hint{font-size:13px;color:#9fb0c7;max-width:640px;padding:8px 16px 24px}
+button{background:#5aa9ff;border:0;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer}
+button:focus-visible,canvas:focus-visible{outline:3px solid #ffd54a}
+</style>
+</head>
+<body>
+<h1>플랫폼 게임 — 한 스테이지 완주</h1>
+<div id="hud"><span>코인: <b id="coins">0/3</b></span><span>시간: <b id="time">0.0</b>s</span><span id="state"></span><button id="restartBtn">재시작 (R)</button></div>
+<canvas id="cv" width="800" height="450" tabindex="0" aria-label="플랫폼 게임 화면"></canvas>
+<p class="hint">조작: ←→ 이동, Space/↑ 점프(지면에서만). 적을 위에서 밟으면 제거·점프, 옆 충돌·추락은 실패. 물리 수치: 중력 2200px/s², 이동 260px/s, 점프初速 -780px/s. 카메라는 플레이어 추적·경계 고정.</p>
+<script>
+"use strict";
+// 월드: 2400x600, 지면 윗면 y=520, 구간 [0,650],[780,1500],[1640,2400]
+const W=2400,H=600,GY=520;
+const GROUNDS=[[0,650],[780,1500],[1640,2400]];
+const PLATS=[{x:350,y:410,w:160,h:20},{x:1100,y:400,w:180,h:20},{x:1800,y:380,w:180,h:20}];
+const COINS0=[{x:420,y:370},{x:1170,y:360},{x:1860,y:340}];
+const GOAL_X=2310;
+const PW=32,PH=44,SX=80,SY=476;
+const GRAV=2200,SPEED=260,JUMP_V=-780;
+const ENEMY_Y=GY-28;
+let px,py,vx,vy,onGround,coins,got,enemies,dead,cleared,startT,elapsed,keys;
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const coinsEl=document.getElementById('coins'),timeEl=document.getElementById('time'),stateEl=document.getElementById('state');
+function reset(){
+  px=SX;py=SY;vx=0;vy=0;onGround=false;
+  coins=COINS0.map(c=>({...c}));got=0;
+  enemies=[{x0:900,x1:1040,x:900,dir:1,w:30,h:28,alive:true},{x0:2000,x1:2180,x:2000,dir:1,w:30,h:28,alive:true}];
+  dead=false;cleared=false;elapsed=0;startT=performance.now();keys={};
+  stateEl.textContent='';coinsEl.textContent='0/3';
+}
+function groundAt(x){for(const [a,b] of GROUNDS)if(x>=a&&x<=b)return true;return false;}
+function solids(){const s=[];for(const [a,b] of GROUNDS)s.push({x:a,y:GY,w:b-a,h:H-GY});for(const p of PLATS)s.push(p);return s;}
+function step(dt){
+  if(dead||cleared)return;
+  elapsed=(performance.now()-startT)/1000;
+  vx=0;if(keys.ArrowLeft)vx=-SPEED;if(keys.ArrowRight)vx=SPEED;
+  vy+=GRAV*dt;
+  let nx=px+vx*dt;
+  // 수평 충돌
+  const rect={x:nx,y:py,w:PW,h:PH};
+  for(const s of solids()){if(overlap(rect,s)){if(vx>0)nx=s.x-PW;else if(vx<0)nx=s.x+s.w;}}
+  px=Math.max(0,Math.min(W-PW,nx));
+  let ny=py+vy*dt;onGround=false;
+  const r2={x:px,y:ny,w:PW,h:PH};
+  for(const s of solids()){
+    if(overlap(r2,s)){
+      if(vy>0&&py+PH<=s.y+12){ny=s.y-PH;vy=0;onGround=true;}
+      else if(vy<0&&py>=s.y+s.h-12){ny=s.y+s.h;vy=0;}
+      else if(vy>0){ny=s.y-PH;vy=0;onGround=true;}
+    }
+  }
+  py=ny;
+  // 지면 위에 서 있는지(발판 포함) 재확인
+  if(vy===0){const f={x:px,y:py+1,w:PW,h:PH};for(const s of solids())if(overlap(f,s))onGround=true;}
+  // 적 이동
+  for(const e of enemies){if(!e.alive)continue;e.x+=e.dir*110*dt;if(e.x<e.x0){e.x=e.x0;e.dir=1;}if(e.x>e.x1){e.x=e.x1;e.dir=-1;}}
+  // 코인
+  for(const c of coins){if(c.got)continue;const cx=c.x,cy=c.y;if(cx>px-8&&cx<px+PW+8&&cy>py-8&&cy<py+PH+8){c.got=true;got++;coinsEl.textContent=got+'/3';}}
+  // 적 충돌: 위에서 밟기 vs 옆 충돌
+  for(const e of enemies){if(!e.alive)continue;const ex=e.x,ey=ENEMY_Y;
+    if(px+e.w>ex&&px<ex+e.w&&py+PH>ey&&py<ey+e.h){
+      const feet=py+PH, prevFeet=feet-vy*dt;
+      if(vy>60&&prevFeet<=ey+10){e.alive=false;vy=JUMP_V*0.7;onGround=false;}
+      else{dead=true;stateEl.textContent='실패 — 옆 충돌. R로 재시작';return;}
+    }
+  }
+  // 추락: 발이 월드 아래로
+  if(py>H){dead=true;stateEl.textContent='실패 — 추락. R로 재시작';return;}
+  // 골인
+  if(px+PW>=GOAL_X&&py+PH>=GY-60){cleared=true;stateEl.textContent='클리어! '+elapsed.toFixed(1)+'초';}
+  timeEl.textContent=elapsed.toFixed(1);
+}
+function overlap(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
+function draw(){
+  // 카메라: 플레이어 추적, 경계 고정
+  let camX=Math.max(0,Math.min(W-cv.width,W-0));
+  camX=Math.max(0,Math.min(W-cv.width,px+PW/2-cv.width/2));
+  const scale=0.75, offY=0;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.save();ctx.translate(-camX*scale,0);ctx.scale(scale,scale);
+  // 배경
+  ctx.fillStyle='#0b1220';ctx.fillRect(camX,0,cv.width/scale,H);
+  // 지면
+  ctx.fillStyle='#2c4a3b';for(const [a,b] of GROUNDS)ctx.fillRect(a,GY,b-a,H-GY);
+  ctx.fillStyle='#3f6b55';for(const [a,b] of GROUNDS)ctx.fillRect(a,GY,b-a,6);
+  // 낭떠러지 표시
+  ctx.fillStyle='#10141c';for(const g of [[650,780],[1500,1640]])ctx.fillRect(g[0],GY,g[1]-g[0],H-GY);
+  // 플랫폼
+  ctx.fillStyle='#4a5f8a';for(const p of PLATS)ctx.fillRect(p.x,p.y,p.w,p.h);
+  // 코인
+  for(const c of coins){if(c.got)continue;ctx.fillStyle='#ffd54a';ctx.beginPath();ctx.arc(c.x,c.y,10,0,7);ctx.fill();ctx.fillStyle='#7a5b00';ctx.fillRect(c.x-2,c.y-6,4,12);}
+  // 적
+  for(const e of enemies){if(!e.alive)continue;ctx.fillStyle='#ff7d7d';ctx.fillRect(e.x,ENEMY_Y,e.w,e.h);ctx.fillStyle='#5b1010';ctx.fillRect(e.x+5,ENEMY_Y+6,6,6);ctx.fillRect(e.x+19,ENEMY_Y+6,6,6);}
+  // 도착
+  ctx.fillStyle='#7dffa8';ctx.fillRect(GOAL_X,GY-120,10,120);ctx.fillStyle='#123f22';ctx.fillRect(GOAL_X+10,GY-120,60,36);
+  ctx.fillStyle='#123f22';ctx.font='bold 20px sans-serif';ctx.fillText('GOAL',GOAL_X+12,GY-94);
+  // 플레이어
+  ctx.fillStyle=dead?'#666':'#5aa9ff';ctx.fillRect(px,py,PW,PH);
+  ctx.fillStyle='#0c1c30';ctx.fillRect(px+6,py+8,8,8);ctx.fillRect(px+18,py+8,8,8);
+  ctx.restore();
+}
+let last=0;
+function loop(t){const dt=Math.min(0.033,(t-last)/1000||0.016);last=t;step(dt);draw();requestAnimationFrame(loop);}
+document.addEventListener('keydown',e=>{
+  if(['ArrowLeft','ArrowRight','ArrowUp',' '].includes(e.key))e.preventDefault();
+  keys[e.key===' '?'Space':e.key]=true;
+  if((e.key==='ArrowUp'||e.key===' ')&&onGround&&!dead&&!cleared){vy=JUMP_V;onGround=false;}
+  if(e.key==='r'||e.key==='R')reset();
+});
+document.addEventListener('keyup',e=>{keys[e.key===' '?'Space':e.key]=false;});
+document.getElementById('restartBtn').addEventListener('click',()=>{reset();cv.focus();});
+reset();cv.focus();requestAnimationFrame(loop);
+</script>
+</body>
+</html>

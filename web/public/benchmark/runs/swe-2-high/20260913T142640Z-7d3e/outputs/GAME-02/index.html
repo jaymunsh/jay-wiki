@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leneu Platformer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0b0f16; color: #e6edf3;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 16px;
+  }
+  h1 { font-size: 18px; margin-bottom: 10px; }
+  #hud { display: flex; gap: 24px; font-size: 14px; margin-bottom: 10px; color: #9fb2c8; }
+  #hud b { color: #e6edf3; }
+  .frame { position: relative; }
+  canvas { display: block; background: linear-gradient(#101a2c, #0b1220); border: 1px solid #2a3648; border-radius: 8px; }
+  .overlay {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    flex-direction: column; gap: 8px; background: rgba(5,8,14,.72); border-radius: 8px;
+  }
+  .overlay.show { display: flex; }
+  .overlay strong { font-size: 24px; }
+  .overlay span { font-size: 13px; color: #9fb2c8; }
+  .keys { margin-top: 12px; font-size: 12px; color: #8b949e; }
+  .keys kbd { background: #21262d; border: 1px solid #30363d; border-radius: 4px; padding: 1px 6px; font-size: 11px; }
+</style>
+</head>
+<body>
+<h1>Leneu Platformer</h1>
+<div id="hud"><span>코인 <b id="coins">0/3</b></span><span>시간 <b id="time">0.0s</b></span><span>상태 <b id="state">진행 중</b></span></div>
+<div class="frame">
+  <canvas id="cv" width="800" height="600"></canvas>
+  <div class="overlay" id="failOv"><strong>실패</strong><span>적과 부딪혔거나 추락했습니다. R로 재시작</span></div>
+  <div class="overlay" id="clearOv"><strong>클리어!</strong><span id="clearTime"></span><span>R로 다시 시작</span></div>
+</div>
+<div class="keys"><kbd>←</kbd><kbd>→</kbd> 이동 · <kbd>↑</kbd>/<kbd>Space</kbd> 점프(지면에서만) · <kbd>R</kbd> 재시작</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ===== 월드·물리 상수 (사용한 수치를 RESULT.md에 기록) =====
+  var WORLD_W = 2400, WORLD_H = 600;
+  var GROUND_TOP = 520;
+  var GROUNDS = [[0, 650], [780, 1500], [1640, 2400]];
+  var PLATFORMS = [[350, 410, 160, 20], [1100, 400, 180, 20], [1800, 380, 180, 20]];
+  var PLAYER_W = 32, PLAYER_H = 44, START_X = 80, START_Y = 476;
+  var COINS = [[420, 370], [1170, 360], [1860, 340]];
+  var COIN_R = 10;
+  var ENEMY_DEFS = [[900, 1040], [2000, 2180]];
+  var ENEMY_W = 34, ENEMY_H = 30, ENEMY_SPEED = 70;
+  var GOAL_X = 2310;
+  var GRAV = 1500, MOVE = 240, JUMP_V = -560, BOUNCE_V = -430;
+  var FALL_Y = 640;
+
+  var cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+  var coinsEl = document.getElementById("coins"), timeEl = document.getElementById("time"), stateEl = document.getElementById("state");
+  var failOv = document.getElementById("failOv"), clearOv = document.getElementById("clearOv"), clearTime = document.getElementById("clearTime");
+
+  var solids = [];
+  GROUNDS.forEach(function (g) { solids.push({ x: g[0], y: GROUND_TOP, w: g[1] - g[0], h: WORLD_H - GROUND_TOP }); });
+  PLATFORMS.forEach(function (p) { solids.push({ x: p[0], y: p[1], w: p[2], h: p[3] }); });
+
+  var player, enemies, coins, elapsed, status, camX;
+  var keys = {};
+  var lastTs = null, rafId = null;
+
+  function reset() {
+    player = { x: START_X, y: START_Y, w: PLAYER_W, h: PLAYER_H, vx: 0, vy: 0, onGround: false };
+    enemies = ENEMY_DEFS.map(function (d) {
+      return { x: d[0], y: GROUND_TOP - ENEMY_H, w: ENEMY_W, h: ENEMY_H, min: d[0], max: d[1], dir: 1, alive: true };
+    });
+    coins = COINS.map(function (c) { return { x: c[0], y: c[1], taken: false }; });
+    elapsed = 0; status = "play"; camX = 0;
+    failOv.classList.remove("show");
+    clearOv.classList.remove("show");
+    stateEl.textContent = "진행 중";
+    lastTs = null;
+    if (rafId === null) rafId = requestAnimationFrame(loop);
+    draw();
+  }
+
+  function overlaps(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+  function coinOverlap(c) {
+    var cx = Math.max(player.x, Math.min(c.x, player.x + PLAYER_W));
+    var cy = Math.max(player.y, Math.min(c.y, player.y + PLAYER_H));
+    var dx = c.x - cx, dy = c.y - cy;
+    return dx * dx + dy * dy <= COIN_R * COIN_R;
+  }
+
+  function step(dt) {
+    // 수평 입력
+    player.vx = 0;
+    if (keys.ArrowLeft || keys.a) player.vx -= MOVE;
+    if (keys.ArrowRight || keys.d) player.vx += MOVE;
+
+    // X 이동·충돌
+    player.x += player.vx * dt;
+    solids.forEach(function (s) {
+      if (overlaps(player, s)) {
+        if (player.vx > 0) player.x = s.x - PLAYER_W;
+        else if (player.vx < 0) player.x = s.x + s.w;
+      }
+    });
+    player.x = Math.max(0, Math.min(WORLD_W - PLAYER_W, player.x));
+
+    // Y 이동·충돌
+    var prevBottom = player.y + PLAYER_H;
+    player.vy += GRAV * dt;
+    player.y += player.vy * dt;
+    player.onGround = false;
+    solids.forEach(function (s) {
+      if (overlaps(player, s)) {
+        if (player.vy > 0 && prevBottom <= s.y + 0.5) {
+          player.y = s.y - PLAYER_H; player.vy = 0; player.onGround = true;
+        } else if (player.vy < 0) {
+          player.y = s.y + s.h; player.vy = 0;
+        } else if (player.vy > 0) {
+          player.y = s.y - PLAYER_H; player.vy = 0; player.onGround = true;
+        }
+      }
+    });
+
+    // 코인
+    coins.forEach(function (c) {
+      if (!c.taken && coinOverlap(c)) c.taken = true;
+    });
+
+    // 적
+    enemies.forEach(function (e) {
+      if (!e.alive) return;
+      e.x += e.dir * ENEMY_SPEED * dt;
+      if (e.x > e.max) { e.x = e.max; e.dir = -1; }
+      if (e.x < e.min) { e.x = e.min; e.dir = 1; }
+      if (overlaps(player, e)) {
+        var stomping = player.vy > 0 && prevBottom <= e.y + 10;
+        if (stomping) { e.alive = false; player.vy = BOUNCE_V; }
+        else { fail(); }
+      }
+    });
+
+    // 추락
+    if (player.y > FALL_Y) fail();
+
+    // 골인
+    if (player.x + PLAYER_W >= GOAL_X && player.y + PLAYER_H >= GROUND_TOP - 60) {
+      status = "clear";
+      stateEl.textContent = "클리어";
+      clearTime.textContent = "기록 " + elapsed.toFixed(1) + "초";
+      clearOv.classList.add("show");
+      draw();
+    }
+
+    // 카메라
+    camX = Math.max(0, Math.min(WORLD_W - cv.width, player.x + PLAYER_W / 2 - cv.width / 2));
+    elapsed += dt;
+  }
+
+  function fail() {
+    if (status !== "play") return;
+    status = "fail";
+    stateEl.textContent = "실패";
+    failOv.classList.add("show");
+    draw();
+  }
+
+  function loop(ts) {
+    rafId = requestAnimationFrame(loop);
+    if (lastTs === null) lastTs = ts;
+    var dt = Math.min(0.033, (ts - lastTs) / 1000);
+    lastTs = ts;
+    if (status === "play") { step(dt); draw(); }
+    updateHud();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.save();
+    ctx.translate(-camX, 0);
+    // 지형
+    ctx.fillStyle = "#3b6b46";
+    GROUNDS.forEach(function (g) { ctx.fillRect(g[0], GROUND_TOP, g[1] - g[0], WORLD_H - GROUND_TOP); });
+    ctx.fillStyle = "#4f8a5d";
+    GROUNDS.forEach(function (g) { ctx.fillRect(g[0], GROUND_TOP, g[1] - g[0], 6); });
+    ctx.fillStyle = "#5a6b85";
+    PLATFORMS.forEach(function (p) { ctx.fillRect(p[0], p[1], p[2], p[3]); });
+    // 코인
+    coins.forEach(function (c) {
+      if (c.taken) return;
+      ctx.fillStyle = "#f0c53d";
+      ctx.beginPath(); ctx.arc(c.x, c.y, COIN_R, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#b8912a";
+      ctx.beginPath(); ctx.arc(c.x, c.y, COIN_R - 4, 0, Math.PI * 2); ctx.fill();
+    });
+    // 골
+    ctx.fillStyle = "#e6edf3"; ctx.fillRect(GOAL_X, GROUND_TOP - 70, 5, 70);
+    ctx.fillStyle = "#63d9a4";
+    ctx.beginPath(); ctx.moveTo(GOAL_X + 5, GROUND_TOP - 70); ctx.lineTo(GOAL_X + 42, GROUND_TOP - 55); ctx.lineTo(GOAL_X + 5, GROUND_TOP - 40); ctx.fill();
+    // 적
+    enemies.forEach(function (e) {
+      if (!e.alive) return;
+      ctx.fillStyle = "#e05252";
+      ctx.fillRect(e.x, e.y, e.w, e.h);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(e.x + (e.dir > 0 ? e.w - 10 : 5), e.y + 8, 5, 5);
+    });
+    // 플레이어
+    ctx.fillStyle = "#5b8cff";
+    ctx.fillRect(player.x, player.y, PLAYER_W, PLAYER_H);
+    ctx.fillStyle = "#dfe9ff";
+    ctx.fillRect(player.x + 6, player.y + 8, 8, 8);
+    ctx.fillRect(player.x + 18, player.y + 8, 8, 8);
+    ctx.restore();
+  }
+
+  function updateHud() {
+    var got = coins.filter(function (c) { return c.taken; }).length;
+    coinsEl.textContent = got + "/" + coins.length;
+    timeEl.textContent = elapsed.toFixed(1) + "s";
+  }
+
+  function jump() {
+    if (status !== "play") return;
+    if (player.onGround) { player.vy = JUMP_V; player.onGround = false; }
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " "].indexOf(e.key) !== -1) e.preventDefault();
+    if (e.key === "r" || e.key === "R" || e.key === "Enter") { reset(); return; }
+    keys[e.key] = true;
+    if (e.repeat) return;
+    if (e.key === "ArrowUp" || e.key === " ") jump();
+  });
+  document.addEventListener("keyup", function (e) { keys[e.key] = false; });
+
+  reset();
+
+  // 검증 전용 디버그 핸들 — 일반 플레이와 분리(RESULT.md 참조)
+  window.__game = {
+    get state() {
+      return {
+        player: { x: player.x, y: player.y, vx: player.vx, vy: player.vy, onGround: player.onGround },
+        enemies: enemies.map(function (e) { return { x: e.x, alive: e.alive }; }),
+        coins: coins.map(function (c) { return c.taken; }),
+        elapsed: elapsed, status: status, camX: camX
+      };
+    },
+    debug: {
+      setPlayer: function (x, y, vx, vy, onGround) {
+        player.x = x; player.y = y;
+        player.vx = vx || 0; player.vy = vy || 0;
+        player.onGround = !!onGround;
+      },
+      step: function (dt) { if (status === "play") { step(dt); draw(); updateHud(); } },
+      pause: function () { if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; } },
+      resume: function () { if (rafId === null) { lastTs = null; rafId = requestAnimationFrame(loop); } }
+    },
+    reset: reset
+  };
+})();
+</script>
+</body>
+</html>

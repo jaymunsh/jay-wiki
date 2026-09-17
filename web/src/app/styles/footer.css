@@ -1,0 +1,8 @@
+/* ============================================================
+   Footer
+   ============================================================ */
+footer {
+  border-top: 1px solid var(--border); margin-top: 60px; padding: 30px 0;
+  color: var(--text-mute); font-size: var(--fs-sm); text-align: center;
+}
+footer code { background: var(--bg-2); padding: 1px 6px; border-radius: 4px; color: var(--accent-2); }

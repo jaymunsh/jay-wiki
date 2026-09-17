@@ -1,0 +1,38 @@
+# Operator bootstrap. These hosts are reachable publicly only through Cloudflare Tunnel.
+# CF-Visitor records the visitor scheme; HTTP is redirected before HTTPS normalization.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: jaywiki-public-https-origin
+  namespace: frontend
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-Proto: https
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: jaywiki-public-https-redirect
+  namespace: frontend
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: jaywiki-public-http-redirect
+  namespace: frontend
+spec:
+  entryPoints: [web]
+  routes:
+    - kind: Rule
+      match: '(Host(`portfolio.leneu.cloud`) || Host(`blog.leneu.cloud`)) && HeaderRegexp(`Cf-Visitor`, `"scheme"[[:space:]]*:[[:space:]]*"http"`)'
+      priority: 1000
+      middlewares:
+        - name: jaywiki-public-https-redirect
+      services:
+        - name: jaywiki-web
+          port: 3000

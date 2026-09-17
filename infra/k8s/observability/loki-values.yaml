@@ -1,0 +1,60 @@
+deploymentMode: SingleBinary
+
+loki:
+  auth_enabled: false
+  commonConfig:
+    replication_factor: 1
+  storage:
+    type: filesystem
+  useTestSchema: true
+
+  # 로그 본문으로 알림을 만든다. 지표 경로는 숫자만 흘러 trace_id 를 실을 수 없다.
+  # auth_enabled 가 false 라 테넌트 이름이 fake 이고, 로컬 ruler 는 <directory>/<테넌트>/
+  # 아래의 파일만 읽는다. 그래서 규칙 ConfigMap 을 /rules/fake 로 떨어뜨린다.
+  rulerConfig:
+    alertmanager_url: http://prom-alertmanager.obs.svc.cluster.local:9093
+    enable_api: true
+    storage:
+      type: local
+      local:
+        directory: /rules
+    rule_path: /tmp/loki-ruler
+    wal:
+      dir: /var/loki/ruler-wal
+
+# 사이드카가 ConfigMap 을 파일로 떨어뜨린다. 폴더 주석을 켜야 테넌트 하위로 보낼 수 있다.
+sidecar:
+  rules:
+    folderAnnotation: k8s-sidecar-target-directory
+    searchNamespace: obs
+
+singleBinary:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 192Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  persistence:
+    enabled: true
+    size: 5Gi
+
+read:
+  replicas: 0
+write:
+  replicas: 0
+backend:
+  replicas: 0
+
+gateway:
+  enabled: false
+lokiCanary:
+  enabled: false
+test:
+  enabled: false
+resultsCache:
+  enabled: false
+chunksCache:
+  enabled: false

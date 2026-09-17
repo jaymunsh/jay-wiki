@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cache-redis
+  namespace: data
+spec:
+  clusterIP: None
+  selector: {app: cache-redis}
+  ports: [{name: redis, port: 6379, targetPort: 6379}]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cache-redis
+  namespace: data
+spec:
+  serviceName: cache-redis
+  replicas: 1
+  selector:
+    matchLabels: {app: cache-redis}
+  template:
+    metadata:
+      labels: {app: cache-redis}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: redis
+          image: redis:7.4-alpine
+          command: [sh, -ec]
+          args:
+            - |
+              umask 077
+              printf 'requirepass %s\n' "$(cat /credentials/password)" > /tmp/redis.conf
+              exec redis-server /tmp/redis.conf --dir /data --appendonly yes --appendfsync everysec --maxmemory 128mb --maxmemory-policy allkeys-lru --save ''
+          ports: [{containerPort: 6379}]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+          readinessProbe:
+            exec:
+              command: [sh, -ec, 'REDISCLI_AUTH="$(cat /credentials/password)" redis-cli ping | grep -qx PONG']
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket: {port: 6379}
+            initialDelaySeconds: 15
+          resources:
+            requests: {cpu: 25m, memory: 128Mi}
+            limits: {cpu: 250m, memory: 256Mi}
+          volumeMounts:
+            - {name: state, mountPath: /data}
+            - {name: credentials, mountPath: /credentials, readOnly: true}
+      volumes:
+        - name: credentials
+          secret:
+            secretName: cache-redis-auth
+            defaultMode: 0440
+  volumeClaimTemplates:
+    - metadata: {name: state}
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests: {storage: 2Gi}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cache-redis-backend-only
+  namespace: data
+spec:
+  podSelector:
+    matchLabels: {app: cache-redis}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: backend}
+          podSelector:
+            matchLabels: {app: jaywiki}
+      ports: [{protocol: TCP, port: 6379}]

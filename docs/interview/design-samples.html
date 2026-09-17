@@ -1,0 +1,329 @@
+<title>네 가지 시각 언어</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600&family=Nanum+Pen+Script&family=Bodoni+Moda:opsz,wght@6..96,700;6..96,900&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --page:   #e9eae7;
+    --card:   #fbfbfa;
+    --ink:    #101010;
+    --ink-2:  #55544f;
+    --ink-3:  #8a8981;
+    --rule:   #d6d4ce;
+    --accent: #2a78d6;
+    --f-disp: 'Gothic A1', 'Apple SD Gothic Neo', system-ui, sans-serif;
+    --f-body: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif;
+    --f-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #121211; --card: #1b1b1a;
+      --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8b8a82;
+      --rule: #33332e; --accent: #3987e5;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #121211; --card: #1b1b1a;
+    --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8b8a82;
+    --rule: #33332e; --accent: #3987e5;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--page); color: var(--ink);
+    font-family: var(--f-body); font-size: 14px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 46px 24px 90px; }
+
+  header { max-width: 64ch; margin-bottom: 12px; }
+  .eyebrow {
+    font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 8px;
+  }
+  h1 {
+    font-family: var(--f-disp); font-weight: 800; font-size: clamp(27px, 3.6vw, 37px);
+    line-height: 1.16; letter-spacing: -0.02em; margin: 0 0 14px; text-wrap: balance;
+  }
+  header p { margin: 0 0 10px; color: var(--ink-2); }
+  header strong { color: var(--ink); }
+
+  .note {
+    max-width: 64ch; margin: 22px 0 40px; padding: 13px 16px;
+    border-left: 3px solid var(--accent); background: var(--card);
+    font-size: 13px; color: var(--ink-2); border-radius: 0 8px 8px 0;
+  }
+
+  .style { margin: 0 0 46px; }
+  .style-head {
+    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+    padding-bottom: 9px; margin-bottom: 16px; border-bottom: 1px solid var(--rule);
+  }
+  .style-head .tag {
+    font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.13em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .style-head h2 { font-family: var(--f-disp); font-weight: 800; font-size: 22px; margin: 0; letter-spacing: -0.015em; }
+  .style-head p { margin: 0; font-size: 13px; color: var(--ink-2); flex: 1 1 260px; min-width: 0; }
+
+  .figs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  @media (max-width: 880px) { .figs { grid-template-columns: minmax(0, 1fr); } }
+
+  figure { margin: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--rule); }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption {
+    padding: 8px 11px; font-family: var(--f-mono); font-size: 10px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3);
+    background: var(--card); border-top: 1px solid var(--rule);
+  }
+
+  .verdict { display: flex; flex-direction: column; gap: 5px; margin-top: 13px; }
+  .verdict div { display: flex; gap: 9px; font-size: 13px; color: var(--ink-2); }
+  .verdict .m { font-family: var(--f-mono); flex: 0 0 1em; }
+  .verdict .y .m { color: #1baf7a; }
+  .verdict .n .m { color: #eb6834; }
+
+  footer {
+    max-width: 64ch; margin-top: 20px; padding-top: 20px;
+    border-top: 1px solid var(--rule); font-size: 13px; color: var(--ink-2);
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">고르는 자리 · 만들기 전</p>
+    <h1>네 가지 시각 언어</h1>
+    <p>내용이 아니라 <strong>보이는 방식</strong>만 비교합니다. 넷 다 같은 것 셋을 그렸습니다 — 아키텍처 한 조각, 마인드맵 한 가지, 시퀀스 한 장면.</p>
+    <p>실제 캔버스에는 이 셋이 한 판 위에 자유롭게 놓입니다. 그러니 <strong>셋이 같은 언어로 보이는가</strong>가 고르는 기준입니다.</p>
+  </header>
+
+  <p class="note">전부 손으로 그린 조각입니다. 데이터를 붙이지 않았습니다 — 톤만 보고 하나를 고른 뒤에 그것만 진짜로 만듭니다.</p>
+
+  <div id="out"></div>
+
+  <footer>
+    <p>고르신 뒤에 그 언어로 위키 88편과 면접 문서 12편을 얹습니다. 이전 시도 넉 장은 <code>docs/interview/archive/</code> 에 넣어 뒀습니다.</p>
+  </footer>
+</div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const S = (a) => { const e = document.createElementNS(NS, 'svg'); e.setAttribute('viewBox', '0 0 320 220'); for (const k in a) e.setAttribute(k, a[k]); return e; };
+const E = (t, a = {}, txt) => {
+  const e = document.createElementNS(NS, t);
+  for (const k in a) e.setAttribute(k, a[k]);
+  if (txt !== undefined) e.textContent = txt;
+  return e;
+};
+
+/* ------------------------------------------------------------------ *
+ * 네 언어. 각자 바탕·선·글꼴·강조색을 다르게 가진다.
+ * 같은 도형 셋을 그려서 «셋이 한 판에 있어도 한 언어로 보이나» 를 본다.
+ * ------------------------------------------------------------------ */
+const STYLES = [
+  {
+    tag: '시안 1', name: '청사진',
+    lead: '도면 격자 위에 얇은 단색 선. 재지 않고 그린 그림이 아니라 «설계도» 로 읽힙니다.',
+    good: ['셋이 같은 도면 언어라 한 판에 놓아도 안 튄다', '선이 얇아 100편을 얹어도 화면이 안 막힌다'],
+    bad: ['어두운 청색 한 색이라 갈래(설계 결정·사고 기록)를 색으로 못 가른다'],
+  },
+  {
+    tag: '시안 2', name: '손으로 그린 노트',
+    lead: '종이 바탕에 손글씨와 삐뚠 선. 정리된 결과가 아니라 «생각하는 중» 으로 읽힙니다.',
+    good: ['마인드맵이 가장 자연스럽다 — 원래 손으로 그리는 것이다', '어디가 확실하고 어디가 가정인지 선의 굵기로 말할 수 있다'],
+    bad: ['글이 100편 넘어가면 손글씨가 읽기 어렵다', '시퀀스 다이어그램은 손으로 그리면 정확해 보이지 않는다'],
+  },
+  {
+    tag: '시안 3', name: '기판',
+    lead: '어두운 바탕에 직각으로 꺾이는 배선과 모노스페이스. 신호가 흐르는 판으로 읽힙니다.',
+    good: ['«요청이 지나간다» 는 흐름이 가장 잘 보인다', '갈래마다 다른 형광색을 줘도 안 촌스럽다'],
+    bad: ['배선이 직각이라 자유로운 마인드맵 가지와 안 어울린다'],
+  },
+  {
+    tag: '시안 4', name: '편집 지면',
+    lead: '흰 지면에 굵은 세리프 제목과 색면. 다이어그램이 기사 속 삽화처럼 놓입니다.',
+    good: ['글이 주인공이라 제목이 가장 잘 읽힌다', '면접에서 화면을 보여줄 때 가장 «완성된 것» 으로 보인다'],
+    bad: ['색면이 커서 100편을 다 얹으면 지면이 모자란다', '흐름을 나타내는 선이 장식으로 밀려난다'],
+  },
+];
+
+/* 팔레트를 시안마다 명시한다. 이 페이지는 톤을 보는 자리라 토큰을 안 쓰고 값을 박는다. */
+const P = [
+  { bg: '#0d2537', ink: '#dfeaf2', dim: '#7fa6c0', line: '#5b90b8', hot: '#f0b429', grid: '#16354b',
+    font: "'IBM Plex Mono', monospace", disp: "'IBM Plex Mono', monospace" },
+  { bg: '#f6f1e4', ink: '#2b2519', dim: '#7d7360', line: '#4a4335', hot: '#c8552b', grid: '#e8e0cd',
+    font: "'Nanum Pen Script', cursive", disp: "'Nanum Pen Script', cursive" },
+  { bg: '#0b0f0d', ink: '#d7e6dd', dim: '#6d8a7c', line: '#2f7d5b', hot: '#4ade80', grid: '#121a16',
+    font: "'IBM Plex Mono', monospace", disp: "'IBM Plex Mono', monospace" },
+  { bg: '#fbfaf7', ink: '#14100c', dim: '#6c6559', line: '#14100c', hot: '#b8321f', grid: '#efece4',
+    font: "'IBM Plex Sans KR', sans-serif", disp: "'Bodoni Moda', serif" },
+];
+
+/* ---------- 아키텍처 한 조각 ---------- */
+function figArch(svg, p, i) {
+  const boxes = [
+    { x: 16,  y: 40,  w: 84, h: 40, t: 'Traefik' },
+    { x: 128, y: 40,  w: 84, h: 40, t: 'Next.js' },
+    { x: 128, y: 118, w: 84, h: 40, t: 'Spring' },
+    { x: 236, y: 118, w: 68, h: 40, t: 'Postgres' },
+  ];
+  for (const b of boxes) {
+    if (i === 1) {
+      // 손그림: 네 변을 조금씩 어긋나게 그린다
+      svg.append(E('path', {
+        d: `M ${b.x} ${b.y + 2} L ${b.x + b.w} ${b.y} L ${b.x + b.w - 1} ${b.y + b.h} L ${b.x + 1} ${b.y + b.h - 2} Z`,
+        fill: 'none', stroke: p.line, 'stroke-width': 1.6, 'stroke-linejoin': 'round',
+      }));
+    } else {
+      svg.append(E('rect', {
+        x: b.x, y: b.y, width: b.w, height: b.h,
+        rx: i === 3 ? 0 : 3, fill: i === 3 ? p.grid : 'none',
+        stroke: p.line, 'stroke-width': i === 2 ? 1.2 : 1.4,
+      }));
+    }
+    svg.append(E('text', {
+      x: b.x + b.w / 2, y: b.y + b.h / 2 + 4, 'text-anchor': 'middle',
+      fill: p.ink, 'font-family': p.font, 'font-size': i === 1 ? 15 : 10.5,
+      'font-weight': i === 3 ? 600 : 400,
+    }, b.t));
+  }
+  const wire = (x1, y1, x2, y2) => {
+    if (i === 2) {
+      svg.append(E('path', { d: `M ${x1} ${y1} L ${(x1 + x2) / 2} ${y1} L ${(x1 + x2) / 2} ${y2} L ${x2} ${y2}`,
+        fill: 'none', stroke: p.hot, 'stroke-width': 1.4 }));
+    } else if (i === 1) {
+      svg.append(E('path', { d: `M ${x1} ${y1} Q ${(x1 + x2) / 2} ${(y1 + y2) / 2 - 7} ${x2} ${y2}`,
+        fill: 'none', stroke: p.line, 'stroke-width': 1.5 }));
+    } else {
+      svg.append(E('path', { d: `M ${x1} ${y1} L ${x2} ${y2}`, fill: 'none', stroke: p.line, 'stroke-width': 1.3 }));
+    }
+    svg.append(E('circle', { cx: x2, cy: y2, r: 2.4, fill: i === 2 ? p.hot : p.line }));
+  };
+  wire(100, 60, 128, 60);
+  wire(170, 80, 170, 118);
+  wire(212, 138, 236, 138);
+  svg.append(E('text', { x: 16, y: 26, fill: p.dim, 'font-family': p.font, 'font-size': i === 1 ? 14 : 9,
+    'letter-spacing': i === 1 ? 0 : 1.4 }, i === 1 ? '요청이 지나는 길' : '요청이 지나는 길'));
+  svg.append(E('text', { x: 236, y: 178, fill: p.dim, 'font-family': p.font, 'font-size': i === 1 ? 13 : 8.5 }, '11편'));
+}
+
+/* ---------- 마인드맵 한 가지 ---------- */
+function figMind(svg, p, i) {
+  const root = [30, 110];
+  const kids = [[150, 46], [150, 88], [150, 130], [150, 172]];
+  const names = ['멱등성', '이중 쓰기', '조건부 UPDATE', 'DLQ'];
+  for (let n = 0; n < kids.length; n += 1) {
+    const [kx, ky] = kids[n];
+    const d = i === 2
+      ? `M ${root[0] + 8} ${root[1]} L ${(root[0] + kx) / 2} ${root[1]} L ${(root[0] + kx) / 2} ${ky} L ${kx - 6} ${ky}`
+      : `M ${root[0] + 8} ${root[1]} C ${(root[0] + kx) / 2} ${root[1]}, ${(root[0] + kx) / 2} ${ky}, ${kx - 6} ${ky}`;
+    svg.append(E('path', { d, fill: 'none', stroke: n === 0 ? p.hot : p.line,
+      'stroke-width': n === 0 ? 2 : 1.2, opacity: n === 0 ? 1 : 0.8 }));
+    svg.append(E('text', { x: kx, y: ky + 4, fill: p.ink, 'font-family': p.font,
+      'font-size': i === 1 ? 16 : 11, 'font-weight': i === 3 ? 500 : 400 }, names[n]));
+    svg.append(E('text', { x: kx, y: ky + (i === 1 ? 20 : 16), fill: p.dim,
+      'font-family': p.font, 'font-size': i === 1 ? 12 : 8.5 }, `${4 - n}곳에서 다시 나온다`));
+  }
+  svg.append(E('circle', { cx: root[0], cy: root[1], r: i === 3 ? 9 : 7,
+    fill: i === 3 ? p.hot : 'none', stroke: p.hot, 'stroke-width': 2 }));
+  svg.append(E('text', { x: root[0] - 12, y: root[1] - 18, 'text-anchor': 'start', fill: p.ink,
+    'font-family': p.disp, 'font-size': i === 1 ? 18 : 12, 'font-weight': 700 }, '관통 개념'));
+}
+
+/* ---------- 시퀀스 한 장면 ---------- */
+function figSeq(svg, p, i) {
+  const lanes = [{ x: 52, t: '주문' }, { x: 160, t: 'Kafka' }, { x: 268, t: '정산' }];
+  for (const l of lanes) {
+    svg.append(E('text', { x: l.x, y: 26, 'text-anchor': 'middle', fill: p.ink,
+      'font-family': p.font, 'font-size': i === 1 ? 15 : 10, 'font-weight': i === 3 ? 600 : 400 }, l.t));
+    svg.append(E('line', { x1: l.x, y1: 36, x2: l.x, y2: 196, stroke: p.line,
+      'stroke-width': 1, 'stroke-dasharray': i === 1 ? '0' : '3 4', opacity: 0.7 }));
+  }
+  const msgs = [
+    { from: 0, to: 1, y: 62,  t: 'OrderPlaced' },
+    { from: 1, to: 2, y: 98,  t: 'at-least-once' },
+    { from: 2, to: 1, y: 134, t: '중복 — 무시', hot: true },
+    { from: 1, to: 2, y: 170, t: 'DLQ 로' },
+  ];
+  for (const m of msgs) {
+    const x1 = lanes[m.from].x, x2 = lanes[m.to].x;
+    const dir = x2 > x1 ? -1 : 1;
+    const col = m.hot ? p.hot : p.line;
+    svg.append(E('line', { x1, y1: m.y, x2: x2 + dir * 7, y2: m.y, stroke: col,
+      'stroke-width': m.hot ? 1.9 : 1.3 }));
+    svg.append(E('path', {
+      d: `M ${x2 + dir * 7} ${m.y - 4} L ${x2} ${m.y} L ${x2 + dir * 7} ${m.y + 4} Z`, fill: col,
+    }));
+    svg.append(E('text', { x: (x1 + x2) / 2, y: m.y - 6, 'text-anchor': 'middle',
+      fill: m.hot ? p.hot : p.dim, 'font-family': p.font, 'font-size': i === 1 ? 13 : 8.5 }, m.t));
+  }
+}
+
+/* ---------- 그린다 ---------- */
+const out = document.getElementById('out');
+STYLES.forEach((s, i) => {
+  const p = P[i];
+  const sec = document.createElement('section');
+  sec.className = 'style';
+
+  const head = document.createElement('div');
+  head.className = 'style-head';
+  head.innerHTML = '<span class="tag"></span><h2></h2><p></p>';
+  head.querySelector('.tag').textContent = s.tag;
+  head.querySelector('h2').textContent = s.name;
+  head.querySelector('p').textContent = s.lead;
+  sec.append(head);
+
+  const figs = document.createElement('div');
+  figs.className = 'figs';
+  const parts = [
+    ['아키텍처 한 조각', figArch],
+    ['마인드맵 한 가지', figMind],
+    ['시퀀스 한 장면', figSeq],
+  ];
+  for (const [cap, draw] of parts) {
+    const fig = document.createElement('figure');
+    const svg = S({ role: 'img', 'aria-label': `${s.name} — ${cap}` });
+    svg.append(E('rect', { x: 0, y: 0, width: 320, height: 220, fill: p.bg }));
+    // 바탕결. 도면은 격자, 기판은 점, 종이는 아무것도 없다.
+    if (i === 0) {
+      for (let g = 20; g < 320; g += 20) svg.append(E('line', { x1: g, y1: 0, x2: g, y2: 220, stroke: p.grid, 'stroke-width': 1 }));
+      for (let g = 20; g < 220; g += 20) svg.append(E('line', { x1: 0, y1: g, x2: 320, y2: g, stroke: p.grid, 'stroke-width': 1 }));
+    }
+    if (i === 2) {
+      for (let gx = 12; gx < 320; gx += 16) for (let gy = 12; gy < 220; gy += 16) {
+        svg.append(E('circle', { cx: gx, cy: gy, r: 0.7, fill: p.grid }));
+      }
+    }
+    if (i === 3) svg.append(E('rect', { x: 0, y: 0, width: 320, height: 5, fill: p.hot }));
+    draw(svg, p, i);
+    fig.append(svg);
+    const cp = document.createElement('figcaption');
+    cp.textContent = cap;
+    fig.append(cp);
+    figs.append(fig);
+  }
+  sec.append(figs);
+
+  const v = document.createElement('div');
+  v.className = 'verdict';
+  for (const g of s.good) {
+    const d = document.createElement('div');
+    d.className = 'y';
+    d.innerHTML = '<span class="m">＋</span><span></span>';
+    d.lastElementChild.textContent = g;
+    v.append(d);
+  }
+  for (const b of s.bad) {
+    const d = document.createElement('div');
+    d.className = 'n';
+    d.innerHTML = '<span class="m">−</span><span></span>';
+    d.lastElementChild.textContent = b;
+    v.append(d);
+  }
+  sec.append(v);
+  out.append(sec);
+});
+</script>

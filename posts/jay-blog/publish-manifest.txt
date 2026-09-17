@@ -1,0 +1,3 @@
+# Explicitly reviewed draft filenames for automatic deployment publication.
+# Empty on purpose: committing a draft does not approve its publication.
+# Add one filename per line after reconciling its production baseline.

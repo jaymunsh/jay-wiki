@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>테트리스 (Hold 지원)</title>
+<style>
+body{margin:0;background:#10141c;color:#eef2f8;font-family:-apple-system,"Segoe UI","Noto Sans KR",sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+h1{font-size:20px;margin:14px 0 6px}
+#wrap{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;justify-content:center}
+canvas{background:#0a0e15;border:1px solid #2b3a52;border-radius:8px}
+.side{display:flex;flex-direction:column;gap:10px;min-width:150px}
+.panel{background:#1a2233;border:1px solid #2b3a52;border-radius:8px;padding:10px}
+.panel h2{font-size:13px;margin:0 0 6px;color:#9fb0c7}
+#score{font-size:24px;font-weight:800}
+button{background:#5aa9ff;border:0;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
+button:focus-visible{outline:3px solid #ffd54a}
+#msg{min-height:1.6em;font-weight:700}
+.hint{font-size:13px;color:#9fb0c7;max-width:560px;padding:0 16px 24px}
+</style>
+</head>
+<body>
+<h1>테트리스 — Hold(C/Shift) 지원</h1>
+<div id="wrap">
+<div class="panel"><h2>보관 (C / Shift)</h2><canvas id="holdCv" width="120" height="80"></canvas><div id="holdState" style="font-size:12px;color:#9fb0c7">사용 가능</div></div>
+<div><canvas id="board" width="240" height="480" aria-label="테트리스 보드"></canvas><div id="msg" role="status" aria-live="polite"></div></div>
+<div class="side">
+<div class="panel"><h2>다음 블록</h2><canvas id="nextCv" width="120" height="80"></canvas></div>
+<div class="panel"><h2>점수</h2><div id="score">0</div><div style="font-size:12px;color:#9fb0c7">줄 제거: <span id="lines">0</span></div></div>
+<div class="panel"><button id="pauseBtn">일시정지</button> <button id="restartBtn">재시작</button></div>
+</div>
+</div>
+<p class="hint">조작: ←→ 이동, ↑ 시계방향 회전, ↓ 빠른 낙하, Space 즉시 낙하, C/Shift 보관, P 일시정지, R 재시작. Hold는 빈 슬롯이면 현재 블록을 넣고 다음 블록을 가져오고, 슬롯이 차면 교환합니다. 활성 블록이 고정되기 전에는 1회만 가능하며 일시정지·게임오버 중에는 막힙니다.</p>
+<script>
+"use strict";
+const COLS=10, ROWS=20, CELL=24;
+const SHAPES={
+I:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+J:[[1,0,0],[1,1,1],[0,0,0]],
+L:[[0,0,1],[1,1,1],[0,0,0]],
+O:[[1,1],[1,1]],
+S:[[0,1,1],[1,1,0],[0,0,0]],
+T:[[0,1,0],[1,1,1],[0,0,0]],
+Z:[[1,1,0],[0,1,1],[0,0,0]]};
+const COLORS={I:"#5ad1ff",J:"#7d8bff",L:"#ffb14a",O:"#ffd54a",S:"#7dffa8",T:"#c792ea",Z:"#ff7d7d"};
+const board=document.getElementById('board'),ctx=board.getContext('2d');
+const holdCv=document.getElementById('holdCv'),hctx=holdCv.getContext('2d');
+const nextCv=document.getElementById('nextCv'),nctx=nextCv.getContext('2d');
+const scoreEl=document.getElementById('score'),linesEl=document.getElementById('lines'),msg=document.getElementById('msg'),holdState=document.getElementById('holdState');
+let grid,queue,cur,hold,holdLocked,score,linesCount,over,paused,dropTimer,dropInterval=600,lastTick=0;
+function newGrid(){return Array.from({length:ROWS},()=>Array(COLS).fill(null));}
+function randBag(){const k=Object.keys(SHAPES);for(let i=k.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[k[i],k[j]]=[k[j],k[i]];}return k;}
+function spawnPos(type){const m=SHAPES[type];const w=m[0].length;return {x:((COLS-w)/2)|0,y:type==='I'?0:0};}
+function spawn(){
+  if(queue.length<7)queue=queue.concat(randBag());
+  const type=queue.shift();
+  const p=spawnPos(type);
+  cur={type,mat:SHAPES[type].map(r=>r.slice()),x:p.x,y:0};
+  if(collides(cur.mat,cur.x,cur.y)){over=true;msg.textContent='게임오버 — R로 재시작';stopLoop();}
+}
+function collides(mat,px,py){
+  for(let r=0;r<mat.length;r++)for(let c=0;c<mat[r].length;c++){
+    if(!mat[r][c])continue;
+    const x=px+c,y=py+r;
+    if(x<0||x>=COLS||y>=ROWS)return true;
+    if(y>=0&&grid[y][x])return true;
+  }
+  return false;
+}
+function rotateCW(m){const n=m[0].length,r=m.length;const o=Array.from({length:n},()=>Array(r).fill(0));for(let y=0;y<r;y++)for(let x=0;x<n;x++)o[x][r-1-y]=m[y][x];return o;}
+function tryRotate(){if(!cur||over||paused)return;const r=rotateCW(cur.mat);if(!collides(r,cur.x,cur.y))cur.mat=r;}
+function move(dx){if(!cur||over||paused)return;if(!collides(cur.mat,cur.x+dx,cur.y))cur.x+=dx;}
+function softDrop(){if(!cur||over||paused)return;if(!collides(cur.mat,cur.x,cur.y+1))cur.y++;else lock();}
+function hardDrop(){if(!cur||over||paused)return;while(!collides(cur.mat,cur.x,cur.y+1))cur.y++;lock();}
+function lock(){
+  const m=cur.mat;
+  for(let r=0;r<m.length;r++)for(let c=0;c<m[r].length;c++){if(!m[r][c])continue;const y=cur.y+r,x=cur.x+c;if(y<0){over=true;msg.textContent='게임오버 — R로 재시작';stopLoop();return;}grid[y][x]=cur.type;}
+  clearLines();
+  holdLocked=false;updateHoldState();
+  spawn();
+}
+function clearLines(){
+  let n=0;
+  for(let y=ROWS-1;y>=0;y--){if(grid[y].every(v=>v)){grid.splice(y,1);grid.unshift(Array(COLS).fill(null));n++;y++;}}
+  if(n){linesCount+=n;score+=[0,100,300,500,800][n];scoreEl.textContent=score;linesEl.textContent=linesCount;}
+}
+function doHold(){
+  if(!cur||over||paused)return; // paused/gameover blocked
+  if(holdLocked)return; // 1회 제한: 고정 전 재사용 불가
+  if(hold==null){hold=cur.type;holdLocked=true;updateHoldState();spawn();}
+  else{const t=cur.type;cur=null;const nt=hold;hold=t;holdLocked=true;updateHoldState();
+    // 보관에서 나온 블록은 기본 회전·생성 위치로
+    const p=spawnPos(nt);cur={type:nt,mat:SHAPES[nt].map(r=>r.slice()),x:p.x,y:0};
+    if(collides(cur.mat,cur.x,cur.y)){over=true;msg.textContent='게임오버 — R로 재시작';stopLoop();}
+  }
+  // Hold만으로 점수·보드·줄 수 변경 없음 (위 로직은 교환만 수행)
+}
+function updateHoldState(){holdState.textContent=holdLocked?'사용됨(고정 후 해제)':(hold==null?'비어 있음·사용 가능':'사용 가능');}
+function drawCell(g,x,y,c){g.fillStyle=COLORS[c]||'#fff';g.fillRect(x*CELL+1,y*CELL+1,CELL-2,CELL-2);}
+function draw(){
+  ctx.clearRect(0,0,board.width,board.height);
+  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(grid[y][x])drawCell(ctx,x,y,grid[y][x]);
+  if(cur){const m=cur.mat;for(let r=0;r<m.length;r++)for(let c=0;c<m[r].length;c++)if(m[r][c])drawCell(ctx,cur.x+c,cur.y+r,cur.type);}
+  if(paused){ctx.fillStyle='#000a';ctx.fillRect(0,0,board.width,board.height);ctx.fillStyle='#fff';ctx.font='bold 28px sans-serif';ctx.fillText('일시정지',70,250);}
+  drawMini(hctx,hold);drawMini(nctx,queue[0]);
+}
+function drawMini(g,t){g.clearRect(0,0,120,80);if(!t)return;const m=SHAPES[t];g.fillStyle=COLORS[t];for(let r=0;r<m.length;r++)for(let c=0;c<m[r].length;c++)if(m[r][c])g.fillRect(20+c*18,10+r*18,16,16);}
+function loop(t){
+  if(over||paused){dropTimer=null;return;}
+  if(!lastTick)lastTick=t;
+  if(t-lastTick>dropInterval){lastTick=t;if(cur){if(!collides(cur.mat,cur.x,cur.y+1))cur.y++;else lock();}}
+  draw();dropTimer=requestAnimationFrame(loop);
+}
+function startLoop(){stopLoop();lastTick=0;dropTimer=requestAnimationFrame(loop);}
+function stopLoop(){if(dropTimer)cancelAnimationFrame(dropTimer);dropTimer=null;}
+function restart(){
+  stopLoop();
+  grid=newGrid();queue=randBag();hold=null;holdLocked=false;score=0;linesCount=0;over=false;paused=false;
+  scoreEl.textContent='0';linesEl.textContent='0';msg.textContent='';updateHoldState();
+  spawn();startLoop();
+}
+function togglePause(){if(over)return;paused=!paused;document.getElementById('pauseBtn').textContent=paused?'계속':'일시정지';if(paused)stopLoop();else startLoop();draw();}
+const held={};
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'){move(-1);e.preventDefault();}
+  else if(e.key==='ArrowRight'){move(1);e.preventDefault();}
+  else if(e.key==='ArrowUp'){tryRotate();e.preventDefault();}
+  else if(e.key==='ArrowDown'){softDrop();e.preventDefault();}
+  else if(e.code==='Space'){hardDrop();e.preventDefault();}
+  else if(e.key==='c'||e.key==='C'||e.key==='Shift'){if(!e.repeat)doHold();e.preventDefault();}
+  else if(e.key==='p'||e.key==='P'){togglePause();}
+  else if(e.key==='r'||e.key==='R'){restart();}
+});
+document.getElementById('pauseBtn').addEventListener('click',togglePause);
+document.getElementById('restartBtn').addEventListener('click',restart);
+restart();
+</script>
+</body>
+</html>

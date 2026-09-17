@@ -1,0 +1,21 @@
+# THINK-01 result
+
+- `case_version`: `writing-v2.1`
+- `attempt_id`: `writing-v2.1-20260914T173912Z-r1`
+- `status`: `submitted`
+- `evaluation_status`: `pending`
+- `score`: `null` (independent grading not performed)
+- `artifacts`: `summary.md`, `facts.json`, `analysis.md`, `RESULT.md`
+- `inputs`: `input-writing-v2/deployment.md`, `input-writing-v2/incident.md`
+- `input_sha256`: `SRC-DEPLOY=646222dba416b371e5c8eafda2ff7d2b4bb0fb648f9aa1d4f1bdb87abeb46989`; `SRC-INCIDENT=8bddd77b2925ded5854d93893f1e3fa392e36452e8de162c3b3f7546112a4e09`
+- `read_range`: deployment lines 1–1384 and incident lines 1–25; line-level slices were used for all cited facts and claims.
+- `format_check`: summary has one H1 and five H2 headings, UTC timeline table, five-item checklist, and proposal table; facts.json has 19 facts (14 deployment across 11 headings and 5 incident); analysis.md covers all six claims.
+- `started_at_utc`: `2026-09-14T17:45:58.319435000Z`
+- `finished_at_utc`: `2026-09-14T17:47:37.742703000Z`
+- `elapsed_ms`: `99423` (agent-observed terminal timestamps; includes reading, drafting, format checks, and result recording)
+- `token_usage`: `null` (`not_exposed` by current app)
+- `output_speed`: `null` (`not_exposed`; no streaming measurement)
+- `cost`: `null` (`not_exposed`)
+- `web_or_external_model`: not used; no incident response or Kubernetes command was executed.
+- `context_limit`: large line-number displays were truncated by the terminal renderer, so targeted slices and the full file read were used; no source was supplemented externally.
+- `previous_attempt_path`: `.history/writing-v2.1-20260914T173912Z-r1/previous/`

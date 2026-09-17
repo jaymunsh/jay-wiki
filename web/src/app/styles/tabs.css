@@ -1,0 +1,78 @@
+/* ============================================================
+   Tabs — 1차 / 2차
+   ============================================================ */
+.tabs-primary-wrap { position: relative; min-width: 0; max-width: 100%; margin-top: 24px; }
+.tabs-primary {
+  display: flex; gap: 6px; padding: 7px;
+  background: var(--bg-1); border: 1px solid var(--border);
+  border-radius: 16px; overflow-x: auto;
+  scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  box-shadow: var(--shadow-sm);
+}
+.tabs-primary::-webkit-scrollbar { height: 0; display: none; }
+/* LAB 대분류는 blog.leneu.cloud 로 나가는 <a> 다(글이 그쪽으로 옮겨졌다).
+   같은 줄에 서므로 button 과 같은 모양을 쓴다. */
+.tabs-primary button,
+.tabs-primary > a:not(.tab-admin) {
+  flex: 1 1 auto; height: 40px; padding: 0 18px;
+  background: transparent; color: var(--text-dim);
+  border: none; border-radius: 11px; cursor: pointer;
+  font-family: var(--font); font-size: var(--fs-sm); font-weight: 600;
+  white-space: nowrap; text-decoration: none;
+  transition: color .18s ease, background .18s ease, box-shadow .18s ease;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.tabs-major-code { font-family: var(--mono); font-size: var(--fs-xs); font-weight: 850; }
+.tabs-major-title { color: var(--text-mute); font-size: var(--fs-2xs); font-weight: 650; }
+.tabs-primary button.active .tabs-major-title { color: var(--text-dim); }
+.tabs-primary button:hover,
+.tabs-primary > a:not(.tab-admin):hover { color: var(--text); background: var(--hover); }
+.tabs-primary button.active {
+  background: var(--bg-3); color: var(--text);
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, .25), inset 0 0 0 1px var(--border-strong);
+}
+.tabs-primary button.active .num { background: var(--accent); color: white; }
+.tabs-primary .num {
+  background: var(--accent-soft); color: var(--accent);
+  padding: 2px 8px; border-radius: 999px; font-size: var(--fs-2xs); font-weight: 700;
+  transition: background .18s ease, color .18s ease;
+}
+.tabs-primary .tab-admin {
+  flex: 0 0 auto; height: 40px; min-width: 40px; padding: 0 12px;
+  background: transparent; color: var(--text-mute);
+  border: 1px dashed var(--border-strong); border-radius: 11px;
+  cursor: pointer; font-size: var(--fs-lg);
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.tabs-primary .tab-admin:hover {
+  color: var(--accent); border-color: var(--accent); border-style: solid; background: var(--accent-soft);
+}
+.tabs-secondary {
+  display: flex; align-items: center; justify-content: center; gap: 26px; min-width: 0;
+  margin: 2px 14px 0; padding: 8px 4px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none;
+}
+.tabs-secondary::-webkit-scrollbar { display: none; }
+.tabs-secondary button {
+  position: relative; flex: 0 0 auto; min-width: 0; height: 36px; padding: 0 4px 8px;
+  background: transparent; color: var(--text-dim);
+  border: 0; border-radius: 0; cursor: pointer;
+  font-family: var(--font); font-size: var(--fs-sm); font-weight: 650;
+  white-space: nowrap;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  transition: color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.tabs-secondary button:hover { color: var(--text); }
+.tabs-secondary button.active {
+  color: var(--text); background: transparent;
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.tabs-secondary button.active .num { background: var(--accent); color: white; }
+.tabs-secondary .num {
+  min-width: 18px; padding: 1px 5px;
+  background: var(--accent-soft); color: var(--accent);
+  border-radius: 999px; font-size: var(--fs-2xs); font-weight: 700; text-align: center;
+}

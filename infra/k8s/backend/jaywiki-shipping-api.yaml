@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaywiki-shipping-api
+  namespace: backend
+  labels:
+    app: jaywiki-shipping-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaywiki-shipping-api
+  template:
+    metadata:
+      labels:
+        app: jaywiki-shipping-api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: ghcr-pull
+      containers:
+        - name: jaywiki-shipping-api
+          image: jaywiki-shipping-api:local
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - containerPort: 8000
+          env:
+            - name: TZ
+              value: Asia/Seoul
+            - name: OTEL_SERVICE_NAME
+              value: jaywiki-shipping-api
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-opentelemetry-collector.obs.svc.cluster.local:4318
+            - name: OTEL_TRACES_EXPORTER
+              value: otlp
+            - name: OTEL_METRICS_EXPORTER
+              value: none
+            # 이 둘이 없으면 파드가 아예 안 뜬다 -- lifespan 이 시작할 때 asyncpg 풀을 연다.
+            - name: SHIPPING_DB_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: jaywiki-secrets
+                  key: SHIPPING_DB_DSN
+            - name: SHIPPING_KAFKA_BOOTSTRAP
+              value: kafka.data.svc.cluster.local:9092
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          # 설계의 리소스 표(docs/2026-08-17-msa-data-ownership-design.md)를 그대로 쓴다.
+          resources:
+            requests:
+              cpu: 40m
+              memory: 160Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaywiki-shipping-api
+  namespace: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: jaywiki-shipping-api
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000

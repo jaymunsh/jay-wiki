@@ -1,0 +1,446 @@
+<title>jay-wiki 시스템 판</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --ground:    #eeeeec;
+    --surface:   #fcfcfb;
+    --surface-2: #ffffff;
+    --ink:       #0b0b0b;
+    --ink-2:     #52514e;
+    --ink-3:     #86857e;
+    --line:      #dcdad4;
+    --line-2:    #e9e7e2;
+    --accent:    #2a78d6;
+    --adr:       #2a78d6;
+    --pm:        #eb6834;
+    --iv:        #1baf7a;
+    --plain:     #9a9990;
+    --hit:       #fff3d6;
+    --hit-line:  #eda100;
+    --font-display: 'Gothic A1', 'Apple SD Gothic Neo', system-ui, sans-serif;
+    --font-body:    'IBM Plex Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif;
+    --font-mono:    'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground: #101010; --surface: #1a1a19; --surface-2: #212120;
+      --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8d8c83;
+      --line: #33332e; --line-2: #292925; --accent: #3987e5;
+      --adr: #3987e5; --pm: #d95926; --iv: #199e70; --plain: #75746c;
+      --hit: #33290f; --hit-line: #c98500;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground: #101010; --surface: #1a1a19; --surface-2: #212120;
+    --ink: #ffffff; --ink-2: #c3c2b7; --ink-3: #8d8c83;
+    --line: #33332e; --line-2: #292925; --accent: #3987e5;
+    --adr: #3987e5; --pm: #d95926; --iv: #199e70; --plain: #75746c;
+    --hit: #33290f; --hit-line: #c98500;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--font-body); font-size: 14px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: 3px; }
+
+  .page { padding: 34px 28px 80px; }
+
+  /* ---------- 머리 ---------- */
+  header { max-width: 66ch; margin: 0 auto 26px; }
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--ink-3); margin: 0 0 8px;
+  }
+  h1 {
+    font-family: var(--font-display); font-weight: 800; font-size: clamp(26px, 3.4vw, 36px);
+    line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 12px; text-wrap: balance;
+  }
+  header p { margin: 0 0 8px; color: var(--ink-2); }
+  .facts {
+    font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3);
+    font-variant-numeric: tabular-nums; margin-top: 14px !important;
+  }
+
+  /* ---------- 조작 줄 ---------- */
+  .bar {
+    position: sticky; top: 0; z-index: 30;
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    padding: 10px 12px; margin: 0 auto 20px; max-width: 1560px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  }
+  .bar input[type="search"] {
+    flex: 1 1 210px; min-width: 0; padding: 7px 10px;
+    background: var(--surface-2); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 6px; font: inherit; font-size: 13px;
+  }
+  .bar input::placeholder { color: var(--ink-3); }
+  .keys { display: flex; gap: 12px; flex-wrap: wrap; }
+  .keys button {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: none; border: 0; padding: 2px 0; font: inherit; font-size: 12.5px;
+    color: var(--ink-2); cursor: pointer;
+  }
+  .keys button[aria-pressed="false"] { opacity: 0.38; }
+  .keys i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .keys .n { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .zoom { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+  .zoom button {
+    width: 28px; height: 28px; padding: 0; background: none;
+    border: 1px solid var(--line); border-radius: 6px;
+    color: var(--ink-2); font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .zoom button:hover { background: var(--line-2); color: var(--ink); }
+  .zoom .z { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); width: 42px; text-align: center; font-variant-numeric: tabular-nums; }
+
+  /* ---------- 판 ---------- */
+  .board-wrap { overflow-x: auto; padding-bottom: 8px; }
+  .board { max-width: 1560px; margin: 0 auto; transform-origin: top center; }
+
+  .row-label {
+    display: flex; align-items: baseline; gap: 12px;
+    margin: 26px 0 10px; padding-bottom: 7px;
+    border-bottom: 1px solid var(--line);
+  }
+  .row-label h2 {
+    font-family: var(--font-display); font-weight: 700; font-size: 15px;
+    margin: 0; letter-spacing: -0.005em;
+  }
+  .row-label p { margin: 0; font-size: 12.5px; color: var(--ink-3); }
+  .row-label .flow {
+    margin-left: auto; font-family: var(--font-mono); font-size: 10.5px;
+    color: var(--ink-3); letter-spacing: 0.04em;
+  }
+
+  .row { display: grid; gap: 14px; align-items: start; }
+  .row.r1 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .row.r2 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .row.r3 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .row.r4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (max-width: 1180px) { .row.r1, .row.r3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 720px) {
+    .row.r1, .row.r2, .row.r3, .row.r4 { grid-template-columns: minmax(0, 1fr); }
+    .page { padding: 24px 14px 60px; }
+  }
+
+  .panel {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px 13px 11px;
+  }
+  .panel > h3 {
+    font-family: var(--font-display); font-weight: 700; font-size: 13.5px;
+    margin: 0 0 2px; display: flex; align-items: baseline; gap: 8px;
+  }
+  .panel > h3 .n {
+    margin-left: auto; font-family: var(--font-mono); font-weight: 400;
+    font-size: 10.5px; color: var(--ink-3); font-variant-numeric: tabular-nums;
+  }
+  .panel > .role {
+    margin: 0 0 9px; font-size: 11.5px; color: var(--ink-3); line-height: 1.45;
+  }
+  .panel ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+
+  .item {
+    display: grid; grid-template-columns: 11px minmax(0, 1fr) auto;
+    align-items: baseline; gap: 7px;
+    width: 100%; padding: 3px 5px; margin: 0;
+    background: none; border: 0; border-radius: 4px;
+    font: inherit; font-size: 12px; line-height: 1.42;
+    color: var(--ink-2); text-align: left; cursor: pointer;
+  }
+  .item .dot { width: 7px; height: 7px; border-radius: 50%; transform: translateY(-1px); }
+  .item .t { overflow-wrap: anywhere; }
+  .item .deg {
+    font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-3);
+    font-variant-numeric: tabular-nums; opacity: 0.75;
+  }
+  .item:hover { background: var(--line-2); color: var(--ink); }
+  .item.dim { opacity: 0.22; }
+  .item.hit { background: var(--hit); box-shadow: inset 2px 0 0 var(--hit-line); color: var(--ink); }
+  .item.self { background: var(--line-2); color: var(--ink); font-weight: 600; box-shadow: inset 2px 0 0 var(--accent); }
+
+  /* ---------- 읽고 있는 글 ---------- */
+  .readout {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: 16px; z-index: 40; width: min(760px, calc(100% - 28px));
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px 16px 13px;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.14);
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: start;
+  }
+  /* display:grid 가 hidden 을 이긴다. 안 적으면 아무것도 안 짚었는데 빈 카드가 떠 있다. */
+  .readout[hidden] { display: none; }
+  .readout .kind {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-3);
+    display: inline-flex; align-items: center; gap: 6px; margin-bottom: 4px;
+  }
+  .readout h4 { font-family: var(--font-display); font-weight: 700; font-size: 15px; margin: 0 0 4px; line-height: 1.3; }
+  .readout .note { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+  .readout .side { text-align: right; white-space: nowrap; }
+  .readout .side .big {
+    font-family: var(--font-mono); font-size: 19px; color: var(--ink);
+    font-variant-numeric: tabular-nums; display: block; line-height: 1.1;
+  }
+  .readout .side .cap { font-size: 10.5px; color: var(--ink-3); }
+  .readout a { display: inline-block; margin-top: 7px; font-size: 12px; color: var(--accent); text-decoration: none; }
+  .readout a:hover { text-decoration: underline; }
+
+  footer {
+    max-width: 66ch; margin: 40px auto 0; padding-top: 18px;
+    border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-2);
+  }
+  footer code { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="page">
+  <header>
+    <p class="eyebrow">portfolio.leneu.cloud · 위키 88편</p>
+    <h1>요청 하나가 지나는 자리마다, 그 자리를 적은 글</h1>
+    <p>글 제목이 전부 적혀 있습니다. 누르지 않아도 이 시스템이 무엇으로 되어 있고 각 자리에 몇 편이 걸려 있는지 보입니다.</p>
+    <p><strong>글 위에 손을 올리면</strong> 그 글이 가리키는 다른 글이 판 전체에서 노랗게 뜹니다 — 선을 긋지 않아도 어디와 이어졌는지 보입니다.</p>
+    <p class="facts" id="facts"></p>
+  </header>
+
+  <div class="bar">
+    <input id="q" type="search" placeholder="제목 · slug · 태그로 좁히기" aria-label="글 좁히기" autocomplete="off">
+    <div class="keys" id="keys" aria-label="글 갈래"></div>
+    <div class="zoom">
+      <button type="button" id="zout" aria-label="글자 줄이기">－</button>
+      <span class="z" id="zlabel">100%</span>
+      <button type="button" id="zin" aria-label="글자 키우기">＋</button>
+    </div>
+  </div>
+
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+  </div>
+
+  <footer>
+    <p>이 판은 <code>scripts/build-knowledge-map.mjs</code> 가 <code>posts/jay-wiki</code> 와 <code>docs/interview</code> 에서 매번 다시 뽑습니다. 이어진 관계는 손으로 적은 것이 아니라 글 본문의 <code>/wiki/&lt;slug&gt;</code> 를 센 것입니다.</p>
+  </footer>
+</div>
+
+<div class="readout" id="readout" hidden>
+  <div>
+    <span class="kind" id="rkind"></span>
+    <h4 id="rtitle"></h4>
+    <p class="note" id="rnote"></p>
+    <a id="rgo" href="#" target="_blank" rel="noopener">위키에서 열기 ↗</a>
+  </div>
+  <div class="side">
+    <span class="big" id="rdeg">0</span>
+    <span class="cap">이어진 글</span>
+  </div>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+const KIND = {
+  adr:        { label: '설계 결정', v: '--adr' },
+  postmortem: { label: '사고 기록', v: '--pm' },
+  interview:  { label: '면접 문서', v: '--iv' },
+  wiki:       { label: '일반 글',   v: '--plain' },
+};
+const kindOf = (n) => (n.kind === 'interview' ? 'interview' : (KIND[n.doc] ? n.doc : 'wiki'));
+const colorOf = (n) => `var(${KIND[kindOf(n)].v})`;
+
+/* 판의 뼈대. 위키 탭을 그대로 쓰지 않고 «요청이 지나는 순서» 로 다시 묶는다.
+   탭은 글을 넣어 두는 서랍이고, 이 줄들은 시스템이 서는 차례다. */
+const ROWS = [
+  {
+    cls: 'r1', title: '요청 하나가 지나는 길',
+    lead: '바깥에서 들어와 화면을 거쳐 서버와 저장소에 닿기까지',
+    flow: '바깥 → 화면 → 서버 → 저장',
+    panels: [
+      { id: 'infra',      role: 'Cloudflare Tunnel · Traefik · k3s. 집 IP 를 열지 않고 요청을 받는 자리' },
+      { id: 'frontend',   role: 'Next.js. 사람이 실제로 보는 화면과 그 화면이 깨지는 방식' },
+      { id: 'backend',    role: 'Spring. 주문·정산·큐처럼 «틀리면 안 되는» 일이 도는 자리' },
+      { id: 'data',       role: 'PostgreSQL · Redis · Kafka · OpenSearch. 남고 흐르고 찾아지는 것' },
+    ],
+  },
+  {
+    cls: 'r2', title: '돌기 시작한 뒤에 생기는 문제',
+    lead: '보이게 만들고, 막고, 정말 되는지 증명하는 일',
+    flow: '관측 · 방어 · 증명',
+    panels: [
+      { id: 'operations',   role: '로그·지표·알림. 사고를 «났다» 가 아니라 «알았다» 로 바꾸는 자리' },
+      { id: 'security',     role: '인증·권한·비밀값. 열려 있으면 나머지가 무의미해지는 자리' },
+      { id: 'verification', role: '복원 리허설·대조. «돌았다» 와 «맞다» 는 다르다는 것을 확인한 기록' },
+    ],
+  },
+  {
+    cls: 'r3', title: '만들고 보여주는 방식',
+    lead: '무엇을 어떻게 지었고, 남에게 어떻게 보이는가',
+    flow: '입구 · 시연 · 작업 방식 · 글',
+    panels: [
+      { id: 'start',               role: '처음 오는 사람이 무엇을 눌러 볼지 정하는 자리' },
+      { id: 'demo',                role: '시나리오 23편. 실제로 도는 9편과 결과가 적힌 14편' },
+      { id: 'development-process', role: 'AI 를 도구로 쓰는 방식과 그 경계' },
+      { id: 'content-quality',     role: '글을 어떻게 쓰고 사실을 어떻게 검증했는가' },
+    ],
+  },
+  {
+    cls: 'r4', title: '면접에서 꺼내는 자리',
+    lead: '위 글들을 입으로 말할 수 있게 다시 쓴 것. 이 폴더만 보고 답한다',
+    flow: '위키 → 대본',
+    panels: [{ id: 'interview', role: '시나리오 대본 · 장애 사례집 · 기술영역 종합 · 인프라와 운영' }],
+  },
+];
+
+const byId = new Map(DATA.nodes.map((n) => [n.id, n]));
+const groupTitle = new Map(DATA.groups.map((g) => [g.id, g.title]));
+const nodesOf = (gid) => DATA.nodes.filter((n) => n.tab === gid);
+
+// 어느 글이 어느 글을 가리키는지. 방향은 안 나눈다 -- «이어졌다» 만 보면 된다.
+const near = new Map();
+const link = (a, b) => { if (!near.has(a)) near.set(a, new Set()); near.get(a).add(b); };
+for (const e of DATA.edges) { link(e.from, e.to); link(e.to, e.from); }
+
+document.getElementById('facts').textContent =
+  `${DATA.nodes.length}편 · ${DATA.groups.length}묶음 · 글끼리 이어진 자리 ${DATA.edges.length}개 · 어디에도 안 이어진 글 0편`;
+
+/* ---------- 판을 그린다 ---------- */
+const board = document.getElementById('board');
+const itemEls = new Map();
+
+for (const row of ROWS) {
+  const head = document.createElement('div');
+  head.className = 'row-label';
+  head.innerHTML = '<h2></h2><p></p><span class="flow"></span>';
+  head.querySelector('h2').textContent = row.title;
+  head.querySelector('p').textContent = row.lead;
+  head.querySelector('.flow').textContent = row.flow;
+  board.append(head);
+
+  const grid = document.createElement('div');
+  grid.className = `row ${row.cls}`;
+  for (const p of row.panels) {
+    const items = nodesOf(p.id);
+    if (!items.length) continue;
+    const panel = document.createElement('section');
+    panel.className = 'panel';
+
+    const h = document.createElement('h3');
+    h.innerHTML = '<span></span><span class="n"></span>';
+    h.children[0].textContent = groupTitle.get(p.id) ?? p.id;
+    h.children[1].textContent = `${items.length}편`;
+    panel.append(h);
+
+    const role = document.createElement('p');
+    role.className = 'role';
+    role.textContent = p.role;
+    panel.append(role);
+
+    const ul = document.createElement('ul');
+    for (const n of items) {
+      const li = document.createElement('li');
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'item';
+      b.dataset.id = n.id;
+      b.innerHTML = '<span class="dot"></span><span class="t"></span><span class="deg"></span>';
+      b.querySelector('.dot').style.background = colorOf(n);
+      b.querySelector('.t').textContent = n.title;
+      const d = near.get(n.id)?.size ?? 0;
+      b.querySelector('.deg').textContent = d ? `${d}` : '';
+      b.title = n.kind === 'interview' ? n.file : n.id;
+      b.addEventListener('pointerenter', () => focus(n.id));
+      b.addEventListener('focus', () => focus(n.id));
+      b.addEventListener('click', () => { if (n.href) window.open(n.href, '_blank', 'noopener'); });
+      li.append(b);
+      ul.append(li);
+      itemEls.set(n.id, b);
+    }
+    panel.append(ul);
+    grid.append(panel);
+  }
+  board.append(grid);
+}
+
+/* ---------- 손을 올린 글 ---------- */
+const readout = document.getElementById('readout');
+let held = null;
+
+function focus(id) {
+  held = id;
+  const n = byId.get(id);
+  const set = near.get(id) ?? new Set();
+  for (const [nid, e] of itemEls) {
+    e.classList.toggle('self', nid === id);
+    e.classList.toggle('hit', set.has(nid));
+    e.classList.toggle('dim', nid !== id && !set.has(nid) && !e.classList.contains('filtered-in-only'));
+  }
+  document.getElementById('rkind').innerHTML =
+    `<i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${colorOf(n)}"></i>${KIND[kindOf(n)].label} · ${groupTitle.get(n.tab) ?? ''}`;
+  document.getElementById('rtitle').textContent = n.title;
+  document.getElementById('rnote').textContent = n.note || '';
+  document.getElementById('rdeg').textContent = `${set.size}`;
+  const go = document.getElementById('rgo');
+  if (n.href) { go.hidden = false; go.href = n.href; } else { go.hidden = true; }
+  readout.hidden = false;
+}
+
+function release() {
+  held = null;
+  for (const e of itemEls.values()) e.classList.remove('self', 'hit', 'dim');
+  readout.hidden = true;
+}
+board.addEventListener('pointerleave', release);
+document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') release(); });
+
+/* ---------- 좁히기 ---------- */
+const hidden = new Set();
+const keys = document.getElementById('keys');
+for (const [key, meta] of Object.entries(KIND)) {
+  const count = DATA.nodes.filter((n) => kindOf(n) === key).length;
+  if (!count) continue;
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.setAttribute('aria-pressed', 'true');
+  b.innerHTML = `<i style="background:var(${meta.v})"></i><span></span><span class="n"></span>`;
+  b.children[1].textContent = meta.label;
+  b.children[2].textContent = `${count}`;
+  b.addEventListener('click', () => {
+    if (hidden.has(key)) hidden.delete(key); else hidden.add(key);
+    b.setAttribute('aria-pressed', hidden.has(key) ? 'false' : 'true');
+    applyFilter();
+  });
+  keys.append(b);
+}
+
+const q = document.getElementById('q');
+function applyFilter() {
+  const term = q.value.trim().toLowerCase();
+  for (const [nid, e] of itemEls) {
+    const n = byId.get(nid);
+    const okKind = !hidden.has(kindOf(n));
+    const okTerm = !term || (`${n.title} ${n.id} ${(n.tags || []).join(' ')}`).toLowerCase().includes(term);
+    e.closest('li').hidden = !(okKind && okTerm);
+  }
+  // 판이 줄면 켜 둔 강조가 엉뚱한 자리에 남는다.
+  if (held) release();
+}
+q.addEventListener('input', applyFilter);
+
+/* ---------- 글자 크기 ---------- */
+let z = 100;
+const zlabel = document.getElementById('zlabel');
+function setZoom(next) {
+  z = Math.min(190, Math.max(70, next));
+  board.style.fontSize = `${z}%`;
+  board.style.zoom = z / 100;
+  zlabel.textContent = `${z}%`;
+}
+document.getElementById('zin').addEventListener('click', () => setZoom(z + 15));
+document.getElementById('zout').addEventListener('click', () => setZoom(z - 15));
+</script>

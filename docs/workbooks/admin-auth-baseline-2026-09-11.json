@@ -1,0 +1,61 @@
+{
+  "checkedAt": "2026-09-11T01:45:40.829082+09:00",
+  "scope": "Existing auth regression only; admin subdomain not implemented; no production verification",
+  "gitHead": "fa120ed52d59135901a539860c4a4f0df29959db",
+  "workingTree": "Includes uncommitted analytics and blog image work",
+  "frontend": {
+    "files": 5,
+    "tests": 23,
+    "failures": 0
+  },
+  "backend": {
+    "suites": [
+      {
+        "name": "cloud.leneu.jaywiki.auth.BrowserOriginFilterTest",
+        "tests": "4",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "timestamp": "2026-09-10T16:41:52.753Z"
+      },
+      {
+        "name": "cloud.leneu.jaywiki.AuthControllerLogoutTest",
+        "tests": "1",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "timestamp": "2026-09-10T16:41:43.458Z"
+      },
+      {
+        "name": "cloud.leneu.jaywiki.AuthControllerIntegrationTest",
+        "tests": "6",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "timestamp": "2026-09-10T16:41:42.828Z"
+      },
+      {
+        "name": "cloud.leneu.jaywiki.SecurityStateIntegrationTest",
+        "tests": "4",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "timestamp": "2026-09-10T16:41:49.943Z"
+      },
+      {
+        "name": "cloud.leneu.jaywiki.AdminTotpIntegrationTest",
+        "tests": "1",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "timestamp": "2026-09-10T16:41:34.816Z"
+      }
+    ],
+    "totals": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  }
+}

@@ -1,0 +1,226 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaywiki
+  namespace: backend
+  labels:
+    app: jaywiki
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaywiki
+  template:
+    metadata:
+      labels:
+        app: jaywiki
+    spec:
+      serviceAccountName: jaywiki-control-panel
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      imagePullSecrets:
+        - name: ghcr-pull
+      volumes:
+        - name: opensearch-ca
+          secret:
+            secretName: opensearch-app-auth
+            defaultMode: 0440
+            items: [{key: ca.pem, path: ca.pem}]
+      containers:
+        - name: jaywiki
+          image: jaywiki-backend:local
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - {name: opensearch-ca, mountPath: /opensearch-ca, readOnly: true}
+          env:
+            - name: TZ
+              value: Asia/Seoul
+            - name: JAVA_TOOL_OPTIONS
+              value: -Duser.timezone=Asia/Seoul
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://pg-postgresql.data.svc.cluster.local:5432/portfolio
+            - name: SPRING_DATASOURCE_USERNAME
+              value: portfolio
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: jaywiki-secrets
+                  key: SPRING_DATASOURCE_PASSWORD
+            - name: SPRING_DATA_REDIS_HOST
+              value: cache-redis.data.svc.cluster.local
+            - name: SPRING_DATA_REDIS_PASSWORD
+              valueFrom: {secretKeyRef: {name: cache-redis-auth, key: password}}
+            - name: APP_SECURITY_REDIS_REQUIRED
+              value: "true"
+            - name: APP_SECURITY_REDIS_HOST
+              value: security-redis.data.svc.cluster.local
+            - name: APP_SECURITY_REDIS_PASSWORD
+              valueFrom: {secretKeyRef: {name: security-redis-auth, key: password}}
+            - name: APP_OPENSEARCH_URL
+              value: https://secure-search.data.svc.cluster.local:9200
+            - name: APP_OPENSEARCH_SECURITY_REQUIRED
+              value: "true"
+            - name: APP_OPENSEARCH_USERNAME
+              valueFrom: {secretKeyRef: {name: opensearch-app-auth, key: username}}
+            - name: APP_OPENSEARCH_PASSWORD
+              valueFrom: {secretKeyRef: {name: opensearch-app-auth, key: password}}
+            - name: APP_OPENSEARCH_CA_CERTIFICATE
+              value: /opensearch-ca/ca.pem
+            - name: SPRING_DATA_REDIS_PORT
+              value: "6379"
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: kafka.data.svc.cluster.local:9092
+            - name: APP_KAFKA_DEMO_ENABLED
+              value: "true"
+            - name: APP_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jaywiki-secrets
+                  key: APP_JWT_SECRET
+            - name: APP_BLOG_COMMENT_IP_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: jaywiki-secrets
+                  key: APP_BLOG_COMMENT_IP_SALT
+            - name: APP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: jaywiki-secrets
+                  key: APP_ADMIN_PASSWORD
+            - name: APP_ADMIN_TOTP_ENABLED
+              valueFrom:
+                secretKeyRef:
+                  name: jaywiki-secrets
+                  key: APP_ADMIN_TOTP_ENABLED
+            - name: APP_ADMIN_TOTP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jaywiki-secrets
+                  key: APP_ADMIN_TOTP_SECRET
+            - name: APP_CONTENT_SYNC_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: jaywiki-secrets
+                  key: APP_CONTENT_SYNC_TOKEN
+            - name: APP_PAYMENT_SERVICE_URL
+              value: http://jaywiki-payment-api.backend.svc.cluster.local:8000
+            - name: APP_SHIPPING_SERVICE_URL
+              value: http://jaywiki-shipping-api.backend.svc.cluster.local:8000
+            - name: APP_PARTNER_SIMULATOR_URL
+              value: http://jaywiki-partner-simulator.backend.svc.cluster.local:8000
+            - name: APP_PARTNER_CALLBACK_URL
+              value: http://jaywiki.backend.svc.cluster.local:8080/api/domain-scenarios/partner-api/callbacks
+            - name: APP_PARTNER_CALLBACK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jaywiki-secrets
+                  key: APP_PARTNER_CALLBACK_SECRET
+            - name: APP_MINIO_ENDPOINT
+              value: http://minio.data.svc.cluster.local:9000
+            - name: APP_MINIO_BUCKET
+              value: wiki-assets
+            - name: APP_MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jaywiki-secrets
+                  key: APP_MINIO_ACCESS_KEY
+            - name: APP_MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jaywiki-secrets
+                  key: APP_MINIO_SECRET_KEY
+            - name: MANAGEMENT_OTLP_TRACING_ENDPOINT
+              value: http://otel-opentelemetry-collector.obs.svc.cluster.local:4318/v1/traces
+            - name: MANAGEMENT_TRACING_SAMPLING_PROBABILITY
+              value: "1.0"
+            - name: APP_BOARD_RATE_LIMIT_CAPACITY
+              value: "20"
+            - name: APP_BOARD_RATE_LIMIT_WINDOW
+              value: 1m
+            - name: APP_CHAT_ROOM_CAPACITY
+              value: "3"
+            - name: APP_CHAT_HEARTBEAT_TTL
+              value: 30s
+            - name: APP_CHAT_MESSAGE_RATE_LIMIT
+              value: "30"
+            - name: APP_CHAT_MESSAGE_RATE_WINDOW
+              value: 1m
+          # 파드 종료는 두 가지가 동시에 일어난다 -- SIGTERM 과 엔드포인트 제거다.
+          # Traefik 이 목록을 갱신하기 전 짧은 구간에 이미 죽기 시작한 파드로 요청이 갈 수 있다.
+          # 여기서 5초를 버는 사이에 엔드포인트가 빠지고, 그 뒤 SIGTERM 이 온다.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 5"]
+          # readiness 는 집계 health 를 그대로 본다. DB 나 Redis 가 죽으면 이 파드는
+          # 요청을 못 받으니 Service 엔드포인트에서 빠지는 것이 맞다.
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          # liveness 는 집계 health 를 보면 안 된다. DB 가 잠깐 죽으면 health 가 DOWN 이 되고
+          # 쿠버네티스가 멀쩡한 백엔드 파드를 전부 죽인다 — 바깥 장애가 안쪽 재시작으로 번진다.
+          # tempo 가 /ready 를 liveness 로 써서 2042회 재시작한 것과 같은 병이다.
+          # /actuator/health/liveness 는 Boot 의 LivenessState 만 본다. 프로세스가 스스로
+          # 회복 불가일 때만 DOWN 이 되므로 재시작이 실제로 답인 경우와 일치한다.
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaywiki
+  namespace: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: jaywiki
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jaywiki-chat
+  namespace: backend
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: portfolio.leneu.cloud
+      http:
+        paths:
+          - path: /ws/chat
+            pathType: Prefix
+            backend:
+              service:
+                name: jaywiki
+                port:
+                  number: 8080

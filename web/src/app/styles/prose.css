@@ -1,0 +1,199 @@
+/* ============================================================
+   Prose — 렌더된 MD 본문
+   ============================================================ */
+/* 본문은 16px(--fs-lg), 줄 길이는 46rem(한 줄 한글 약 40자)로 제한해 읽기 리듬을 지킨다. */
+.prose { min-width: 0; max-width: 46rem; color: var(--text); font-size: var(--fs-lg); line-height: 1.7; }
+.prose > * + * { margin-top: 1.1em; }
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  letter-spacing: -.01em; line-height: 1.3; margin: 1.6em 0 .6em;
+  scroll-margin-top: 80px;
+}
+.prose h1 { font-size: var(--fs-2xl); font-weight: 800; }
+.prose h2 {
+  font-size: var(--fs-xl); font-weight: 700;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.prose h3 { font-size: var(--fs-lg); font-weight: 700; color: var(--text); }
+.prose p, .prose ul, .prose ol { color: var(--text-dim); word-break: keep-all; }
+.prose a { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.prose strong { color: var(--text); font-weight: 700; }
+.prose ul, .prose ol { padding-left: 1.4em; }
+.prose li { margin: .35em 0; }
+.prose blockquote {
+  margin: 0; padding: 12px 16px;
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 60%, transparent);
+  border-radius: 0 8px 8px 0; color: var(--text-dim);
+}
+.prose code {
+  background: var(--bg-2); padding: 1px 6px; border-radius: 4px;
+  color: var(--accent-2); font-size: var(--fs-sm);
+}
+.prose pre {
+  margin: 0; padding: 16px 18px; border-radius: var(--r-md);
+  background: #0b0d14; border: 1px solid var(--border); overflow-x: auto;
+}
+.prose pre code {
+  background: transparent; color: #d4d8e4; padding: 0; font-size: var(--fs-sm); display: block;
+}
+.prose .mermaid {
+  margin: 0; padding: 18px;
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--bg-2) 72%, var(--bg-1));
+  color: var(--text-dim);
+  overflow-x: auto; text-align: center;
+}
+.prose .mermaid p { color: inherit; }
+.prose .mermaid svg {
+  display: block; max-width: 100%; height: auto; margin: 0 auto;
+}
+.prose .mermaid[data-mermaid-error='true'] {
+  text-align: left; white-space: pre; font-family: var(--mono); font-size: var(--fs-sm);
+  color: var(--warn);
+}
+.prose .youtube-embed {
+  width: 100%; aspect-ratio: 16 / 9; overflow: hidden;
+  border: 1px solid var(--border); border-radius: var(--r-md); background: #0b0d14;
+}
+.prose .youtube-embed iframe { display: block; width: 100%; height: 100%; border: 0; }
+.prose table {
+  min-width: 100%; width: auto; border-collapse: collapse; font-size: var(--fs-sm);
+}
+.prose .table-scroll {
+  max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  margin: 1.4em 0;
+}
+.prose th, .prose td {
+  text-align: left; padding: 10px 14px;
+  border-bottom: 1px solid var(--border); word-break: keep-all;
+  /* 벤치마크 표는 같은 열에 자릿수가 다른 수치가 선다. 고정폭 숫자여야 소수점이 맞는다 */
+  font-variant-numeric: tabular-nums;
+}
+.prose th {
+  color: var(--text-dim); font-weight: 600; font-size: var(--fs-xs);
+  letter-spacing: .02em;
+  background: color-mix(in srgb, var(--bg-2) 70%, transparent);
+  border-bottom-color: var(--border-strong);
+}
+/* 표 안의 인라인 코드는 본문에서보다 작게 둔다. 본문 크기 그대로면 열 아홉짜리 표에서
+   `oQ4e-mtp` 같은 한 낱말이 두 줄로 쪼개진다 */
+.prose th code, .prose td code { padding: 1px 5px; font-size: var(--fs-xs); }
+/* 열이 많은 표는 눈이 줄을 놓친다. 짚는 줄만 옅게 든다 */
+.prose tbody tr:hover { background: color-mix(in srgb, var(--bg-2) 40%, transparent); }
+.prose tbody tr:last-child td { border-bottom: 0; }
+/* 세로 구분선. 열이 아홉인 표에서는 눈이 열을 놓친다.
+   `--border` 를 그대로 쓰면 격자가 무거워지므로 절반 투명도로 깐다(.blog-toc 와 같은 방식).
+   맨 왼쪽 열 앞에는 안 긋는다 -- 표 바깥 테두리가 없으니 선 하나가 떠 보인다 */
+.prose th + th, .prose td + td {
+  border-left: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+}
+.prose img { max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--border); }
+.prose img.wiki-image-left { display: block; margin-right: auto; }
+.prose img.wiki-image-center { display: block; margin-right: auto; margin-left: auto; }
+.prose img.wiki-image-right { display: block; margin-left: auto; }
+.prose hr { border: 0; height: 1px; background: var(--border); margin: 2em 0; }
+
+/* 세 줄 요약 — 모든 위키 글은 이 목록으로 시작한다(docs/wiki-writing-guide.md).
+   훑는 사람이 여기서 멈추되 본문을 밀어내지는 않도록, 박스 대신 아래 경계선 하나로 가른다. */
+.prose > ul:first-child {
+  margin: 0 0 1.7em; padding: 0 0 1.3em; list-style: none;
+  border-bottom: 1px solid var(--border);
+}
+.prose > ul:first-child > li {
+  position: relative; margin: .55em 0; padding-left: 1.15em;
+  color: var(--text); word-break: keep-all; font-style: italic;
+}
+.prose > ul:first-child > li::before {
+  content: ''; position: absolute; left: 0; top: .68em;
+  width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .prose p, .prose li, .article-head h1, .article-head .desc { overflow-wrap: anywhere; }
+
+  /* 다이어그램만은 줄이지 않는다. 680 짜리를 390 에 맞추면 글자가 절반이 되어 못 읽는다.
+     가로로 미는 불편을 지고 글자 크기를 지키는 쪽을 고른다. */
+  .prose .mermaid svg { width: auto; min-width: 680px; max-width: none; }
+
+  /* 표는 접는다. 예전에는 nowrap 으로 늘 자기 자연 너비를 차지해, 두 열짜리 짧은 표까지
+     가로로 밀어야 했다. 대신 열이 실처럼 좁아지지 않도록 바닥을 준다 --
+     이 바닥 하나가 열 수를 세지 않고 두 동작을 자동으로 가른다.
+     본문 표 649개 중 81%인 2~3열은 바닥 합이 화면 안에 들어와 접히고,
+     그보다 넓은 표는 합이 화면을 넘어 예전처럼 가로 스크롤로 떨어진다.
+     */
+  .prose th, .prose td { white-space: normal; min-width: 6.4em; padding: 9px 11px; }
+  /* 줄바꿈은 두 갈래로 나눈다. 셀 본문은 anywhere 로 어디서든 끊는다 -- 그래야
+     slug/parentId/title/summary/... 같이 띄어쓰기 없는 57자짜리 하나가 열을 449px 로
+     밀어붙이지 못한다. 머리글과 셀 안의 코드만 break-word 로 남긴다. anywhere 는 열의
+     최소 너비 계산에까지 끼어들어 PostgreSQ/L, CLIENT_ERRO/R 로 쪼개는데 이름은 쪼개지면
+     못 읽는다. 최소 너비는 자식 중 가장 큰 값을 따르므로 이 둘이 제 폭을 지킨다. */
+  .prose td { overflow-wrap: anywhere; }
+  .prose th, .prose td code { overflow-wrap: break-word; }
+  .prose .table-scroll table { min-width: 100%; }
+
+  /* 접힌 셀은 여러 줄이 되어 밑줄 하나로는 행이 갈리지 않는다. 줄무늬로 행을 되살린다. */
+  .prose tbody tr:nth-child(even) { background: color-mix(in srgb, var(--bg-2) 55%, transparent); }
+
+  /* 그래도 넘치는 표는 첫 열을 고정한다. 오른쪽으로 밀면 어느 행을 읽는 중인지 잃는 것이
+     가로 스크롤의 진짜 불편이고, 그것만 없애면 미는 것 자체는 견딜 만하다.
+     sticky 셀은 뒤를 비추므로 바탕을 깔아야 한다 -- 본문 표는 블로그(.blog-main)와
+     위키(.wiki-content) 어느 쪽에서도 --bg-1 위에 놓인다. */
+  .prose th:first-child, .prose td:first-child {
+    position: sticky; left: 0; z-index: 1; background: var(--bg-1);
+  }
+  /* 경계선이 없으면 밀려 들어온 옆 열이 고정 열에 바로 붙어, 잘린 낱말이 깨진 것처럼 보인다.
+     원래 열을 가르던 선은 오른쪽 셀이 들고 있어 같이 밀려나므로 여기서 다시 그어야 한다.
+     box-shadow 와 border 는 둘 다 못 쓴다 -- border-collapse: collapse 표에서 셀의 그림자는
+     아예 그려지지 않고, border 는 collapse 규칙에 먹혀 어느 셀이 들지가 정해지지 않는다.
+     sticky 는 positioned 이므로 가상 요소를 셀에 붙이는 방법이 남는다. */
+  .prose th:first-child::after, .prose td:first-child::after {
+    content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 1px;
+    background: var(--border-strong);
+  }
+  .prose th:first-child { background: color-mix(in srgb, var(--bg-2) 70%, var(--bg-1)); }
+  .prose tbody tr:nth-child(even) td:first-child {
+    background: color-mix(in srgb, var(--bg-2) 55%, var(--bg-1));
+  }
+}
+
+/* highlight.js 토큰 색 (Atom One Dark 류) */
+.hljs { color: #d4d8e4; background: transparent; }
+.hljs-comment, .hljs-quote { color: #5a6072; font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-built_in, .hljs-meta { color: #c39bff; }
+.hljs-string, .hljs-attr, .hljs-symbol, .hljs-bullet { color: #7ee2c4; }
+.hljs-number, .hljs-literal { color: #ffb86c; }
+.hljs-title, .hljs-name, .hljs-section, .hljs-class .hljs-title { color: #82c8ff; }
+.hljs-variable, .hljs-template-variable, .hljs-attribute { color: #f7768e; }
+.hljs-type, .hljs-params { color: #82c8ff; }
+.hljs-tag, .hljs-tag .hljs-name { color: #f7768e; }
+.hljs-deletion { color: #f87171; }
+.hljs-addition { color: #4ade80; }
+
+/* 접는 블록. 본문에 `<details>` / `<summary>` 로 쓴다 — 마크다운 렌더러가 이 둘만
+   통과시킨다. 콜아웃이 아니라 「더 볼 사람만 펴 보는 곳」이라, 색을 넣지 않고
+   테두리로만 본문과 가른다. 색을 넣으면 경고나 강조로 읽힌다. */
+.prose details {
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: var(--bg-0); padding: 0 16px;
+}
+.prose details > summary {
+  /* 기본 삼각형을 지우고 직접 그린다. 브라우저마다 모양과 자리가 달라 여백이 어긋난다 */
+  list-style: none; cursor: pointer;
+  display: flex; align-items: center; gap: 9px;
+  margin: 0 -16px; padding: 11px 16px;
+  font-size: var(--fs-md); font-weight: 600; color: var(--text-dim);
+}
+.prose details > summary::-webkit-details-marker { display: none; }
+.prose details > summary::before {
+  content: '›'; font-family: var(--mono); font-size: var(--fs-lg);
+  color: var(--text-mute); flex: none; line-height: 1;
+  transition: transform .15s ease;
+}
+.prose details[open] > summary::before { transform: rotate(90deg); }
+.prose details > summary:hover { color: var(--text); }
+.prose details[open] > summary { border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+/* 접힌 상태에서 아래 여백이 남지 않도록, 펼쳤을 때만 바닥을 준다 */
+.prose details[open] { padding-bottom: 16px; }
+/* 안쪽 글자는 본문보다 한 급 작게. 본문 흐름 밖의 곁가지라는 것이 크기로 읽혀야 한다 */
+.prose details > *:not(summary) { font-size: var(--fs-md); }
+.prose details > *:not(summary) + * { margin-top: .9em; }

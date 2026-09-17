@@ -1,0 +1,1928 @@
+{
+  "generatedAt": "2026-09-15T10:16:44.392Z",
+  "standards": "v0.2 Standard (14 Foundation + 4 Addon Reasoning)",
+  "taskMeta": {
+    "TC-01": {
+      "category": "tools",
+      "title": "선택적 도구 조회",
+      "brief": "프로젝트 파일에서 필요한 사실만 조회하고, 조회가 필요 없는 요약 요청은 도구 없이 처리한다.",
+      "weight": 0.05
+    },
+    "TC-02": {
+      "category": "tools",
+      "title": "일정 생성 및 멱등성",
+      "brief": "서울 기준 자연어 일정을 UTC 인자로 변환해 모의 캘린더에 만들고 목록 조회로 확인한다.",
+      "weight": 0.05
+    },
+    "TC-04": {
+      "category": "tools",
+      "title": "오류 복구 및 재시도",
+      "brief": "모의 상품 조회의 일시적 오류에서 복구하고 존재하지 않는 상품의 실패를 정확히 구분한다.",
+      "weight": 0.05
+    },
+    "H-01": {
+      "category": "tools",
+      "title": "긴 지시 및 설정 수정",
+      "brief": "여러 보존 조건을 유지하며 지정 서비스의 타임아웃 한 필드만 수정하고 검증한다.",
+      "weight": 0.05
+    },
+    "H-03": {
+      "category": "code",
+      "title": "실패한 테스트 수정",
+      "brief": "배송비 구현의 실패 테스트를 재현한 뒤 테스트는 유지하고 경계 조건 버그를 수정한다.",
+      "weight": 0.125
+    },
+    "CODE-01": {
+      "category": "code",
+      "title": "예약 충돌 버그 수정",
+      "brief": "반열린 예약 구간의 겹침 판정과 입력 검증을 수정하고 경계·오류 테스트를 실행한다.",
+      "weight": 0.125
+    },
+    "WEB-01": {
+      "category": "web",
+      "title": "반응형 제품 웹앱",
+      "brief": "개인 AI 작업 기록 서비스 Leneu Desk의 반응형 랜딩페이지와 가격·FAQ·신청 상호작용을 만든다.",
+      "weight": 0.067,
+      "hasHtml": true
+    },
+    "GAME-01": {
+      "category": "web",
+      "title": "테트리스 (Hold 포함)",
+      "brief": "10×20 보드, 7종 블록, 점수·다음 블록·일시정지와 1회 제한 Hold 기능을 갖춘 테트리스를 만든다.",
+      "weight": 0.067,
+      "hasHtml": true
+    },
+    "GAME-02": {
+      "category": "web",
+      "title": "플랫포머 게임",
+      "brief": "고정 맵에서 이동·점프·충돌·코인·적·카메라·재시작과 완주가 가능한 플랫폼 게임을 만든다.",
+      "weight": 0.066,
+      "hasHtml": true
+    },
+    "WRITE-01": {
+      "category": "write",
+      "title": "저장소 작업 규칙 기술 블로그",
+      "brief": "AI 코딩 도구에 반복 설명할 저장소 공통·경로별 작업 규칙을 어디에 어떻게 기록할지 설명하는 기술 글을 쓴다.",
+      "weight": 0.08
+    },
+    "WRITE-02": {
+      "category": "write",
+      "title": "배포·롤백 운영 문서",
+      "brief": "Kubernetes 공식 자료를 당직 개발자가 사용할 수 있는 배포 실패 확인·판단·롤백 런북으로 편집한다.",
+      "weight": 0.06
+    },
+    "THINK-01": {
+      "category": "write",
+      "title": "장애 복구 요약·근거 대조",
+      "brief": "Kubernetes 복구 문서와 GitHub 장애 사례를 대조해 롤백 명령만으로 안전한 복구가 보장되는지 판단한다.",
+      "weight": 0.06
+    },
+    "SEARCH-01": {
+      "category": "search",
+      "title": "공식 기능 확인 리서치",
+      "brief": "Python 3.12 tomllib의 TOML 읽기·쓰기 지원 여부, 도입 버전과 파일 모드를 공식 문서에서 확인한다.",
+      "weight": 0.075
+    },
+    "SEARCH-03": {
+      "category": "search",
+      "title": "환경별 비교 리서치",
+      "brief": "Apple Silicon·64GB 환경에서 한국어 글쓰기와 코딩 연동 용도로 Ollama·llama.cpp·LM Studio를 공식 자료 기반으로 비교한다.",
+      "weight": 0.075
+    },
+    "ALG-01": {
+      "category": "reason",
+      "title": "가중 구간 알고리즘",
+      "brief": "겹치지 않는 반열린 작업 구간의 최대 가치 합을 O(n log n) 이하로 계산하는 함수를 구현한다.",
+      "profile": "reason",
+      "weight": 0.25
+    },
+    "REASON-KO-01": {
+      "category": "reason",
+      "title": "국어 조건·예외 독해",
+      "brief": "가상 자료실 안내의 조건·시각·예외를 읽고 다섯 주장을 뒷받침·충돌·확정 불가로 판정한다.",
+      "profile": "reason",
+      "weight": 0.25
+    },
+    "REASON-MATH-01": {
+      "category": "reason",
+      "title": "수학 경계·할인 계산",
+      "brief": "구간별 종이 요금, 200장 할인과 배송비 조건을 계산하고 무료 배송의 최소 장수 경계를 찾는다.",
+      "profile": "reason",
+      "weight": 0.25
+    },
+    "REASON-SCI-01": {
+      "category": "reason",
+      "title": "과학 실험·변수 판단",
+      "brief": "조명 시간과 비료가 다른 모의 묘목 실험에서 평균·비교 집단·일반화 가능 여부를 판단한다.",
+      "profile": "reason",
+      "weight": 0.25
+    }
+  },
+  "models": [
+    {
+      "modelSlug": "deepseek-v4.1-flash",
+      "runId": "20260913T142623Z-5711",
+      "runPath": "runs/deepseek-v4.1-flash/20260913T142623Z-5711",
+      "totalTasks": 18,
+      "hasAddonReasoning": true,
+      "totalTimeText": "41분 17초 (2,477s)",
+      "verifiedBadge": "Chrome CDP 33/33 실측",
+      "submissionPath": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/SUBMISSION.md",
+      "scorecard": {
+        "method": "v0.4-unified-18-1",
+        "reviewId": "v04-ai-20260915-b",
+        "reviewedAt": "2026-09-14T19:31:39Z",
+        "evaluationPath": "reports/deepseek-v4.1-flash/20260913T142623Z-5711/v04-ai-20260915-b/evaluation.json",
+        "weightedScore": 99.375,
+        "groups": {
+          "code": 100,
+          "tools": 100,
+          "web_games": 100,
+          "writing": 100,
+          "research": 98.75,
+          "reasoning": 95
+        },
+        "statusCounts": {
+          "scored": 18,
+          "passed": 12,
+          "failed": 0,
+          "pending": 6
+        }
+      },
+      "tasks": {
+        "ALG-01": {
+          "id": "ALG-01",
+          "meta": {
+            "category": "reason",
+            "title": "가중 구간 알고리즘",
+            "brief": "겹치지 않는 반열린 작업 구간의 최대 가치 합을 O(n log n) 이하로 계산하는 함수를 구현한다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# ALG-01 결과\n\n- **과제 ID**: ALG-01\n- **문제 버전**: 1\n- **제출물**: `solution.mjs`, `explanation.md`, `RESULT.md`\n- **상태**: submitted\n- **자기 점수**: 미채점 (평가 전용 자료를 읽지 않았으므로 점수를 산출하지 않음)\n\n## 요구사항 충족 요약\n\n| 요구사항 | 충족 | 근거 |\n|---|---|---|\n| `export function maxValue(jobs)` 제공 | 예 | `solution.mjs` |\n| 반환값은 정수 하나(최대 가치 합) | 예 | `dp[n]` 반환 |\n| 반열린 구간 `[start,end)` 양립 규칙 | 예 | `end <= start`로 양립 판정 |\n| 입력 배열·내부 배열 비변경 | 예 | 값 복사 후 인덱스 배열만 정렬 |\n| 빈 입력 → 0 | 예 | `n === 0` 조기 반환 |\n| 잘못된 입력 → `RangeError` | 예 | 검증 15종 테스트 통과 |\n| O(n log n) 이하 시간 | 예 | 정렬 + 이진 탐색 DP |\n| O(n) 이하 추가 공간 | 예 | 길이 n 배열들만 사용 |\n| 자체 테스트 | 예",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/ALG-01/RESULT.md"
+        },
+        "CODE-01": {
+          "id": "CODE-01",
+          "meta": {
+            "category": "code",
+            "title": "예약 충돌 버그 수정",
+            "brief": "반열린 예약 구간의 겹침 판정과 입력 검증을 수정하고 경계·오류 테스트를 실행한다.",
+            "weight": 0.125
+          },
+          "status": "submitted",
+          "files": [
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# CODE-01 RESULT — 예약 충돌 판정 수정\n\n## 제출물\n\n- `outputs/CODE-01/booking.mjs` — 수정본 (공개 인터페이스 `canBook(existing, start, end)` 유지)\n- `outputs/CODE-01/booking.test.mjs` — 테스트 코드 (40개 케이스)\n- `outputs/CODE-01/test-output-before.txt`, `test-output-after.txt` — 수정 전후 실행 결과\n- `outputs/CODE-01/booking-before.mjs`, `before-check.mjs` — 수정 전 원본과 그 동작 기록\n- `outputs/CODE-01/hashes.txt` — 파일 해시\n\n## 결함 원인\n\n수정 전 코드 (`booking-before.mjs`, 문제에 제시된 시작점 그대로):\n\n```javascript\nexport function canBook(existing, start, end) {\n  return !existing.some(([a, b]) => start <= b && end >= a);\n}\n```\n\n1. **인접 구간을 겹침으로 잘못 판정한다.** 반개",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/CODE-01/RESULT.md"
+        },
+        "GAME-01": {
+          "id": "GAME-01",
+          "meta": {
+            "category": "web",
+            "title": "테트리스 (Hold 포함)",
+            "brief": "10×20 보드, 7종 블록, 점수·다음 블록·일시정지와 1회 제한 Hold 기능을 갖춘 테트리스를 만든다.",
+            "weight": 0.067,
+            "hasHtml": true
+          },
+          "status": "submitted",
+          "files": [
+            "index.html",
+            "RESULT.md"
+          ],
+          "hasHtml": true,
+          "htmlPath": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/GAME-01/index.html",
+          "resultSnippet": "# GAME-01 RESULT — 보관(Hold) 기능이 있는 테트리스\n\n## 제출물\n\n- `outputs/GAME-01/index.html` — 단일 파일, 외부 의존성 0건 (24,631 bytes)\n- 검증 기록: `browser-check.json`(33항목), `real-key-play.json`(실제 키 플레이), `screenshots/*.png`(4장)\n- 검증 스크립트: `tool-workspace/browser/game01-check.mjs`, `game01-play.mjs`\n\n## 구현 요약\n\n| 요구 | 구현 |\n|---|---|\n| 보드 10×20 | `COLS=10, ROWS=20`, 셀 30px 캔버스 |\n| 블록 7종 | I, O, T, S, Z, J, L (7-bag 무작위) |\n| 이동·회전·낙하 | ← → 이동, ↑/X 시계 방향 회전, ↓ 소프트 드롭, Space 즉시 낙하 |\n| 회전 취소 | 회전 결과가 벽을 벗어나거나 기존 블록과 겹치면 회전을 **취소**(벽차기 없음) |\n| 줄 제거·점수 | 동시 제거, 1·2·3·4줄 = 100·300·500·800점. 낙하 자체에는 점수 없음 |\n| 다음·보관·점수·일시정지·게",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/GAME-01/RESULT.md"
+        },
+        "GAME-02": {
+          "id": "GAME-02",
+          "meta": {
+            "category": "web",
+            "title": "플랫포머 게임",
+            "brief": "고정 맵에서 이동·점프·충돌·코인·적·카메라·재시작과 완주가 가능한 플랫폼 게임을 만든다.",
+            "weight": 0.066,
+            "hasHtml": true
+          },
+          "status": "submitted",
+          "files": [
+            "index.html",
+            "RESULT.md"
+          ],
+          "hasHtml": true,
+          "htmlPath": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/GAME-02/index.html",
+          "resultSnippet": "# GAME-02 RESULT — 한 스테이지 플랫폼 게임\n\n## 제출물\n\n- `outputs/GAME-02/index.html` — 단일 파일, 외부 의존성 0건 (19,252 bytes)\n- 검증 기록: `browser-check.json`(17항목), `screenshots/*.png`(2장)\n- 검증 스크립트: `tool-workspace/browser/game02-check.mjs`\n\n## 공통 맵 반영 (문제에서 지정한 값)\n\n| 항목 | 지정값 | 구현 |\n|---|---|---|\n| 월드 | 2400×600, 우측 +x / 아래 +y | 동일 |\n| 지면 윗면 | y=520, x 구간 [0,650]·[780,1500]·[1640,2400] | 동일 |\n| 사각 플랫폼 | (350,410,160,20)·(1100,400,180,20)·(1800,380,180,20) | 동일 |\n| 플레이어 | 32×44, 시작 좌상단 (80,476) | 동일 |\n| 코인 중심 | (420,370)·(1170,360)·(1860,340) | 동일 |\n| 적 | 지면 x=900~1040, x=2000~2180 왕복 2마리 | 동일 |\n| 도착 지점 | x=2310 ",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/GAME-02/RESULT.md"
+        },
+        "H-01": {
+          "id": "H-01",
+          "meta": {
+            "category": "tools",
+            "title": "긴 지시 및 설정 수정",
+            "brief": "여러 보존 조건을 유지하며 지정 서비스의 타임아웃 한 필드만 수정하고 검증한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# H-01 RESULT\n\n## 요청\n\n`document-indexer` 서비스의 `request_timeout_seconds`를 30으로 변경. 나머지 규칙 전부 유지.\n\n## 변경 전후 차이\n\n```diff\n-    {\"id\": \"document-indexer\", \"request_timeout_seconds\": 5, \"retry_count\": 2, \"port\": 8765, \"enabled\": true, \"user_note\": \"manual configuration retained\"},\n+    {\"id\": \"document-indexer\", \"request_timeout_seconds\": 30, \"retry_count\": 2, \"port\": 8765, \"enabled\": true, \"user_note\": \"manual configuration retained\"},\n```\n\n변경된 필드는 `document-indexer`의 `request_timeout_seconds` 단 하나이며 값은 5 → 30이다. 전체 diff는 `diff.txt`에 있다.\n\n## 제약 준수 확인\n\n| 제약 | 확인 방법 | 결과 |\n|---|---|---|\n| JSON 형식 유지 ",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/H-01/RESULT.md"
+        },
+        "H-03": {
+          "id": "H-03",
+          "meta": {
+            "category": "code",
+            "title": "실패한 테스트 수정",
+            "brief": "배송비 구현의 실패 테스트를 재현한 뒤 테스트는 유지하고 경계 조건 버그를 수정한다.",
+            "weight": 0.125
+          },
+          "status": "submitted",
+          "files": [
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# H-03 RESULT\n\n## 결함 원인 (수정 전)\n\n`outputs/H-03/shipping-before.py` (원본 그대로 보존):\n\n```python\nif order_total_won > 50000:          # 규칙: 50,000원 '이상' 무료 → >= 이어야 함\n    return 0\nreturn 3000 + int(max(0, weight_grams - 1000) / 500) * 500   # int()는 내림 → '시작된 500g 구간'마다 부과하려면 올림(ceil)\n```\n\n1. 무료 기준 비교가 `>` 이라서 주문액이 정확히 50,000원일 때 무료가 적용되지 않았다.\n2. `int(x / 500)` 는 내림이므로 1,001g처럼 500g 구간을 **일부만** 넘긴 경우 추가 요금이 누락되었다.\n\n## 수정 내용\n\n`outputs/H-03/shipping.py` (제출 파일):\n\n```python\nif order_total_won >= 50000:\n    return 0\nextra_grams = max(0, weight_grams - 1000)\nextra_bands = math.ceil(extra_grams / 500)\nretu",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/H-03/RESULT.md"
+        },
+        "REASON-KO-01": {
+          "id": "REASON-KO-01",
+          "meta": {
+            "category": "reason",
+            "title": "국어 조건·예외 독해",
+            "brief": "가상 자료실 안내의 조건·시각·예외를 읽고 다섯 주장을 뒷받침·충돌·확정 불가로 판정한다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# REASON-KO-01 결과\n\n- **과제 ID**: REASON-KO-01\n- **문제 버전**: 1\n- **제출물**: `answers.json`, `explanation.md`, `RESULT.md`\n- **상태**: submitted\n- **자기 점수**: 미채점 (평가 전용 자료를 읽지 않았으므로 점수를 산출하지 않음)\n\n## 판정 요약\n\n| 문항 | 판정 | 근거 지문 | 핵심 이유 |\n|---|---|---|---|\n| K1 | supported | P1 | 비회원도 개인 열람석을 예약 없이 사용 가능하다고 직접 서술 |\n| K2 | contradicted | P2 | \"6시까지 취소 시 불이익 없음\" → 6시 정각은 제한 대상이 아님 |\n| K3 | contradicted | P2 | \"폭우로 자료실이 취소한 경우에는 제한하지 않음\" 예외와 충돌 |\n| K4 | not_established | P3 | 운영팀이 \"개편만의 효과인지 아직 판단할 수 없다\"고 명시 |\n| K5 | contradicted | P4 | \"단체실 운영 시간은 이번 검토에 포함되지 않는다\"고 명시 |\n\n## 판정 분포\n\n- supported 1건 (K1)\n- contr",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/REASON-KO-01/RESULT.md"
+        },
+        "REASON-MATH-01": {
+          "id": "REASON-MATH-01",
+          "meta": {
+            "category": "reason",
+            "title": "수학 경계·할인 계산",
+            "brief": "구간별 종이 요금, 200장 할인과 배송비 조건을 계산하고 무료 배송의 최소 장수 경계를 찾는다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# REASON-MATH-01 결과\n\n- **과제 ID**: REASON-MATH-01\n- **문제 버전**: 1\n- **제출물**: `answers.json`, `explanation.md`, `RESULT.md`\n- **상태**: submitted\n- **자기 점수**: 미채점 (평가 전용 자료를 읽지 않았으므로 점수를 산출하지 않음)\n\n## 답 요약\n\n| 문항 | 값 | 단위 | 계산식 |\n|---|---|---|---|\n| M1 | 25500 | 원 | `100×120 + 150×90 = 12,000 + 13,500` |\n| M2 | 22950 | 원 | `25,500 × 0.9` |\n| M3 | 22950 | 원 | `22,950 ≥ 20,000` → 배송비 0 |\n| M4 | 33500 | 원 | `(14,250 + 2,500) × 2` |\n| M5 | 189 | 장 | 할인 미적용 구간 `3,000 + 90n ≥ 20,000` → `n ≥ 189` |\n\n## 경계 검증 요약\n\n- **M5 경계**: 189장 → 20,010원(무료), 188장 → 19,920원(배송비). 200장 이상 구간은 214장 → 20,034원(무료), 213장 → 19,",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/REASON-MATH-01/RESULT.md"
+        },
+        "REASON-SCI-01": {
+          "id": "REASON-SCI-01",
+          "meta": {
+            "category": "reason",
+            "title": "과학 실험·변수 판단",
+            "brief": "조명 시간과 비료가 다른 모의 묘목 실험에서 평균·비교 집단·일반화 가능 여부를 판단한다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# REASON-SCI-01 결과\n\n- **과제 ID**: REASON-SCI-01\n- **문제 버전**: 1\n- **제출물**: `answers.json`, `explanation.md`, `RESULT.md`\n- **상태**: submitted\n- **자기 점수**: 미채점 (평가 전용 자료를 읽지 않았으므로 점수를 산출하지 않음)\n\n## 답 요약\n\n| 문항 | 값 | 근거 |\n|---|---|---|\n| S1 | 5 | B 평균 `(4+5+6)/3 = 5` |\n| S2 | `B-C` | 8시간 고정, 비료만 다름(B 없음, C 있음) |\n| S3 | `A-B` | 비료 고정(없음), 조명만 다름(4h vs 8h) |\n| S4 | `not_established` | 단일 품종·단일 실험 → \"모든 품종, 정확히 1cm\" 확정 불가 |\n| S5 | `contradicted` | C-A는 조명·비료 동시 변화 → 전부를 비료 효과로 분리 불가 |\n\n## 추가 실험(일반화)\n\n여러 품종을 같은 조명×비료 조건에 배정하고 품종별 반복을 두는 실험. 단일 품종 실험으로는 \"모든 품종\" 주장을 검토할 수 없다.\n\n## 사용한 도구와 한계\n\n- **사용한 도구**: ",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/REASON-SCI-01/RESULT.md"
+        },
+        "SEARCH-01": {
+          "id": "SEARCH-01",
+          "meta": {
+            "category": "search",
+            "title": "공식 기능 확인 리서치",
+            "brief": "Python 3.12 tomllib의 TOML 읽기·쓰기 지원 여부, 도입 버전과 파일 모드를 공식 문서에서 확인한다.",
+            "weight": 0.075
+          },
+          "status": "submitted",
+          "files": [
+            "research.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# SEARCH-01 실행 기록\n\n## 상태\n\n- 상태: `submitted` (산출물 제출 완료, 채점은 미채점)\n- 웹 검색·원문 조회: **수행함**. 플랫폼의 웹 검색·페이지 조회 도구를 실제로 사용했다. 기억으로 답한 결과를 검색 성공으로 보고하지 않는다.\n- 시계 시작(UTC): `2026-09-13T15:01:50Z` (epoch 1789311710)\n- 시계 종료(UTC): `2026-09-13T15:03:07Z` (epoch 1789311787)\n- 소요 시간: `76000 ms` (약 1분 16초, agent-observed wall clock)\n- 한도: 8분. 한도 내 완료.\n\n## 실제로 조회한 URL\n\n| # | URL | 유형 | 읽은 수준 | 조회 시각 |\n|---|---|---|---|---|\n| 1 | https://docs.python.org/3.12/library/tomllib.html | 공식 문서 | 전문 | 위 구간 내 |\n| 2 | https://docs.python.org/3/library/tomllib.html | 공식 문서(최신) | 전문 | 위 구간 내 |\n| 3 | https://peps.python.org",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/SEARCH-01/RESULT.md"
+        },
+        "SEARCH-03": {
+          "id": "SEARCH-03",
+          "meta": {
+            "category": "search",
+            "title": "환경별 비교 리서치",
+            "brief": "Apple Silicon·64GB 환경에서 한국어 글쓰기와 코딩 연동 용도로 Ollama·llama.cpp·LM Studio를 공식 자료 기반으로 비교한다.",
+            "weight": 0.075
+          },
+          "status": "submitted",
+          "files": [
+            "research.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# SEARCH-03 실행 기록\n\n## 상태\n\n- 상태: `submitted` (산출물 제출 완료, 채점은 미채점)\n- 웹 검색·원문 조회: **수행함**. 검색 4회, 공식 문서·저장소 페이지 조회 다수.\n- 시계 시작(UTC): `2026-09-13T15:03:21Z` (epoch 1789311801)\n- 시계 종료(UTC): `2026-09-13T15:07:55Z` (epoch 1789312075)\n- 소요 시간: `274000 ms` (약 4분 34초, agent-observed wall clock)\n- 한도: 15분. 한도 내 완료.\n- 조사 기준일: 2026-09-13 (UTC). 문서에 실행 날짜를 명시했다.\n\n## 조사한 출처 (18건, 전부 공식)\n\n출처 유형을 구분해 `sources.json`에 기록했다.\n\n| 제품 | 출처 수 | 유형 |\n|---|---|---|\n| Ollama | 7 (`S1`~`S7`) | 공식 저장소 README 1, 공식 문서 6 |\n| llama.cpp | 4 (`S8`~`S11`) | 공식 저장소 README 1, 고정 커밋 스냅샷 3 |\n| LM Studio | 7 (`S12`~`S18`) | 공식 문서 7 ",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/SEARCH-03/RESULT.md"
+        },
+        "TC-01": {
+          "id": "TC-01",
+          "meta": {
+            "category": "tools",
+            "title": "선택적 도구 조회",
+            "brief": "프로젝트 파일에서 필요한 사실만 조회하고, 조회가 필요 없는 요약 요청은 도구 없이 처리한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "answer.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# TC-01 RESULT\n\n## 수행 내용\n\n| 요청 | 사용한 도구 | 필요했던 이유 |\n|---|---|---|\n| 1. API 포트·최대 병렬 작업 수 | 파일 읽기(Read) 1회 — `outputs/TC-01/project-facts.json` | 값이 로컬 입력 파일 안에만 있으므로 실제로 읽어야 확인 가능. 검색·웹 도구는 불필요 |\n| 2. 문장 한 줄 축약 | 없음 | 주어진 한국어 문장의 의미만 유지해 압축하는 작업이라 외부 정보 조회가 불필요 |\n\n- 기록용 파일 저장(`answer.md`, `RESULT.md` 작성)은 두 번째 답변을 위한 정보 조회가 아니라 산출물 저장 행위이므로 위 도구 사용과 구분한다.\n- 요청 2에서 웹 검색·파일 조회를 하지 않았다. 하지 않은 조회를 수행했다고 기록하지 않는다.\n\n## 확인한 내용\n\n- `project-facts.json`의 `api_port` = 8765, `max_parallel_jobs` = 3 을 파일에서 직접 확인했다.\n- 파일은 합성 입력(`\"synthetic\": true`)이며 실제 서비스 사실이 아니다.\n\n## 확인하지 못한 부분\n\n- 해당 값이 실제 운영 환경에서도 유효한지는",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/TC-01/RESULT.md"
+        },
+        "TC-02": {
+          "id": "TC-02",
+          "meta": {
+            "category": "tools",
+            "title": "일정 생성 및 멱등성",
+            "brief": "서울 기준 자연어 일정을 UTC 인자로 변환해 모의 캘린더에 만들고 목록 조회로 확인한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "answer.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# TC-02 RESULT\n\n## 수행 내용\n\n1. 기준 날짜 서울 2026-09-14 → “내일 오후 3시부터 45분” = 2026-09-15 15:00~15:45 KST. 서울을 UTC+09:00으로 정의했으므로 UTC는 `2026-09-15T06:00:00Z` ~ `2026-09-15T06:45:00Z`.\n2. `outputs/TC-02/request.json` 작성 (title, start_utc, end_utc, attendees, request_id).\n3. 모의 도구 `calendar.create` 1회 호출 → `ok: true`, `event_id: event-001`.\n4. 모의 도구 `calendar.list` 1회 호출 → 생성된 일정 1건 확인.\n5. 추가 검증: 동일 `request_id`로 `calendar.create` 재전송 → 여전히 `event-001`, `calendar.list` 결과도 1건 → 중복 생성 없음 확인.\n\n## 실제 호출 명령\n\n```text\npython3 cases/v0.1/toolbox.py --workspace runs/deepseek-v4.1-flash/20260913T142623Z-5711/tool",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/TC-02/RESULT.md"
+        },
+        "TC-04": {
+          "id": "TC-04",
+          "meta": {
+            "category": "tools",
+            "title": "오류 복구 및 재시도",
+            "brief": "모의 상품 조회의 일시적 오류에서 복구하고 존재하지 않는 상품의 실패를 정확히 구분한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "answer.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# TC-04 RESULT\n\n## 수행 내용 (호출 순서)\n\n| # | 도구 | 인자 | 반환 | 프로세스 종료 코드 |\n|---|---|---|---|---|\n| 1 | catalog.quote | `{\"sku\": \"LNU-USB\"}` | `ok:false` / `TEMP_UNAVAILABLE` / `retryable:true` | 0 |\n| 2 | catalog.quote (재시도) | `{\"sku\": \"LNU-USB\"}` | `ok:true` / Leneu USB Hub, 32000원, 재고 7 | 0 |\n| 3 | catalog.quote | `{\"sku\": \"NO-SUCH-ITEM\"}` | `ok:false` / `NOT_FOUND` / `retryable:false` | 0 |\n| 4 | catalog.list | `{}` | `ok:true` / `[\"LNU-USB\",\"LNU-STAND\"]` | 0 |\n\n- 재시도 횟수: 1회(LNU-USB). NO-SUCH-ITEM은 `retryable:false`이므로 재시도하지 않음.\n- 모든 호출이 종료 코드 0으로 끝났다. **업무 오류를 종료 코드로 판단하지 않고 JSON의 `ok` 필드로 판단했다.*",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/TC-04/RESULT.md"
+        },
+        "THINK-01": {
+          "id": "THINK-01",
+          "meta": {
+            "category": "write",
+            "title": "장애 복구 요약·근거 대조",
+            "brief": "Kubernetes 복구 문서와 GitHub 장애 사례를 대조해 롤백 명령만으로 안전한 복구가 보장되는지 판단한다.",
+            "weight": 0.06
+          },
+          "status": "submitted",
+          "files": [
+            "summary.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# THINK-01 결과 — writing-v2.1 재응시\n\n- **과제 ID**: THINK-01\n- **문제 버전**: writing-v2.1 (이전 버전 대체)\n- **attempt_id**: 20260914T173839Z-9c722c\n- **상태**: submitted\n- **점수**: null · **evaluation_status**: pending (독립 채점 대기, 이전 점수 승계 없음)\n\n## 이번 제출 산출물\n\n| 파일 | 설명 |\n|---|---|\n| `summary.md` | 복구 판단 메모 (H1 1개, H2 5개, 1,762자) |\n| `facts.json` | 사실 17건 (SRC-DEPLOY 12건·8개 절, SRC-INCIDENT 5건) |\n| `analysis.md` | 여섯 주장 판정 (supported 1 · contradicted 5 · not_established 0) |\n| `RESULT.md` | 이 파일 |\n\n이전 버전의 `READING_RULES.md`, `long-context-source.md`, `long-context-sources.json`, `.start_utc` 등은 이번 답안으로 평가하지 않는다. ",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/THINK-01/RESULT.md"
+        },
+        "WEB-01": {
+          "id": "WEB-01",
+          "meta": {
+            "category": "web",
+            "title": "반응형 제품 웹앱",
+            "brief": "개인 AI 작업 기록 서비스 Leneu Desk의 반응형 랜딩페이지와 가격·FAQ·신청 상호작용을 만든다.",
+            "weight": 0.067,
+            "hasHtml": true
+          },
+          "status": "submitted",
+          "files": [
+            "index.html",
+            "RESULT.md"
+          ],
+          "hasHtml": true,
+          "htmlPath": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/WEB-01/index.html",
+          "resultSnippet": "# WEB-01 RESULT\n\n## 제출물\n\n- `outputs/WEB-01/index.html` — 단일 파일, 외부 의존성 0건 (37,664 bytes)\n- 검증 기록: `browser-check.json`, `screenshots/*.png` (10장)\n- 검증 스크립트: `tool-workspace/browser/cdp.mjs`, `tool-workspace/browser/web01-check.mjs`\n\n## 구현 내용\n\n합성 제품 `Leneu Desk`(개인 AI 작업 기록 도구, 대상: 여러 모델을 비교하는 개인 개발자)의 랜딩페이지.\n\n| 요구 | 구현 |\n|---|---|\n| 첫 화면 | eyebrow + H1 + 리드 문단 + CTA 2개 + 인라인 SVG 목업 |\n| 기능 | 작업 기록 / 결과 비교 / Markdown 내보내기 3카드 (인라인 SVG 아이콘) |\n| 사용 흐름 | 3단계 스텝 (CSS counter로 번호 표시) |\n| 가격 | Free(프로젝트 3개) / Plus(무제한, 월 9,000원, 연 90,000원) / Team |\n| FAQ | 4문항 아코디언, `aria-expanded` + `aria-controls`, ",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/WEB-01/RESULT.md"
+        },
+        "WRITE-01": {
+          "id": "WRITE-01",
+          "meta": {
+            "category": "write",
+            "title": "저장소 작업 규칙 기술 블로그",
+            "brief": "AI 코딩 도구에 반복 설명할 저장소 공통·경로별 작업 규칙을 어디에 어떻게 기록할지 설명하는 기술 글을 쓴다.",
+            "weight": 0.08
+          },
+          "status": "submitted",
+          "files": [
+            "article.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# WRITE-01 결과 — writing-v2.1 재응시\n\n- **과제 ID**: WRITE-01\n- **문제 버전**: writing-v2.1 (이전 버전 대체)\n- **attempt_id**: 20260914T173839Z-9c722c\n- **상태**: submitted\n- **점수**: null · **evaluation_status**: pending (독립 채점 대기, 이전 점수 승계 없음)\n\n## 이번 제출 산출물\n\n| 파일 | 설명 |\n|---|---|\n| `article.md` | 기술 블로그 본문 (H1 1개, H2 6개, 2,574자) |\n| `evidence.json` | 핵심 사실 19개 (claim·source_id·source_heading·line_start·line_end) |\n| `RESULT.md` | 이 파일 |\n\n이전 버전의 `READING_RULES.md`, `long-context-source.md`, `long-context-sources.json`, `.start_utc` 등은 이번 답안으로 평가하지 않는다. 삭제하지 않고 그대로 두었다.\n\n## 사용한 입력과 해시\n\n| 입력 | 경로 | SHA-256 | 대조 |",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/WRITE-01/RESULT.md"
+        },
+        "WRITE-02": {
+          "id": "WRITE-02",
+          "meta": {
+            "category": "write",
+            "title": "배포·롤백 운영 문서",
+            "brief": "Kubernetes 공식 자료를 당직 개발자가 사용할 수 있는 배포 실패 확인·판단·롤백 런북으로 편집한다.",
+            "weight": 0.06
+          },
+          "status": "submitted",
+          "files": [
+            "edited.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# WRITE-02 결과 — writing-v2.1 재응시\n\n- **과제 ID**: WRITE-02\n- **문제 버전**: writing-v2.1 (이전 버전 대체)\n- **attempt_id**: 20260914T173839Z-9c722c\n- **상태**: submitted\n- **점수**: null · **evaluation_status**: pending (독립 채점 대기, 이전 점수 승계 없음)\n\n## 이번 제출 산출물\n\n| 파일 | 설명 |\n|---|---|\n| `edited.md` | 배포·롤백 런북 (H1 1개, H2 6개, 2,265자) |\n| `changes.md` | 편집 내역과 보존한 조건·예외 8건 (source_heading·행 번호 포함) |\n| `RESULT.md` | 이 파일 |\n\n이전 버전의 `editing-source.md`와 `.start_utc` 등은 이번 답안으로 평가하지 않는다. 삭제하지 않고 그대로 두었다.\n\n## 사용한 입력과 해시\n\n| 입력 | 경로 | SHA-256 | 대조 |\n|---|---|---|---|\n| SRC-DEPLOY | `input-writing-v2/deployment.md` | `646222d",
+          "resultFile": "runs/deepseek-v4.1-flash/20260913T142623Z-5711/outputs/WRITE-02/RESULT.md"
+        }
+      }
+    },
+    {
+      "modelSlug": "gemini-3.8-flash",
+      "runId": "20260913T163700Z-g38f",
+      "runPath": "runs/gemini-3.8-flash/20260913T163700Z-g38f",
+      "totalTasks": 18,
+      "hasAddonReasoning": true,
+      "totalTimeText": "약 38분 (단조시계)",
+      "verifiedBadge": "18개 전과제 제출 완주",
+      "submissionPath": "runs/gemini-3.8-flash/20260913T163700Z-g38f/SUBMISSION.md",
+      "scorecard": {
+        "method": "v0.4-unified-18-1",
+        "reviewId": "v04-devin-20260915",
+        "reviewedAt": "2026-09-14T19:10:00Z",
+        "evaluationPath": "reports/gemini-3.8-flash/20260913T163700Z-g38f/v04-devin-20260915/evaluation.json",
+        "weightedScore": 99.03846153846155,
+        "groups": {
+          "code": 99.48717948717949,
+          "tools": 100,
+          "web_games": 98.33333333333333,
+          "writing": 100,
+          "research": 100,
+          "reasoning": 95
+        },
+        "statusCounts": {
+          "scored": 18,
+          "passed": 10,
+          "failed": 1,
+          "pending": 7
+        }
+      },
+      "tasks": {
+        "ALG-01": {
+          "id": "ALG-01",
+          "meta": {
+            "category": "reason",
+            "title": "가중 구간 알고리즘",
+            "brief": "겹치지 않는 반열린 작업 구간의 최대 가치 합을 O(n log n) 이하로 계산하는 함수를 구현한다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# ALG-01 결과 보고서\n\n- 과제 ID: ALG-01\n- 문제 버전: 1\n- 상태: submitted\n- 타이밍 출처: agent-observed (benchmark.py harness)\n- 토큰/비용/속도: 미측정 (not_exposed)\n\n## 수행 내용\n1. 가중치 구간 스케줄링(Weighted Interval Scheduling) 알고리즘을 `solution.mjs`에 ES 모듈로 구현.\n2. 입력 유효성 검사 및 불변성(Immutability) 보장:\n   - 입력값의 타입, 배열 길이(3), 좌표 및 가치 범위(`0 <= start < end <= 1,000,000,000`, `0 <= value <= 1,000,000,000`), 정수 여부 검증 후 위반 시 `RangeError` throw.\n   - 원본 배열을 변형하지 않도록 얕은 복사 후 정렬 수행.\n3. 정렬(`O(n log n)`) 및 이진 탐색 기반 동적 계획법(`O(n log n)`)을 적용하여 `O(n log n)` 시간, `O(n)` 공간 복잡도 달성.\n4. 공개 예시 4건, 경계값 4건, 불변성 검증, 에러 케이스 13건, 20만 건 대규모 스트레스 테스트(73ms) 전건",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/ALG-01/RESULT.md"
+        },
+        "CODE-01": {
+          "id": "CODE-01",
+          "meta": {
+            "category": "code",
+            "title": "예약 충돌 버그 수정",
+            "brief": "반열린 예약 구간의 겹침 판정과 입력 검증을 수정하고 경계·오류 테스트를 실행한다.",
+            "weight": 0.125
+          },
+          "status": "submitted",
+          "files": [
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# CODE-01 결과 보고서\n\n- 과제 ID: CODE-01\n- 상태: submitted\n- 시작 시각: 2026-09-13T16:40:40.064964+00:00\n- 종료 시각: 2026-09-13T16:40:58.523070+00:00\n- 경과 시간: 약 15초 (한도 8분 이내 완료)\n- 타이밍 출처: agent-observed (단조 시계 / Python datetime UTC)\n- 토큰/비용/속도: 미측정 (not_exposed)\n\n## 산출물\n- `outputs/CODE-01/booking.mjs`: 결함이 수정되고 유효성 검증이 추가된 ES 모듈.\n- `outputs/CODE-01/test_booking.mjs`: 8개 범주 20개 단언을 포함한 종합 테스트 스위트.\n\n## 수정 내용 및 결함 분석\n1. 충돌 조건 결함 수정:\n   - 기존 코드: `start <= b && end >= a`\n     -> 반개구간 `[start, end)`에서 인접한 예약(`start === b` 또는 `end === a`)을 충돌로 잘못 판정하는 심각한 결함 존재.\n   - 수정 코드: `start < b && end > a`\n     -> 반개구간 수학적 ",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/CODE-01/RESULT.md"
+        },
+        "GAME-01": {
+          "id": "GAME-01",
+          "meta": {
+            "category": "web",
+            "title": "테트리스 (Hold 포함)",
+            "brief": "10×20 보드, 7종 블록, 점수·다음 블록·일시정지와 1회 제한 Hold 기능을 갖춘 테트리스를 만든다.",
+            "weight": 0.067,
+            "hasHtml": true
+          },
+          "status": "submitted",
+          "files": [
+            "index.html",
+            "RESULT.md"
+          ],
+          "hasHtml": true,
+          "htmlPath": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/GAME-01/index.html",
+          "resultSnippet": "# GAME-01 결과 보고서\n\n- 과제 ID: GAME-01\n- 상태: submitted\n- 시작 시각: 2026-09-13T16:39:39.635873+00:00\n- 종료 시각: 2026-09-13T16:40:05.578232+00:00\n- 경과 시간: 약 30초 (한도 25분 이내 완료)\n- 타이밍 출처: agent-observed (단조 시계 / Python datetime UTC)\n- 토큰/비용/속도: 미측정 (not_exposed)\n\n## 산출물\n- `outputs/GAME-01/index.html`: 외부 의존성이 전혀 없는 완전한 단일 HTML/Canvas 테트리스 게임.\n\n## 구현 상세 및 필수 요구사항 충족 내역\n1. 보드 및 조작: 10×20 그리드, 7종 테트로미노(I, J, L, O, S, T, Z), 좌우 이동, 시계 방향 회전, 빠른 낙하(Soft Drop), 즉시 낙하(Hard Drop, 스페이스바).\n2. 회전 충돌 판정: 회전 시 벽이나 기존 고정 블록과 겹치면 회전을 원복(취소)함 (벽차기 없음).\n3. 점수 시스템: 줄 제거 시 동시 삭제하며 1줄 100점, 2줄 300점, 3줄 500점, 4줄 800점 가산. 낙하 자체",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/GAME-01/RESULT.md"
+        },
+        "GAME-02": {
+          "id": "GAME-02",
+          "meta": {
+            "category": "web",
+            "title": "플랫포머 게임",
+            "brief": "고정 맵에서 이동·점프·충돌·코인·적·카메라·재시작과 완주가 가능한 플랫폼 게임을 만든다.",
+            "weight": 0.066,
+            "hasHtml": true
+          },
+          "status": "submitted",
+          "files": [
+            "index.html",
+            "RESULT.md"
+          ],
+          "hasHtml": true,
+          "htmlPath": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/GAME-02/index.html",
+          "resultSnippet": "# GAME-02 결과 보고서\n\n- 과제 ID: GAME-02\n- 상태: submitted\n- 시작 시각: 2026-09-13T16:40:10.674062+00:00\n- 종료 시각: 2026-09-13T16:40:35.409736+00:00\n- 경과 시간: 약 24초 (한도 25분 이내 완료)\n- 타이밍 출처: agent-observed (단조 시계 / Python datetime UTC)\n- 토큰/비용/속도: 미측정 (not_exposed)\n\n## 산출물\n- `outputs/GAME-02/index.html`: 외부 의존성이 전혀 없는 완전한 단일 HTML/Canvas 2D 플랫폼 게임.\n\n## 맵 사양 및 물리 파라미터 충족 내역\n1. 월드 사양:\n   - 월드 크기: 2400×600 (+x 우측, +y 하향).\n   - 지면: y=520, 구간 [0,650], [780,1500], [1640,2400] (낙하 위험 낭떠러지: 650~780 (폭 130px), 1500~1640 (폭 140px)).\n   - 플랫폼: (350,410,160,20), (1100,400,180,20), (1800,380,180,20).\n   - 플레이어: 32×44 크기, 시",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/GAME-02/RESULT.md"
+        },
+        "H-01": {
+          "id": "H-01",
+          "meta": {
+            "category": "tools",
+            "title": "긴 지시 및 설정 수정",
+            "brief": "여러 보존 조건을 유지하며 지정 서비스의 타임아웃 한 필드만 수정하고 검증한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# H-01 결과 보고서\n\n- 과제 ID: H-01\n- 상태: submitted\n- 시작 시각: 2026-09-13T16:38:17.576020+00:00\n- 종료 시각: 2026-09-13T16:38:30.435684+00:00\n- 경과 시간: 약 12초 (한도 6분 이내 완료)\n- 타이밍 출처: agent-observed (단조 시계 / Python datetime UTC)\n- 토큰/비용/속도: 미측정 (not_exposed)\n\n## 수행 내용\n1. 원본 `cases/v0.1/input/service-config.json`을 수정하지 않고 `outputs/H-01/service-config.json`으로 복사본 생성.\n2. JSON 구조를 파싱하여 배열 인덱스가 아닌 `id == \"document-indexer\"` 조건으로 서비스 탐색.\n3. 해당 서비스의 `request_timeout_seconds`를 기존 5에서 30으로 수정.\n4. 다른 필드(`retry_count`: 2, `port`: 8765, `enabled`: true, `user_note`: \"manual configuration retained\") 및 다른 서비스(`image-previe",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/H-01/RESULT.md"
+        },
+        "H-03": {
+          "id": "H-03",
+          "meta": {
+            "category": "code",
+            "title": "실패한 테스트 수정",
+            "brief": "배송비 구현의 실패 테스트를 재현한 뒤 테스트는 유지하고 경계 조건 버그를 수정한다.",
+            "weight": 0.125
+          },
+          "status": "submitted",
+          "files": [
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# H-03 결과 보고서\n\n- 과제 ID: H-03\n- 상태: submitted\n- 시작 시각: 2026-09-13T16:38:34.819820+00:00\n- 종료 시각: 2026-09-13T16:38:54.278270+00:00\n- 경과 시간: 약 16초 (한도 8분 이내 완료)\n- 타이밍 출처: agent-observed (단조 시계 / Python datetime UTC)\n- 토큰/비용/속도: 미측정 (not_exposed)\n\n## 수행 내용\n1. 작업 폴더에 공개 결함 코드 `shipping.py`와 공개 테스트 `test_shipping.py` 준비.\n2. 수정 전 테스트 실행: 총 6개 테스트 중 3개 실패 확인.\n   - test_free_threshold: 50,000원 이상 무료 판정 결함 (`> 50000` -> 50000원 주문 시 4000원 청구)\n   - test_partial_band: 1001g일 때 500원 구간 시작 올림 미처리 (`int(1/500) == 0` -> 3000원 청구)\n   - test_next_band: 1501g일 때 2개 구간 올림 미처리 (`int(501/500) == 1` -> 3500원 청구)\n3. 테",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/H-03/RESULT.md"
+        },
+        "REASON-KO-01": {
+          "id": "REASON-KO-01",
+          "meta": {
+            "category": "reason",
+            "title": "국어 조건·예외 독해",
+            "brief": "가상 자료실 안내의 조건·시각·예외를 읽고 다섯 주장을 뒷받침·충돌·확정 불가로 판정한다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# REASON-KO-01 결과 보고서\n\n- 과제 ID: REASON-KO-01\n- 문제 버전: 1\n- 상태: submitted\n- 타이밍 출처: agent-observed (benchmark.py harness)\n- 토큰/비용/속도: 미측정 (not_exposed)\n\n## 수행 내용\n1. 가상 자료실 운영 안내 지문([P1]~[P4])을 순수 언어 모델의 추론 능력만으로 정밀 독해.\n2. 외부 검색, 계산기, 파이썬 코드 기반 자동 판정을 일절 사용하지 않고 지문의 문맥과 사실관계에만 기반하여 5개 문항(K1~K5) 판정 수행:\n   - K1: `supported` (P1)\n   - K2: `contradicted` (P2)\n   - K3: `contradicted` (P2)\n   - K4: `not_established` (P3)\n   - K5: `contradicted` (P4)\n3. `answers.json` 및 각 판정의 근거와 사실에 반하는 주장/아직 정해지지 않은 주장의 구분을 서술한 `explanation.md` 작성 완료.\n\n## 도구 사용 및 한계\n- 사용한 도구: 산출물 저장을 위한 로컬 파일 쓰기 명령만 수행 (문제 풀이에 코딩/계산 도",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/REASON-KO-01/RESULT.md"
+        },
+        "REASON-MATH-01": {
+          "id": "REASON-MATH-01",
+          "meta": {
+            "category": "reason",
+            "title": "수학 경계·할인 계산",
+            "brief": "구간별 종이 요금, 200장 할인과 배송비 조건을 계산하고 무료 배송의 최소 장수 경계를 찾는다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# REASON-MATH-01 결과 보고서\n\n- 과제 ID: REASON-MATH-01\n- 문제 버전: 1\n- 상태: submitted\n- 타이밍 출처: agent-observed (benchmark.py harness)\n- 토큰/비용/속도: 미측정 (not_exposed)\n\n## 수행 내용\n1. 문제에 제시된 구간별 단가(100장 이하 120원, 101장 이상 90원), 200장 이상 10% 할인, 배송비 조건(할인 뒤 20,000원 이상 무료)을 순수 모델 내부 연산으로 풀이.\n2. 외부 검색, 계산기 프로그램, 코드 실행을 통한 자동 계산 없이 순수 수리 추론으로 5개 항목 산출:\n   - M1: 25500 (250장 할인 전 종이 요금)\n   - M2: 22950 (250장 10% 할인 뒤 종이 요금)\n   - M3: 22950 (무료 배송 적용 최종 금액)\n   - M4: 33500 (125장 2회 분할 주문 시 총액)\n   - M5: 189 (무료 배송 최소 정수 장수; 200장 경계 역전 현상 분석 포함)\n3. 정수 JSON(`answers.json`) 및 수식/경계 비교 문서(`explanation.md`) 작성 완료.\n\n## 도구 사용 및 한",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/REASON-MATH-01/RESULT.md"
+        },
+        "REASON-SCI-01": {
+          "id": "REASON-SCI-01",
+          "meta": {
+            "category": "reason",
+            "title": "과학 실험·변수 판단",
+            "brief": "조명 시간과 비료가 다른 모의 묘목 실험에서 평균·비교 집단·일반화 가능 여부를 판단한다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# REASON-SCI-01 결과 보고서\n\n- 과제 ID: REASON-SCI-01\n- 문제 버전: 1\n- 상태: submitted\n- 타이밍 출처: agent-observed (benchmark.py harness)\n- 토큰/비용/속도: 미측정 (not_exposed)\n\n## 수행 내용\n1. 모의 묘목 성장 실험 설계와 결과 표(집단 A, B, C)를 과학적 탐구 방법론(대조군 설계, 독립 변인 통제, 교락 요인 식별)에 따라 순수 언어/논리 추론으로 분석.\n2. 외부 검색, 계산기, 코드 실행 없이 순수 사고 과정으로 5개 문항 산출:\n   - S1: 5 (B 집단 산술 평균)\n   - S2: B-C (조명 통제 하의 비료 대조 쌍)\n   - S3: A-B (비료 통제 하의 조명 시간 대조 쌍)\n   - S4: not_established (단일 품종 데이터의 전 품종 과도 일반화 확정 불가)\n   - S5: contradicted (2개 변인 동시 변경 교락으로 비료 효과 단독 분리 불가)\n3. 정답 JSON(`answers.json`), 근거 및 일반화를 위한 요인 배치 확장 실험 제안(`explanation.md`) 작성 완료.\n4. 통계적 유의성 ",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/REASON-SCI-01/RESULT.md"
+        },
+        "SEARCH-01": {
+          "id": "SEARCH-01",
+          "meta": {
+            "category": "search",
+            "title": "공식 기능 확인 리서치",
+            "brief": "Python 3.12 tomllib의 TOML 읽기·쓰기 지원 여부, 도입 버전과 파일 모드를 공식 문서에서 확인한다.",
+            "weight": 0.075
+          },
+          "status": "submitted",
+          "files": [
+            "research.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# SEARCH-01 결과 보고서\n\n- 과제 ID: SEARCH-01\n- 상태: submitted\n- 시작 시각: 2026-09-13T16:43:23.246634+00:00\n- 종료 시각: 2026-09-13T16:44:13.409630+00:00\n- 경과 시간: 약 45초 (한도 8분 이내 완료)\n- 타이밍 출처: agent-observed (단조 시계 / Python datetime UTC)\n- 토큰/비용/속도: 미측정 (not_exposed)\n\n## 산출물\n- `outputs/SEARCH-01/research.md`: Python 3.12 tomllib 공식 문서에 기반한 조사 보고서.\n- `outputs/SEARCH-01/sources.json`: 조회 URL, 조회 시각(2026-09-13T16:43:50Z), 인용 근거 매핑 목록.\n\n## 확인한 공식 사실\n1. TOML 읽기/쓰기 지원 여부: 읽기(Parsing)만 지원하며, 쓰기(Writing)는 지원하지 않음 (`This module does not support writing TOML`). 쓰기 대안으로 Tomli-W 및 TOML Kit 안내.\n2. 표준 라이브러리 추가 버전: Python ",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/SEARCH-01/RESULT.md"
+        },
+        "SEARCH-03": {
+          "id": "SEARCH-03",
+          "meta": {
+            "category": "search",
+            "title": "환경별 비교 리서치",
+            "brief": "Apple Silicon·64GB 환경에서 한국어 글쓰기와 코딩 연동 용도로 Ollama·llama.cpp·LM Studio를 공식 자료 기반으로 비교한다.",
+            "weight": 0.075
+          },
+          "status": "submitted",
+          "files": [
+            "research.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# SEARCH-03 결과 보고서\n\n- 과제 ID: SEARCH-03\n- 상태: submitted\n- 시작 시각: 2026-09-13T16:44:17.600479+00:00\n- 종료 시각: 2026-09-13T16:45:14.856008+00:00\n- 경과 시간: 약 55초 (한도 15분 이내 완료)\n- 타이밍 출처: agent-observed (단조 시계 / Python datetime UTC)\n- 토큰/비용/속도: 미측정 (not_exposed)\n\n## 산출물\n- `outputs/SEARCH-03/research.md`: Apple Silicon Mac 64GB 환경 대상 Ollama, llama.cpp, LM Studio 3자 심층 비교 보고서 (본문 3,469자, 2,000~3,500자 목표 준수, 비교표 및 조건별 추천 포함).\n- `outputs/SEARCH-03/sources.json`: 3개 도구의 공식 저장소/문서 URL 및 인용 사실 매핑.\n\n## 조사 기준 및 핵심 비교 내역\n1. 기준일: 2026년 9월 14일 (KST).\n2. 5대 공통 비교 항목:\n   - 설치/운영 방식 (데몬/CLI vs 독립 바이너리 vs 데스크톱 GUI)\n  ",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/SEARCH-03/RESULT.md"
+        },
+        "TC-01": {
+          "id": "TC-01",
+          "meta": {
+            "category": "tools",
+            "title": "선택적 도구 조회",
+            "brief": "프로젝트 파일에서 필요한 사실만 조회하고, 조회가 필요 없는 요약 요청은 도구 없이 처리한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "answer.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# TC-01 결과 보고서\n\n- 과제 ID: TC-01\n- 상태: submitted\n- 시작 시각: 2026-09-13T16:37:10.738262+00:00\n- 종료 시각: 2026-09-13T16:37:30.752974+00:00\n- 경과 시간: 약 30초 (한도 3분 이내 완료)\n- 타이밍 출처: agent-observed (시스템 단조 시계 / Python datetime UTC)\n- 토큰/비용/속도: 미측정 (not_exposed, 하네스에서 노출되지 않음)\n\n## 수행 내용\n1. 요청 1: `outputs/TC-01/project-facts.json` 복사본을 읽고 프로젝트의 `api_port` (8765)와 `max_parallel_jobs` (3)를 확인하여 답변에 기술함.\n2. 요청 2: 주어진 제시문을 의미 손실 없이 단일 평서문으로 축약함: \"응답 속도가 빠르더라도 결과가 부정확할 수 있으므로, 모델을 선택할 때는 정확도와 전체 작업 소요 시간을 함께 검토해야 합니다.\"\n\n## 도구 사용 내역 및 필요 이유\n- **요청 1 정보 조회**: `view_file` (파일 읽기 도구) 사용.\n  - 사유: 프로젝트별 고유 설정값(`api_por",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/TC-01/RESULT.md"
+        },
+        "TC-02": {
+          "id": "TC-02",
+          "meta": {
+            "category": "tools",
+            "title": "일정 생성 및 멱등성",
+            "brief": "서울 기준 자연어 일정을 UTC 인자로 변환해 모의 캘린더에 만들고 목록 조회로 확인한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "answer.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# TC-02 결과 보고서\n\n- 과제 ID: TC-02\n- 상태: submitted\n- 시작 시각: 2026-09-13T16:37:33.718179+00:00\n- 종료 시각: 2026-09-13T16:37:49.298355+00:00\n- 경과 시간: 약 15초 (한도 4분 이내 완료)\n- 타이밍 출처: agent-observed (시스템 단조 시계 / Python datetime UTC)\n- 토큰/비용/속도: 미측정 (not_exposed)\n\n## 수행 내용\n1. 기준 시각 2026-09-14 (KST) 기준으로 \"내일 오후 3시부터 45분간\"을 KST 2026-09-15 15:00~15:45로 계산함.\n2. KST(UTC+09:00)를 UTC로 변환하여 `start_utc`: `2026-09-15T06:00:00Z`, `end_utc`: `2026-09-15T06:45:00Z`로 정규화함.\n3. 요청 JSON (`request.json`)을 생성하고 모의 도구 `calendar.create` 호출.\n4. 모의 도구 `calendar.list`를 호출하여 이벤트가 올바르게 등록되었음을 목록에서 재조회 확인.\n5. `response.json`, `answer.",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/TC-02/RESULT.md"
+        },
+        "TC-04": {
+          "id": "TC-04",
+          "meta": {
+            "category": "tools",
+            "title": "오류 복구 및 재시도",
+            "brief": "모의 상품 조회의 일시적 오류에서 복구하고 존재하지 않는 상품의 실패를 정확히 구분한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "answer.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# TC-04 결과 보고서\n\n- 과제 ID: TC-04\n- 상태: submitted\n- 시작 시각: 2026-09-13T16:37:52.633711+00:00\n- 종료 시각: 2026-09-13T16:38:14.209328+00:00\n- 경과 시간: 약 20초 (한도 4분 이내 완료)\n- 타이밍 출처: agent-observed (단조 시계 / Python datetime UTC)\n- 토큰/비용/속도: 미측정 (not_exposed)\n\n## 수행 내용\n1. LNU-USB 상품 조회 요청:\n   - 1차 시도: catalog.quote 호출 -> 반환: code: TEMP_UNAVAILABLE, retryable: true\n   - 오류 분석: retryable: true 임을 확인하고 일시적 장애로 판단, 동일 파라미터로 재시도 수행.\n   - 2차 시도 (재시도 1회): catalog.quote 호출 -> 반환: sku: LNU-USB, name: Leneu USB Hub, unit_price_won: 32000, stock: 7 정상 회복 및 데이터 획득.\n2. NO-SUCH-ITEM 상품 조회 요청:\n   - 1차 시도: catalog.quote 호출 ",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/TC-04/RESULT.md"
+        },
+        "THINK-01": {
+          "id": "THINK-01",
+          "meta": {
+            "category": "write",
+            "title": "장애 복구 요약·근거 대조",
+            "brief": "Kubernetes 복구 문서와 GitHub 장애 사례를 대조해 롤백 명령만으로 안전한 복구가 보장되는지 판단한다.",
+            "weight": 0.06
+          },
+          "status": "submitted",
+          "files": [
+            "summary.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# THINK-01 결과 보고서 (writing-v2.1)\n\n- 과제 ID: THINK-01\n- 버전: writing-v2.1\n- 시도 ID (attempt_id): 20260914T174530Z-w2r1\n- 상태: submitted\n- 시작 시각: 2026-09-14T18:08:30+00:00\n- 종료 시각: 2026-09-14T18:22:00+00:00\n- 경과 시간: 약 13분 30초 (제한시간 20분 이내 완료)\n- 타이밍 출처: agent-observed (UTC 기준)\n- 토큰/비용/속도: 미측정 (not_exposed)\n- 이전 시도 보관 경로: `outputs/THINK-01/.history/20260914T174530Z-w2r1/previous/`\n- 입력 파일 해시:\n  - `input-writing-v2/deployment.md`: `646222dba494c927f918fa9cfb1f8ef25076cf47948a37e5ec05096fe3ff2e43`\n  - `input-writing-v2/incident.md`: `8bddd77b297ea3b717b0d79cbb45f94b12c6a0c00b0e50d18b321a648fa39414`\n\n## ",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/THINK-01/RESULT.md"
+        },
+        "WEB-01": {
+          "id": "WEB-01",
+          "meta": {
+            "category": "web",
+            "title": "반응형 제품 웹앱",
+            "brief": "개인 AI 작업 기록 서비스 Leneu Desk의 반응형 랜딩페이지와 가격·FAQ·신청 상호작용을 만든다.",
+            "weight": 0.067,
+            "hasHtml": true
+          },
+          "status": "submitted",
+          "files": [
+            "index.html",
+            "RESULT.md"
+          ],
+          "hasHtml": true,
+          "htmlPath": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/WEB-01/index.html",
+          "resultSnippet": "# WEB-01 결과 보고서\n\n- 과제 ID: WEB-01\n- 상태: submitted\n- 시작 시각: 2026-09-13T16:38:58.149667+00:00\n- 종료 시각: 2026-09-13T16:39:35.486367+00:00\n- 경과 시간: 약 35초 (한도 20분 이내 완료)\n- 타이밍 출처: agent-observed (단조 시계 / Python datetime UTC)\n- 토큰/비용/속도: 미측정 (not_exposed)\n\n## 산출물\n- `outputs/WEB-01/index.html`: 외부 의존성(CDN, 외부 폰트, 외부 이미지)이 전혀 없는 완전한 단일 HTML 파일.\n\n## 구현 내용\n1. 가상 제품 사양 반영: Leneu Desk (작업 기록, 결과 비교, Markdown 내보내기).\n2. 요금제 사양 반영: Free (프로젝트 3개) vs Plus (무제한 프로젝트).\n3. 동적 인터랙션:\n   - 월/연 결제 토글 스위치: 월 9,000원/월 <-> 연 90,000원/년 (금액과 주기 텍스트 동시 변경, 키보드 Space/Enter 지원).\n   - 모바일 햄버거 메뉴 열기/닫기 및 링크 클릭 시 자동 닫힘.\n   - FAQ",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/WEB-01/RESULT.md"
+        },
+        "WRITE-01": {
+          "id": "WRITE-01",
+          "meta": {
+            "category": "write",
+            "title": "저장소 작업 규칙 기술 블로그",
+            "brief": "AI 코딩 도구에 반복 설명할 저장소 공통·경로별 작업 규칙을 어디에 어떻게 기록할지 설명하는 기술 글을 쓴다.",
+            "weight": 0.08
+          },
+          "status": "submitted",
+          "files": [
+            "article.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# WRITE-01 결과 보고서 (writing-v2.1)\n\n- 과제 ID: WRITE-01\n- 버전: writing-v2.1\n- 시도 ID (attempt_id): 20260914T174530Z-w2r1\n- 상태: submitted\n- 시작 시각: 2026-09-14T17:46:00+00:00\n- 종료 시각: 2026-09-14T17:58:30+00:00\n- 경과 시간: 약 12분 30초 (제한시간 15분 이내 완료)\n- 타이밍 출처: agent-observed (UTC 기준)\n- 토큰/비용/속도: 미측정 (not_exposed)\n- 이전 시도 보관 경로: `outputs/WRITE-01/.history/20260914T174530Z-w2r1/previous/`\n- 입력 파일 해시 (`input-writing-v2/repository-instructions.md`): `365153628cd1a052eeb9d9b68e7cb416e9fa2c40c498ae8b47e24a413d80d287`\n\n## 산출물\n- `article.md`: Unicode 3,061자의 한국어 기술 블로그 본문 (H1 1개, H2 6개, 비교 표, 마크다운 예시 코드 블록, 체크리스트 표",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/WRITE-01/RESULT.md"
+        },
+        "WRITE-02": {
+          "id": "WRITE-02",
+          "meta": {
+            "category": "write",
+            "title": "배포·롤백 운영 문서",
+            "brief": "Kubernetes 공식 자료를 당직 개발자가 사용할 수 있는 배포 실패 확인·판단·롤백 런북으로 편집한다.",
+            "weight": 0.06
+          },
+          "status": "submitted",
+          "files": [
+            "edited.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# WRITE-02 결과 보고서 (writing-v2.1)\n\n- 과제 ID: WRITE-02\n- 버전: writing-v2.1\n- 시도 ID (attempt_id): 20260914T174530Z-w2r1\n- 상태: submitted\n- 시작 시각: 2026-09-14T17:59:00+00:00\n- 종료 시각: 2026-09-14T18:08:00+00:00\n- 경과 시간: 약 9분 (제한시간 12분 이내 완료)\n- 타이밍 출처: agent-observed (UTC 기준)\n- 토큰/비용/속도: 미측정 (not_exposed)\n- 이전 시도 보관 경로: `outputs/WRITE-02/.history/20260914T174530Z-w2r1/previous/`\n- 입력 파일 해시 (`input-writing-v2/deployment.md`): `646222dba494c927f918fa9cfb1f8ef25076cf47948a37e5ec05096fe3ff2e43`\n\n## 산출물\n- `edited.md`: 한국어 2,470자의 당직자용 배포·롤백 운영 런북 (H1 1개, H2 5개, 상태/판단/다음행동 표, shell 코드 블록, 작업 전·후 체크리스트 포함).\n- `",
+          "resultFile": "runs/gemini-3.8-flash/20260913T163700Z-g38f/outputs/WRITE-02/RESULT.md"
+        }
+      }
+    },
+    {
+      "modelSlug": "gpt-5.6-luna-xhigh",
+      "runId": "20260913T142420Z-a7f3",
+      "runPath": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3",
+      "totalTasks": 18,
+      "hasAddonReasoning": true,
+      "totalTimeText": "약 45분",
+      "verifiedBadge": "15개 제출·3개 부분 완료",
+      "submissionPath": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/SUBMISSION.md",
+      "scorecard": {
+        "method": "v0.4-unified-18-1",
+        "reviewId": "v04-ai-20260915",
+        "reviewedAt": "2026-09-14T19:15:57Z",
+        "evaluationPath": "reports/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/v04-ai-20260915/evaluation.json",
+        "weightedScore": 97.60096153846155,
+        "groups": {
+          "code": 99.48717948717949,
+          "tools": 100,
+          "web_games": 93.33333333333333,
+          "writing": 99.16666666666667,
+          "research": 96.875,
+          "reasoning": 95
+        },
+        "statusCounts": {
+          "scored": 18,
+          "passed": 16,
+          "failed": 2,
+          "pending": 0
+        }
+      },
+      "tasks": {
+        "ALG-01": {
+          "id": "ALG-01",
+          "meta": {
+            "category": "reason",
+            "title": "가중 구간 알고리즘",
+            "brief": "겹치지 않는 반열린 작업 구간의 최대 가치 합을 O(n log n) 이하로 계산하는 함수를 구현한다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# ALG-01 result\n\n- Status: `submitted`\n- Tools: local Node.js runtime and the submitted `solution.mjs` only.\n- Independent grading: not performed; score remains unscored.\n- Limitation: benchmark timing and token usage were not exposed by this app.\n\n",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/ALG-01/RESULT.md"
+        },
+        "CODE-01": {
+          "id": "CODE-01",
+          "meta": {
+            "category": "code",
+            "title": "예약 충돌 버그 수정",
+            "brief": "반열린 예약 구간의 겹침 판정과 입력 검증을 수정하고 경계·오류 테스트를 실행한다.",
+            "weight": 0.125
+          },
+          "status": "submitted",
+          "files": [
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# CODE-01 결과\n\n- 상태: submitted (산출물 제출 상태이며 독립 채점 아님)\n- 시작: 2026-09-13T14:32:48.3Z\n- 종료: 2026-09-13T14:32:48.3Z\n- 구현: 공개 인터페이스 `canBook(existing, start, end)`를 유지하고 `[start,end)` 규칙에 맞게 `start < b && end > a`로 겹침을 판정했다. 입력 배열·기존 구간·신규 구간의 형식, 정수 범위와 `start < end`를 검사해 잘못된 값은 `RangeError`를 던진다.\n- 테스트: 같은 예약, 부분 겹침, 포함, 양쪽 인접, 빈 목록, 배열 불변성과 잘못된 입력을 `test_booking.mjs`에서 확인했다.\n- 실행 결과: `node test_booking.mjs` → `CODE-01: all assertions passed`.\n- 호출·토큰·비용: 플랫폼에서 제공되지 않아 미측정(null).\n",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/CODE-01/RESULT.md"
+        },
+        "GAME-01": {
+          "id": "GAME-01",
+          "meta": {
+            "category": "web",
+            "title": "테트리스 (Hold 포함)",
+            "brief": "10×20 보드, 7종 블록, 점수·다음 블록·일시정지와 1회 제한 Hold 기능을 갖춘 테트리스를 만든다.",
+            "weight": 0.067,
+            "hasHtml": true
+          },
+          "status": "submitted",
+          "files": [
+            "index.html",
+            "RESULT.md"
+          ],
+          "hasHtml": true,
+          "htmlPath": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/GAME-01/index.html",
+          "resultSnippet": "# GAME-01 결과\n\n- 상태: partial (소스와 정적 검증은 제출했지만 브라우저 직접 플레이는 미수행)\n- 시작: 2026-09-13T14:30:21.3Z\n- 종료: 2026-09-13T14:30:21.3Z\n- 구현: 10×20 보드, 7종 블록, 좌우 이동·시계 방향 회전(충돌 시 취소)·빠른/즉시 낙하, 다음 블록, 점수·줄·일시정지·게임오버·재시작을 구현했다.\n- Hold: C/Shift로 빈 슬롯 저장·다음 블록 취득, 슬롯이 차면 교환, Hold 직후 고정 전 재사용 금지(`canHold`), 저장 블록은 기본 회전·생성 위치로 복원, 일시정지·게임오버 중 차단, 재시작 시 슬롯·제한·보드·점수·단일 게임 루프 초기화.\n- 점수: 1/2/3/4줄에 100/300/500/800점, 낙하 점수 없음. 50,000원 같은 다른 과제 규칙과 혼동하지 않고 줄 점수만 적용했다.\n- 정적 확인: Node로 인라인 JavaScript를 파싱하고 Hold/줄 제거/루프 관련 훅을 확인했다.\n- 미확인: 브라우저가 없어 실제 키 연타·키 유지·C/Shift 교차 입력, 벽·기존 블록 회전 취소, 줄 제거·Hold 교환·재시작 속도 중복 없음은 직접 플레이",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/GAME-01/RESULT.md"
+        },
+        "GAME-02": {
+          "id": "GAME-02",
+          "meta": {
+            "category": "web",
+            "title": "플랫포머 게임",
+            "brief": "고정 맵에서 이동·점프·충돌·코인·적·카메라·재시작과 완주가 가능한 플랫폼 게임을 만든다.",
+            "weight": 0.066,
+            "hasHtml": true
+          },
+          "status": "submitted",
+          "files": [
+            "index.html",
+            "RESULT.md"
+          ],
+          "hasHtml": true,
+          "htmlPath": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/GAME-02/index.html",
+          "resultSnippet": "# GAME-02 결과\n\n- 상태: partial (구현과 정적 검증은 제출했지만 브라우저 완주 검증은 미수행)\n- 시작: 2026-09-13T14:32:04.3Z\n- 종료: 2026-09-13T14:32:04.3Z\n- 구현: 2400×600 월드, 지정된 세 지면 구간·세 플랫폼·코인·왕복 적 두 마리·x=2310 골인 지점, 좌우 이동·지면 점프·중력·플랫폼 충돌·카메라 추적·코인 수집·재시작·클리어 시간 정지를 구현했다.\n- 물리 수치: 수평 속도 210 px/s, 중력 1050 px/s², 점프 초기 속도 -430 px/s, 적 속도 65 px/s. 플레이어 32×44, 시작 (80,476)을 사용했다.\n- 충돌 처리: 적을 하강 중 위에서 밟으면 제거·반동, 옆 충돌은 실패, y가 월드 아래로 내려가면 실패, 재시작 시 위치·속도·코인·적·시간을 초기화한다.\n- 정적 확인: Node로 inline JavaScript 파싱 성공 및 월드 크기·지면 y·골인 좌표·카메라·재시작 훅을 확인했다.\n- 미확인: 브라우저가 없어 실제 완주, 코인 중복 방지, 카메라 경계, 플랫폼 아래 충돌, 적 밟기·옆 충돌·추락 후 재시작을 직접 플레이로 확인하지 못했다.\n",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/GAME-02/RESULT.md"
+        },
+        "H-01": {
+          "id": "H-01",
+          "meta": {
+            "category": "tools",
+            "title": "긴 지시 및 설정 수정",
+            "brief": "여러 보존 조건을 유지하며 지정 서비스의 타임아웃 한 필드만 수정하고 검증한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# H-01 결과\n\n- 상태: submitted (산출물 제출 상태이며 독립 채점 아님)\n- 시작: 2026-09-13T14:26:19.3Z\n- 종료: 2026-09-13T14:26:19.3Z\n- 경과: 터미널 시각 관측상 0초 미만.\n- 작업: 원본을 수정하지 않고 실행 폴더 복사본에서 `id=document-indexer`인 서비스의 `request_timeout_seconds`만 5에서 30으로 변경했다.\n- 검증: Python `json.load` 파싱 성공. 변경 목록은 해당 필드 하나뿐이며 다른 서비스의 타임아웃과 `retry_count`, `port`, `enabled`, `user_note`가 유지됨을 직접 비교했다.\n- 실제 도구 수: 이 세션에서 확인 가능한 사용 도구 목록을 세지 않았으므로 미측정(null). 공개 하네스 전체 도구 수로 추정하지 않았다.\n- 호출·토큰·비용: 플랫폼에서 제공되지 않아 미측정(null).\n",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/H-01/RESULT.md"
+        },
+        "H-03": {
+          "id": "H-03",
+          "meta": {
+            "category": "code",
+            "title": "실패한 테스트 수정",
+            "brief": "배송비 구현의 실패 테스트를 재현한 뒤 테스트는 유지하고 경계 조건 버그를 수정한다.",
+            "weight": 0.125
+          },
+          "status": "submitted",
+          "files": [
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# H-03 결과\n\n- 상태: submitted (산출물 제출 상태이며 독립 채점 아님)\n- 시작: 2026-09-13T14:26:48.3Z\n- 종료: 2026-09-13T14:26:57.3Z\n- 경과: 약 9.0초, 터미널 시각 관측.\n- 수정 전 검증: 공개 테스트 6개 중 3개 실패(`>= 50,000` 조건, 초과 500g 구간의 올림 처리).\n- 수정: 무료 기준을 `>= 50000`으로 바꾸고 초과 중량 구간을 `math.ceil`로 계산했다. 테스트 파일은 바꾸지 않았다.\n- 수정 후 검증: 동일 테스트 6개 모두 `OK`.\n- 호출·토큰·비용: 플랫폼에서 제공되지 않아 미측정(null).\n",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/H-03/RESULT.md"
+        },
+        "REASON-KO-01": {
+          "id": "REASON-KO-01",
+          "meta": {
+            "category": "reason",
+            "title": "국어 조건·예외 독해",
+            "brief": "가상 자료실 안내의 조건·시각·예외를 읽고 다섯 주장을 뒷받침·충돌·확정 불가로 판정한다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# REASON-KO-01 result\n\n- Status: `submitted`\n- Tools: the supplied passage only; no web search, calculator, or code.\n- Independent grading: not performed; score remains unscored.\n- Limitation: token usage and waiting time were not exposed by this app.\n\n",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/REASON-KO-01/RESULT.md"
+        },
+        "REASON-MATH-01": {
+          "id": "REASON-MATH-01",
+          "meta": {
+            "category": "reason",
+            "title": "수학 경계·할인 계산",
+            "brief": "구간별 종이 요금, 200장 할인과 배송비 조건을 계산하고 무료 배송의 최소 장수 경계를 찾는다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# REASON-MATH-01 result\n\n- Status: `submitted`\n- Tools: the supplied pricing rules and manual arithmetic only; no calculator,\n  web search, or code.\n- Independent grading: not performed; score remains unscored.\n- Limitation: token usage and waiting time were not exposed by this app.\n\n",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/REASON-MATH-01/RESULT.md"
+        },
+        "REASON-SCI-01": {
+          "id": "REASON-SCI-01",
+          "meta": {
+            "category": "reason",
+            "title": "과학 실험·변수 판단",
+            "brief": "조명 시간과 비료가 다른 모의 묘목 실험에서 평균·비교 집단·일반화 가능 여부를 판단한다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# REASON-SCI-01 result\n\n- Status: `submitted`\n- Tools: the supplied experimental design and table only; no web search,\n  calculator, or code.\n- Independent grading: not performed; score remains unscored.\n- Limitation: token usage and waiting time were not exposed by this app.\n\n",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/REASON-SCI-01/RESULT.md"
+        },
+        "SEARCH-01": {
+          "id": "SEARCH-01",
+          "meta": {
+            "category": "search",
+            "title": "공식 기능 확인 리서치",
+            "brief": "Python 3.12 tomllib의 TOML 읽기·쓰기 지원 여부, 도입 버전과 파일 모드를 공식 문서에서 확인한다.",
+            "weight": 0.075
+          },
+          "status": "submitted",
+          "files": [
+            "research.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# SEARCH-01 결과\n\n- 상태: submitted (산출물 제출 상태이며 독립 채점 아님)\n- 시작: 2026-09-13T14:39:00.3Z\n- 종료: 2026-09-13T14:39:00.3Z\n- 조회: 웹 검색으로 Python 공식 3.12 문서를 찾은 뒤 원문 페이지를 열어 확인했다. 검색 결과 요약과 원문 열람을 구분했다.\n- 결론: `tomllib`은 Python 3.11부터 표준 라이브러리에 들어온 TOML 읽기 모듈이며 쓰기를 제공하지 않는다. 파일은 바이너리 모드(`rb`)로 열어 `load`하고, 문자열은 `loads`로 읽는다.\n- URL·조회 시각·주장 연결은 `sources.json`에 기록했다.\n- 호출·토큰·비용: 웹 호출 수와 플랫폼 토큰·비용은 이 세션에서 완전한 계측값으로 제공되지 않아 미측정(null). 웹 검색 1회, 공식 페이지 열람 1회라는 작업 기록만 남겼다.\n",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/SEARCH-01/RESULT.md"
+        },
+        "SEARCH-03": {
+          "id": "SEARCH-03",
+          "meta": {
+            "category": "search",
+            "title": "환경별 비교 리서치",
+            "brief": "Apple Silicon·64GB 환경에서 한국어 글쓰기와 코딩 연동 용도로 Ollama·llama.cpp·LM Studio를 공식 자료 기반으로 비교한다.",
+            "weight": 0.075
+          },
+          "status": "submitted",
+          "files": [
+            "research.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# SEARCH-03 결과\n\n- 상태: submitted (산출물 제출 상태이며 독립 채점 아님)\n- 시작: 2026-09-13T14:40:00.3Z\n- 종료: 2026-09-13T14:40:00.3Z\n- 조사 범위: Ollama·llama.cpp·LM Studio의 공식 문서와 공식 저장소 README를 검색하고 원문 페이지를 열었다. 조사 기준일은 2026-09-13 KST다.\n- 비교 기준: 설치·운영, 모델 형식, 로컬 API, 툴 호출 조건, 오프라인 경계를 공통 표로 정리하고 한국어 글쓰기·코딩 도구 연동에 따른 조건별 추천을 적었다.\n- 미측정: Apple Silicon 64GB에서 직접 설치·실행하지 않았으므로 속도·메모리·첫 토큰·전력·비용은 측정하지 않았다. 공식 문서의 모델 예시 용량을 이 환경의 실측으로 쓰지 않았다.\n- 호출·토큰·비용: 웹 호출의 완전한 계측값과 플랫폼 토큰·비용은 제공되지 않아 미측정(null). 검색·페이지 열람을 수행했다는 사실과 출처 URL은 `sources.json`에 기록했다.\n",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/SEARCH-03/RESULT.md"
+        },
+        "TC-01": {
+          "id": "TC-01",
+          "meta": {
+            "category": "tools",
+            "title": "선택적 도구 조회",
+            "brief": "프로젝트 파일에서 필요한 사실만 조회하고, 조회가 필요 없는 요약 요청은 도구 없이 처리한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "answer.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# TC-01 결과\n\n- 상태: submitted (산출물 제출 상태이며 독립 채점 아님)\n- 시작: 2026-09-13T14:24:40.3Z\n- 종료: 2026-09-13T14:24:40.3Z\n- 경과: 터미널 관측상 0초 미만의 단일 시각 구간; `/usr/bin/time`은 0.04초(real)로 표시됨.\n- 측정 출처: 같은 머신의 터미널 시각과 `/usr/bin/time -p`.\n- 1번 요청: 실행 폴더에 복사한 `project-facts.json`을 실제로 읽어 `api_port=8765`, `max_parallel_jobs=3`을 확인했다. 파일 조회가 필요했다.\n- 2번 요청: 외부 조회 없이 주어진 문장을 한 문장으로 줄였다. 추가 도구를 사용하지 않았다.\n- 호출·토큰·비용: 플랫폼에서 제공되지 않아 미측정(null).\n",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/TC-01/RESULT.md"
+        },
+        "TC-02": {
+          "id": "TC-02",
+          "meta": {
+            "category": "tools",
+            "title": "일정 생성 및 멱등성",
+            "brief": "서울 기준 자연어 일정을 UTC 인자로 변환해 모의 캘린더에 만들고 목록 조회로 확인한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "answer.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# TC-02 결과\n\n- 상태: submitted (산출물 제출 상태이며 독립 채점 아님)\n- 시작: 2026-09-13T14:25:05.3Z\n- 종료: 2026-09-13T14:25:14.3Z\n- 경과: 약 9.0초, 터미널 시각 관측.\n- 요청 변환: 서울 UTC+09:00 기준 2026-09-15 15:00–15:45를 `2026-09-15T06:00:00Z`–`2026-09-15T06:45:00Z`로 전달했다.\n- 확인: `calendar.create` 성공 뒤 `calendar.list`에서 동일 이벤트를 확인했다.\n- 도구 기록: `tool-workspace/tool-events.jsonl`에 create/list 감사 로그가 남아 있다. 첫 list 호출은 `/dev/fd` 경로가 runs 밖으로 판단되어 fixture error가 났고, runs 안의 `list-request.json`으로 한 번 재시도해 성공했다. 성공 결과를 오류로 보고하지 않았다.\n- 호출·재시도·토큰·비용: 도구 호출 3회(유효 2회, 경로 오류 1회), 재시도 1회, 토큰·비용은 미측정(null).\n",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/TC-02/RESULT.md"
+        },
+        "TC-04": {
+          "id": "TC-04",
+          "meta": {
+            "category": "tools",
+            "title": "오류 복구 및 재시도",
+            "brief": "모의 상품 조회의 일시적 오류에서 복구하고 존재하지 않는 상품의 실패를 정확히 구분한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "answer.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# TC-04 결과\n\n- 상태: submitted (산출물 제출 상태이며 독립 채점 아님)\n- 시작: 2026-09-13T14:25:48.3Z\n- 종료: 2026-09-13T14:25:48.3Z\n- 경과: 터미널 표시상 0초 미만(각 모의 도구 호출의 감사 시각은 14:25:48.527–.709Z).\n- 호출 순서: `catalog.quote(LNU-USB)` → `TEMP_UNAVAILABLE` → 같은 요청 1회 재시도 성공 → `catalog.quote(NO-SUCH-ITEM)`의 `NOT_FOUND` → `catalog.list` 성공.\n- 확인: 오류 응답의 `ok`와 `retryable` 필드를 보고 일시 오류만 재시도했다. 감사 로그는 `tool-workspace/tool-events.jsonl`에 보존했다.\n- 호출·재시도·토큰·비용: 도구 호출 4회, 재시도 1회, 토큰·비용은 미측정(null).\n",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/TC-04/RESULT.md"
+        },
+        "THINK-01": {
+          "id": "THINK-01",
+          "meta": {
+            "category": "write",
+            "title": "장애 복구 요약·근거 대조",
+            "brief": "Kubernetes 복구 문서와 GitHub 장애 사례를 대조해 롤백 명령만으로 안전한 복구가 보장되는지 판단한다.",
+            "weight": 0.06
+          },
+          "status": "submitted",
+          "files": [
+            "summary.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# THINK-01 result\n\n- `case_version`: `writing-v2.1`\n- `attempt_id`: `writing-v2.1-20260914T173912Z-r1`\n- `status`: `submitted`\n- `evaluation_status`: `pending`\n- `score`: `null` (independent grading not performed)\n- `artifacts`: `summary.md`, `facts.json`, `analysis.md`, `RESULT.md`\n- `inputs`: `input-writing-v2/deployment.md`, `input-writing-v2/incident.md`\n- `input_sha256`: `SRC-DEPLOY=646222dba416b371e5c8eafda2ff7d2b4bb0fb648f9aa1d4f1bdb87abeb46989`; `SRC-INCIDENT=8bddd77b2925ded5854d93893f1e3fa392e36452e8de162c3b3f7546112a4e09`\n- `read_range`: deployment lines 1–1384 and incident lines 1–2",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/THINK-01/RESULT.md"
+        },
+        "WEB-01": {
+          "id": "WEB-01",
+          "meta": {
+            "category": "web",
+            "title": "반응형 제품 웹앱",
+            "brief": "개인 AI 작업 기록 서비스 Leneu Desk의 반응형 랜딩페이지와 가격·FAQ·신청 상호작용을 만든다.",
+            "weight": 0.067,
+            "hasHtml": true
+          },
+          "status": "submitted",
+          "files": [
+            "index.html",
+            "RESULT.md"
+          ],
+          "hasHtml": true,
+          "htmlPath": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/WEB-01/index.html",
+          "resultSnippet": "# WEB-01 결과\n\n- 상태: partial (외부 의존성 없는 제출물은 만들었지만 실제 브라우저 조작을 수행하지 못함)\n- 시작: 2026-09-13T14:29:00.3Z\n- 종료: 2026-09-13T14:29:00.3Z\n- 산출물: `index.html` 한 파일. CSS, 인라인 SVG 대신 자체 도형/문자 아이콘, JavaScript를 모두 포함하고 CDN·외부 글꼴·이미지를 사용하지 않는다.\n- 구현한 동작: CTA 앵커, 반응형 메뉴 토글, 월/연 가격 전환(₩9,000/월 ↔ ₩90,000/년), FAQ 열기·닫기, 이메일 유효성 검사와 실제 전송 없는 완료 상태.\n- 정적 확인: Node로 HTML을 읽고 필수 훅을 확인했으며 인라인 JavaScript를 `new Function`으로 파싱했다. `@media` 2개가 존재한다.\n- 미확인: 이 환경에 Chromium/Chrome, Playwright, Selenium이 없어 1440/768/390px 렌더링, 키보드 조작, 실제 폼 상호작용은 브라우저로 검증하지 못했다. 소스에 기능 이름이 있는 것만으로 동작을 확인했다고 간주하지 않았다.\n- 호출·토큰·비용: 플랫폼에서 제공되지 않아 미",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/WEB-01/RESULT.md"
+        },
+        "WRITE-01": {
+          "id": "WRITE-01",
+          "meta": {
+            "category": "write",
+            "title": "저장소 작업 규칙 기술 블로그",
+            "brief": "AI 코딩 도구에 반복 설명할 저장소 공통·경로별 작업 규칙을 어디에 어떻게 기록할지 설명하는 기술 글을 쓴다.",
+            "weight": 0.08
+          },
+          "status": "submitted",
+          "files": [
+            "article.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# WRITE-01 result\n\n- `case_version`: `writing-v2.1`\n- `attempt_id`: `writing-v2.1-20260914T173912Z-r1`\n- `status`: `submitted`\n- `evaluation_status`: `pending`\n- `score`: `null` (independent grading not performed)\n- `artifacts`: `article.md`, `evidence.json`, `RESULT.md`\n- `input`: `input-writing-v2/repository-instructions.md`\n- `input_sha256`: `365153628c94ae1f846e82edcdc814d5162bd71c44ce0a68079542873e75501b`\n- `read_range`: fixed input lines 1–255, including the repository-wide, path-specific, agent, reference, precedence, and code-review sections.\n- `format_check`: one H1, five H2 headings ",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/WRITE-01/RESULT.md"
+        },
+        "WRITE-02": {
+          "id": "WRITE-02",
+          "meta": {
+            "category": "write",
+            "title": "배포·롤백 운영 문서",
+            "brief": "Kubernetes 공식 자료를 당직 개발자가 사용할 수 있는 배포 실패 확인·판단·롤백 런북으로 편집한다.",
+            "weight": 0.06
+          },
+          "status": "submitted",
+          "files": [
+            "edited.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# WRITE-02 result\n\n- `case_version`: `writing-v2.1`\n- `attempt_id`: `writing-v2.1-20260914T173912Z-r1`\n- `status`: `submitted`\n- `evaluation_status`: `pending`\n- `score`: `null` (independent grading not performed)\n- `artifacts`: `edited.md`, `changes.md`, `RESULT.md`\n- `input`: `input-writing-v2/deployment.md`\n- `input_sha256`: `646222dba416b371e5c8eafda2ff7d2b4bb0fb648f9aa1d4f1bdb87abeb46989`\n- `read_range`: fixed deployment input lines 1–1384; the edited runbook focuses on Updating a Deployment, Rolling Back a Deployment, Deployment status, pausing/resuming, and revision history limits.\n- `f",
+          "resultFile": "runs/gpt-5.6-luna-xhigh/20260913T142420Z-a7f3/outputs/WRITE-02/RESULT.md"
+        }
+      }
+    },
+    {
+      "modelSlug": "opencode-muse-spark-1.3-contributor-free",
+      "runId": "20260913T163601Z-k7q2",
+      "runPath": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2",
+      "totalTasks": 18,
+      "hasAddonReasoning": true,
+      "totalTimeText": "약 40분",
+      "verifiedBadge": "자기 검증 제출",
+      "submissionPath": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/SUBMISSION.md",
+      "scorecard": {
+        "method": "v0.4-unified-18-1",
+        "reviewId": "v04-devin-20260915",
+        "reviewedAt": "2026-09-14T19:21:00.257889+00:00",
+        "evaluationPath": "reports/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/v04-devin-20260915/evaluation.json",
+        "weightedScore": 98.4875,
+        "groups": {
+          "code": 100,
+          "tools": 100,
+          "web_games": 96.25,
+          "writing": 100,
+          "research": 96.875,
+          "reasoning": 95.5
+        },
+        "statusCounts": {
+          "scored": 18,
+          "passed": 18,
+          "failed": 0,
+          "pending": 0
+        }
+      },
+      "tasks": {
+        "ALG-01": {
+          "id": "ALG-01",
+          "meta": {
+            "category": "reason",
+            "title": "가중 구간 알고리즘",
+            "brief": "겹치지 않는 반열린 작업 구간의 최대 가치 합을 O(n log n) 이하로 계산하는 함수를 구현한다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# ALG-01 결과\n\n- **과제 ID**: ALG-01\n- **문제 버전**: 1\n- **제출물**: `solution.mjs`, `explanation.md`, `RESULT.md`\n- **상태**: submitted\n- **자기 점수**: 미채점 (평가 전용 자료를 읽지 않았으므로 점수를 산출하지 않음)\n\n## 요구사항 충족 요약\n\n| 요구사항 | 충족 | 근거 |\n|---|---|---|\n| `export function maxValue(jobs)` 제공 | 예 | `solution.mjs` |\n| 반환값은 정수 하나(최대 가치 합) | 예 | `dp[n]` 반환 |\n| 반열린 구간 `[start,end)` 양립 규칙 | 예 | `end <= start`로 양립 판정 |\n| 입력 배열·내부 배열 비변경 | 예 | 값 복사 후 인덱스 배열만 정렬 |\n| 빈 입력 → 0 | 예 | `n === 0` 조기 반환 |\n| 잘못된 입력 → `RangeError` | 예 | 검증 15종 테스트 통과 |\n| O(n log n) 이하 시간 | 예 | 정렬 + 이진 탐색 DP |\n| O(n) 이하 추가 공간 | 예 | 길이 n 배열들만 사용 |\n| 자체 테스트 | 예",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/ALG-01/RESULT.md"
+        },
+        "CODE-01": {
+          "id": "CODE-01",
+          "meta": {
+            "category": "code",
+            "title": "예약 충돌 버그 수정",
+            "brief": "반열린 예약 구간의 겹침 판정과 입력 검증을 수정하고 경계·오류 테스트를 실행한다.",
+            "weight": 0.125
+          },
+          "status": "submitted",
+          "files": [
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# CODE-01 RESULT\n\n- 시작: 2026-09-13T16:37:33Z, 종료: 2026-09-13T16:37:50Z (agent-observed, 터미널 UTC, 테스트 15/15 통과 16:37:42Z 관측). 경과 약 45초 (한도 8분 이내).\n- 시작점 결함: 원본 `start <= b && end >= a`는 half-open `[start,end)`에서 인접 예약(예: 기존 [60,120], 신규 [120,180])을 겹침으로 오판하고, 잘못된 입력 검증이 없음. 실제 데모: 원본식은 인접 예약을 false(불가)로 반환.\n- 수정(공개 인터페이스 `canBook(existing, start, end)` 유지): 겹침 판정을 `start < b && a < end`로 변경. 정수 분·`0 <= start < end <= 1440`·기존 구간 형식 검증 추가, 위반 시 `RangeError`. 입력 배열 변경 없음.\n- 검증: `node test_booking.mjs` 15/15 통과 — 같은 예약, 일부 겹침(앞/뒤), 포함 관계(양방향), 양쪽 인접(true), 빈 목록(true), 입력 불변, 잘못된 입력 6종 RangeError.\n",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/CODE-01/RESULT.md"
+        },
+        "GAME-01": {
+          "id": "GAME-01",
+          "meta": {
+            "category": "web",
+            "title": "테트리스 (Hold 포함)",
+            "brief": "10×20 보드, 7종 블록, 점수·다음 블록·일시정지와 1회 제한 Hold 기능을 갖춘 테트리스를 만든다.",
+            "weight": 0.067,
+            "hasHtml": true
+          },
+          "status": "submitted",
+          "files": [
+            "index.html",
+            "RESULT.md"
+          ],
+          "hasHtml": true,
+          "htmlPath": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/GAME-01/index.html",
+          "resultSnippet": "# GAME-01 RESULT\n\n- 시작: 2026-09-13T16:38:20Z, 종료: 2026-09-13T16:39:00Z (agent-observed, 터미널 UTC, 정적 검증 16:38:57Z 관측). 경과 약 90초 (한도 25분 이내).\n- 산출물: 외부 의존성 없는 `index.html` 한 파일(8,427바이트). 10×20 보드, 7종 블록, 좌우·시계방향 회전·빠른낙하(↓)·즉시낙하(Space). 겹치는 회전 취소, 벽차기 없음. 동시 줄 제거, 1/2/3/4줄 = 100/300/500/800점, 낙하 점수 없음. 다음 블록·보관 슬롯·점수·일시정지·게임오버·재시작 제공.\n- Hold 구현: C/Shift 모두 지원. 빈 슬롯 → 현재 블록 보관 + 대기열에서 다음 블록. 슬롯 점유 → 교환, 대기열 유지. `holdLocked` 플래그로 고정 전 재-Hold 차단, `e.repeat` 무시로 키 연타·유지·C/Shift 교차 우회 차단. 보관 배출 블록은 기본 회전·생성 위치로 재생성, 충돌 시 게임오버. Hold만으로 점수·보드·줄 수 변경 없음. 일시정지·게임오버 중 Hold 차단. 재시작 시 보드·점수·보관·제한·루프 초기화, `s",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/GAME-01/RESULT.md"
+        },
+        "GAME-02": {
+          "id": "GAME-02",
+          "meta": {
+            "category": "web",
+            "title": "플랫포머 게임",
+            "brief": "고정 맵에서 이동·점프·충돌·코인·적·카메라·재시작과 완주가 가능한 플랫폼 게임을 만든다.",
+            "weight": 0.066,
+            "hasHtml": true
+          },
+          "status": "submitted",
+          "files": [
+            "index.html",
+            "RESULT.md"
+          ],
+          "hasHtml": true,
+          "htmlPath": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/GAME-02/index.html",
+          "resultSnippet": "# GAME-02 RESULT\n\n- 시작: 2026-09-13T16:38:50Z, 종료: 2026-09-13T16:39:12Z (agent-observed, 터미널 UTC). 경과 약 70초 (한도 25분 이내).\n- 산출물: 외부 의존성 없는 `index.html` 한 파일(6,840바이트). 공통 맵 그대로 구현: 월드 2400×600, 지면 윗면 y=520·구간 [0,650]/[780,1500]/[1640,2400], 플랫폼 (350,410,160,20)/(1100,400,180,20)/(1800,380,180,20), 플레이어 32×44 시작 (80,476), 코인 (420,370)/(1170,360)/(1860,340), 적 x=900~1040·x=2000~2180 왕복, 도착 x=2310.\n- 구현: 좌우 이동·지면에서만 점프·중력·지형 충돌·카메라 추적(경계 고정). 적 위 밟기 → 제거+튄오름, 옆 충돌·추락 → 실패. 재시작 시 위치·속도·코인·적·시간 초기화. 골인 시 클리어 표시+시간 정지.\n- 물리 수치: 중력 2200px/s², 이동 260px/s, 점프初速 -780px/s, 적 속도 110px/s (소스·힌트에 기록).\n- 검증: `",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/GAME-02/RESULT.md"
+        },
+        "H-01": {
+          "id": "H-01",
+          "meta": {
+            "category": "tools",
+            "title": "긴 지시 및 설정 수정",
+            "brief": "여러 보존 조건을 유지하며 지정 서비스의 타임아웃 한 필드만 수정하고 검증한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# H-01 RESULT\n\n- 시작: 2026-09-13T16:37:07Z, 종료: 2026-09-13T16:37:18Z (agent-observed, 터미널 UTC, 수정 검증 16:37:15Z 관측). 경과 약 30초 (한도 6분 이내).\n- 작업: 원본 `cases/v0.1/input/service-config.json`을 수정하지 않고 `outputs/H-01/service-config.json` 사본의 `id=\"document-indexer\"` 항목만 `request_timeout_seconds: 5 → 30`으로 변경(배열 위치가 아닌 id로 식별).\n- 규칙 유지 확인: JSON 파싱 OK. 다른 서비스 타임아웃 유지(image-preview=12, archive-export=45). retry_count/port/enabled/user_note 전부 유지. 키 이름 변경·새 키 추가·주석 추가 없음. 외부 패키지 설치 없음.\n- 변경 전후 차이(diff): document-indexer 한 줄만 `5 → 30`. 원본 입력 파일 미수정.\n- 사용 가능 도구 수: 이 하네스가 제공하는 도구 수를 확인할 방법이 없어 미측정(사유: 플랫폼이 도구 목",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/H-01/RESULT.md"
+        },
+        "H-03": {
+          "id": "H-03",
+          "meta": {
+            "category": "code",
+            "title": "실패한 테스트 수정",
+            "brief": "배송비 구현의 실패 테스트를 재현한 뒤 테스트는 유지하고 경계 조건 버그를 수정한다.",
+            "weight": 0.125
+          },
+          "status": "submitted",
+          "files": [
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# H-03 RESULT\n\n- 시작: 2026-09-13T16:37:18Z, 종료: 2026-09-13T16:37:33Z (agent-observed, 터미널 UTC, 수정 전 실패 16:37:25Z·수정 후 통과 16:37:30Z 관측). 경과 약 30초 (한도 8분 이내).\n- 수정 전 테스트 실행: 6개 중 3개 실패 확인.\n  - test_partial_band: 3000 != 3500 (1001g 초과 1g이 내림 처리됨)\n  - test_next_band: 3500 != 4000 (1501g 초과분이 내림 처리됨)\n  - test_free_threshold: 4000 != 0 (주문액 50000원이 무료가 아님)\n- 결함 원인: (1) 초과 중량을 `int(.../500)` 내림으로 계산해 \"시작된 500g 구간마다\" 규칙 위반. (2) 무료 조건이 `> 50000`이라 \"50,000원 이상 무료\"에서 경계값 누락.\n- 수정(테스트 미변경): 무료 조건을 `>= 50000`으로, 구간 계산을 올림 `bands = (extra + 499) // 500`으로 변경. `shipping.py`만 수정.\n- 수정 후 테스트 실행: 6/6 통과 (test_b",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/H-03/RESULT.md"
+        },
+        "REASON-KO-01": {
+          "id": "REASON-KO-01",
+          "meta": {
+            "category": "reason",
+            "title": "국어 조건·예외 독해",
+            "brief": "가상 자료실 안내의 조건·시각·예외를 읽고 다섯 주장을 뒷받침·충돌·확정 불가로 판정한다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# REASON-KO-01 결과\n\n- **과제 ID**: REASON-KO-01\n- **문제 버전**: 1\n- **제출물**: `answers.json`, `explanation.md`, `RESULT.md`\n- **상태**: submitted\n- **자기 점수**: 미채점 (평가 전용 자료를 읽지 않았으므로 점수를 산출하지 않음)\n\n## 판정 요약\n\n| 문항 | 판정 | 근거 지문 | 핵심 이유 |\n|---|---|---|---|\n| K1 | supported | P1 | 비회원도 개인 열람석을 예약 없이 사용 가능하다고 직접 서술 |\n| K2 | contradicted | P2 | \"6시까지 취소 시 불이익 없음\" → 6시 정각은 제한 대상이 아님 |\n| K3 | contradicted | P2 | \"폭우로 자료실이 취소한 경우에는 제한하지 않음\" 예외와 충돌 |\n| K4 | not_established | P3 | 운영팀이 \"개편만의 효과인지 아직 판단할 수 없다\"고 명시 |\n| K5 | contradicted | P4 | \"단체실 운영 시간은 이번 검토에 포함되지 않는다\"고 명시 |\n\n## 판정 분포\n\n- supported 1건 (K1)\n- contr",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/REASON-KO-01/RESULT.md"
+        },
+        "REASON-MATH-01": {
+          "id": "REASON-MATH-01",
+          "meta": {
+            "category": "reason",
+            "title": "수학 경계·할인 계산",
+            "brief": "구간별 종이 요금, 200장 할인과 배송비 조건을 계산하고 무료 배송의 최소 장수 경계를 찾는다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# REASON-MATH-01 결과\n\n- **과제 ID**: REASON-MATH-01\n- **문제 버전**: 1\n- **제출물**: `answers.json`, `explanation.md`, `RESULT.md`\n- **상태**: submitted\n- **자기 점수**: 미채점 (평가 전용 자료를 읽지 않았으므로 점수를 산출하지 않음)\n\n## 답 요약\n\n| 문항 | 값 | 단위 | 계산식 |\n|---|---|---|---|\n| M1 | 25500 | 원 | `100×120 + 150×90 = 12,000 + 13,500` |\n| M2 | 22950 | 원 | `25,500 × 0.9` |\n| M3 | 22950 | 원 | `22,950 ≥ 20,000` → 배송비 0 |\n| M4 | 33500 | 원 | `(14,250 + 2,500) × 2` |\n| M5 | 189 | 장 | 할인 미적용 구간 `3,000 + 90n ≥ 20,000` → `n ≥ 189` |\n\n## 경계 검증 요약\n\n- **M5 경계**: 189장 → 20,010원(무료), 188장 → 19,920원(배송비). 200장 이상 구간은 214장 → 20,034원(무료), 213장 → 19,",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/REASON-MATH-01/RESULT.md"
+        },
+        "REASON-SCI-01": {
+          "id": "REASON-SCI-01",
+          "meta": {
+            "category": "reason",
+            "title": "과학 실험·변수 판단",
+            "brief": "조명 시간과 비료가 다른 모의 묘목 실험에서 평균·비교 집단·일반화 가능 여부를 판단한다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# REASON-SCI-01 결과\n\n- **과제 ID**: REASON-SCI-01\n- **문제 버전**: 1\n- **제출물**: `answers.json`, `explanation.md`, `RESULT.md`\n- **상태**: submitted\n- **자기 점수**: 미채점 (평가 전용 자료를 읽지 않았으므로 점수를 산출하지 않음)\n\n## 답 요약\n\n| 문항 | 값 | 근거 |\n|---|---|---|\n| S1 | 5 | B 평균 `(4+5+6)/3 = 5` |\n| S2 | `B-C` | 8시간 고정, 비료만 다름(B 없음, C 있음) |\n| S3 | `A-B` | 비료 고정(없음), 조명만 다름(4h vs 8h) |\n| S4 | `not_established` | 단일 품종·단일 실험 → \"모든 품종, 정확히 1cm\" 확정 불가 |\n| S5 | `contradicted` | C-A는 조명·비료 동시 변화 → 전부를 비료 효과로 분리 불가 |\n\n## 추가 실험(일반화)\n\n여러 품종을 같은 조명×비료 조건에 배정하고 품종별 반복을 두는 실험. 단일 품종 실험으로는 \"모든 품종\" 주장을 검토할 수 없다.\n\n## 사용한 도구와 한계\n\n- **사용한 도구**: ",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/REASON-SCI-01/RESULT.md"
+        },
+        "SEARCH-01": {
+          "id": "SEARCH-01",
+          "meta": {
+            "category": "search",
+            "title": "공식 기능 확인 리서치",
+            "brief": "Python 3.12 tomllib의 TOML 읽기·쓰기 지원 여부, 도입 버전과 파일 모드를 공식 문서에서 확인한다.",
+            "weight": 0.075
+          },
+          "status": "submitted",
+          "files": [
+            "research.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# SEARCH-01 RESULT\n\n- 시작: 2026-09-13T16:41:55Z, 종료: 2026-09-13T16:42:35Z (agent-observed, 터미널 UTC). 경과 약 90초 (한도 8분 이내).\n- 수행: 웹 검색으로 공식 문서 후보를 찾은 뒤 `https://docs.python.org/3.12/library/tomllib.html` 원문 전문을 직접 읽고 4개 항목(읽기 지원·쓰기 미지원·3.11 편입·바이너리 모드)을 확인. 검색 요약만으로 답하지 않음.\n- 결과: 읽기 지원(O), 쓰기 미지원(X), 3.11 추가, 읽기 시 바이너리 모드 필요.\n- 토큰·속도·비용: 미측정(not_exposed).\n- 상태: submitted.\n",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/SEARCH-01/RESULT.md"
+        },
+        "SEARCH-03": {
+          "id": "SEARCH-03",
+          "meta": {
+            "category": "search",
+            "title": "환경별 비교 리서치",
+            "brief": "Apple Silicon·64GB 환경에서 한국어 글쓰기와 코딩 연동 용도로 Ollama·llama.cpp·LM Studio를 공식 자료 기반으로 비교한다.",
+            "weight": 0.075
+          },
+          "status": "submitted",
+          "files": [
+            "research.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# SEARCH-03 RESULT\n\n- 시작: 2026-09-13T16:42:35Z, 종료: 2026-09-13T16:43:08Z (agent-observed, 터미널 UTC). 경과 약 90초 (한도 15분 이내).\n- 수행: 웹 검색 4회(Ollama API·도구, LM Studio, Ollama 형식, llama.cpp 형식) + 공식 문서 1건 전문 열람(Ollama Tool calling). 공식 문서·저장소를 우선하고 출처 유형(official_docs/official_repo)을 구분. LM Studio·llama.cpp 페이지는 검색 발췌 확인이며 전문 열람과 구분 표기.\n- 결과: research.md(한국어 2,320자, 비교표·조건별 추천·미확인 사항), sources.json(10건, URL·조회시각·주장 연결).\n- API 지원과 개별 모델의 툴 호출 능력을 구분 서술. 직접 측정하지 않은 속도·메모리·비용은 싣지 않음.\n- 토큰·속도·비용: 미측정(not_exposed).\n- 상태: submitted.\n",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/SEARCH-03/RESULT.md"
+        },
+        "TC-01": {
+          "id": "TC-01",
+          "meta": {
+            "category": "tools",
+            "title": "선택적 도구 조회",
+            "brief": "프로젝트 파일에서 필요한 사실만 조회하고, 조회가 필요 없는 요약 요청은 도구 없이 처리한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "answer.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# TC-01 RESULT\n\n- 시작: 2026-09-13T16:36:14Z, 종료: 2026-09-13T16:36:22Z (agent-observed, 터미널 UTC). 경과 약 30초 (한도 3분 이내).\n- 요청 1 (API 포트·최대 병렬 작업 수): 입력 파일 `project-facts.json`의 사본(`outputs/TC-01/project-facts.json`)을 Read 도구로 실제 조회. 결과: api_port=8765, max_parallel_jobs=3. 외부 자료 불필요.\n- 요청 2 (한 문장 요약): 외부 조회·파일 저장 없이 직접 축약. 사용 도구 없음.\n- 도구 사용 기록: 요청 1 = 파일 읽기(Read) 1회 — 입력값 확인에 필요했음. 요청 2 = 도구 미사용 — 외부 자료가 필요 없는 문장 축약이므로 조회하지 않음.\n- 이 RESULT.md 자체의 파일 저장은 두 번째 답변을 위한 정보 조회가 아니라 과제 산출물 기록용임.\n- 토큰·속도·비용: 플랫폼에서 제공되지 않아 미측정(not_exposed).\n- 상태: submitted (산출물 제출 상태이며 채점 통과가 아님).\n",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/TC-01/RESULT.md"
+        },
+        "TC-02": {
+          "id": "TC-02",
+          "meta": {
+            "category": "tools",
+            "title": "일정 생성 및 멱등성",
+            "brief": "서울 기준 자연어 일정을 UTC 인자로 변환해 모의 캘린더에 만들고 목록 조회로 확인한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "answer.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# TC-02 RESULT\n\n- 시작: 2026-09-13T16:36:22Z, 종료: 2026-09-13T16:36:55Z (agent-observed, 터미널 UTC, 생성 호출 16:36:26Z 관측). 경과 약 60초 (한도 4분 이내).\n- 시간 변환: 기준일 서울 2026-09-14 → \"내일\" = 2026-09-15. 오후 3시+45분(서울, UTC+09:00) = UTC 2026-09-15T06:00:00Z ~ 2026-09-15T06:45:00Z.\n- 호출: `calendar.create` 1회(ok, event-001), `calendar.list` 1회로 생성 확인. 모의 서비스이므로 native function-calling 시험과 동일하다고 주장하지 않음. 실제 캘린더 미사용.\n- 산출물: request.json, response.json(생성·조회 원문), answer.md(사용자용 확인 문장).\n- 토큰·속도·비용: 미측정(not_exposed).\n- 상태: submitted.\n",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/TC-02/RESULT.md"
+        },
+        "TC-04": {
+          "id": "TC-04",
+          "meta": {
+            "category": "tools",
+            "title": "오류 복구 및 재시도",
+            "brief": "모의 상품 조회의 일시적 오류에서 복구하고 존재하지 않는 상품의 실패를 정확히 구분한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "answer.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# TC-04 RESULT\n\n- 시작: 2026-09-13T16:36:55Z, 종료: 2026-09-13T16:37:05Z (agent-observed, 터미널 UTC, 첫 호출 16:36:58Z 관측). 경과 약 45초 (한도 4분 이내).\n- 호출 순서(순차 수행):\n  1. `catalog.quote {sku:LNU-USB}` → `ok:false TEMP_UNAVAILABLE \"temporary service failure; retry this request\"` (retryable:true). 일시 오류이므로 재시도.\n  2. `catalog.quote {sku:LNU-USB}` 재요청 → `ok:true {name:\"Leneu USB Hub\", unit_price_won:32000, stock:7}`.\n  3. `catalog.quote {sku:NO-SUCH-ITEM}` → `ok:false NOT_FOUND \"unknown sku\"` (retryable:false). 실패를 성공으로 보고하지 않고 answer.md에 미발견으로 기록.\n  4. `catalog.list {}` → `[\"LNU-USB\",\"LNU-STAND\"]` (보조 확인).\n- 서",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/TC-04/RESULT.md"
+        },
+        "THINK-01": {
+          "id": "THINK-01",
+          "meta": {
+            "category": "write",
+            "title": "장애 복구 요약·근거 대조",
+            "brief": "Kubernetes 복구 문서와 GitHub 장애 사례를 대조해 롤백 명령만으로 안전한 복구가 보장되는지 판단한다.",
+            "weight": 0.06
+          },
+          "status": "submitted",
+          "files": [
+            "summary.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# THINK-01 RESULT (writing-v2.1, 재응시)\n\n- case_version: writing-v2.1. attempt_id: 20260914T173825Z-99065b.\n- 시작: 2026-09-14T17:44:21Z (입력 복사·해시 확인 후 시계 시작), 종료: 2026-09-14T17:46:01Z (agent-observed, 터미널 UTC). 경과 약 100초 (한도 20분 이내). 보관 작업 시간은 별도이며 포함하지 않는다.\n- 입력: `input-writing-v2/deployment.md` (SHA-256 646222db…46989) 및 `input-writing-v2/incident.md` (SHA-256 8bddd77b…4e09), sources.json과 일치, 검증됨. 기존 llama.cpp 입력은 고쳐 쓰지 않았다.\n- 읽은 범위: incident.md 25행 전체. deployment.md는 Updating(172~301행), Rolling Back(386~599행), Pausing(741~870행), Deployment status(872~976행), Clean up·Revision·Paused(1084~1108행",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/THINK-01/RESULT.md"
+        },
+        "WEB-01": {
+          "id": "WEB-01",
+          "meta": {
+            "category": "web",
+            "title": "반응형 제품 웹앱",
+            "brief": "개인 AI 작업 기록 서비스 Leneu Desk의 반응형 랜딩페이지와 가격·FAQ·신청 상호작용을 만든다.",
+            "weight": 0.067,
+            "hasHtml": true
+          },
+          "status": "submitted",
+          "files": [
+            "index.html",
+            "RESULT.md"
+          ],
+          "hasHtml": true,
+          "htmlPath": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/WEB-01/index.html",
+          "resultSnippet": "# WEB-01 RESULT\n\n- 시작: 2026-09-13T16:37:50Z, 종료: 2026-09-13T16:38:50Z (agent-observed, 터미널 UTC). 경과 약 90초 (한도 20분 이내).\n- 산출물: 외부 의존성 없는 `index.html` 한 파일(10,465바이트). 첫 화면·기능(기록/비교/내보내기)·사용 흐름·가격·FAQ·신청 폼 구현. CTA는 `#apply`로 이동. 가격 전환 시 금액+단위 함께 변경(월 9,000원/월 ↔ 연 90,000원/년). 모바일 메뉴, FAQ 열기·닫기, 이메일 정규식 검증·신청 완료 상태 동작. 폼 실제 전송 없음.\n- 검증: `node --check` JS 구문 OK. 외부 URL/CDN/웹폰트 없음(grep 확인). 소스 내 메뉴·FAQ·폼·가격 요소 존재 확인.\n- 미수행: 브라우저가 없어 1440/768/390px 렌더링·키보드 실제 조작 검증은 미수행으로 표시. 로컬에서 외부 자산 없이 열리는 것은 구조상 충족(인라인 CSS·인라인 SVG만 사용).\n- 토큰·속도·비용: 미측정(not_exposed).\n- 상태: submitted (브라우저 검증 미수행 한계 포함).\n",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/WEB-01/RESULT.md"
+        },
+        "WRITE-01": {
+          "id": "WRITE-01",
+          "meta": {
+            "category": "write",
+            "title": "저장소 작업 규칙 기술 블로그",
+            "brief": "AI 코딩 도구에 반복 설명할 저장소 공통·경로별 작업 규칙을 어디에 어떻게 기록할지 설명하는 기술 글을 쓴다.",
+            "weight": 0.08
+          },
+          "status": "submitted",
+          "files": [
+            "article.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# WRITE-01 RESULT (writing-v2.1, 재응시)\n\n- case_version: writing-v2.1. attempt_id: 20260914T173825Z-99065b.\n- 시작: 2026-09-14T17:39:39Z (입력 복사·해시 확인 후 시계 시작), 종료: 2026-09-14T17:41:09Z (agent-observed, 터미널 UTC). 경과 약 90초 (한도 15분 이내). 보관 작업 시간은 별도이며 포함하지 않는다.\n- 입력: `input-writing-v2/repository-instructions.md` (SHA-256 36515362…e75501b, sources.json과 일치, 검증됨). 기존 llama.cpp 입력은 고쳐 쓰지 않았다.\n- 읽은 범위: 입력 255행 전체(머리말·지침 3종·생성/직접 작성·경로별·사용 확인·설정). 출력 잘림·문맥 압축 없음. 문제·고정 자료만 보고 작성했고 다른 답안·평가 자료·웹·블로그 스킬은 읽지 않았다.\n- 산출물(artifacts): article.md, evidence.json, RESULT.md. 과거 파일·.history는 새 답안 평가 대상이 아니다.\n- 형식 확인",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/WRITE-01/RESULT.md"
+        },
+        "WRITE-02": {
+          "id": "WRITE-02",
+          "meta": {
+            "category": "write",
+            "title": "배포·롤백 운영 문서",
+            "brief": "Kubernetes 공식 자료를 당직 개발자가 사용할 수 있는 배포 실패 확인·판단·롤백 런북으로 편집한다.",
+            "weight": 0.06
+          },
+          "status": "submitted",
+          "files": [
+            "edited.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# WRITE-02 RESULT (writing-v2.1, 재응시)\n\n- case_version: writing-v2.1. attempt_id: 20260914T173825Z-99065b.\n- 시작: 2026-09-14T17:41:27Z (입력 복사·해시 확인 후 시계 시작), 종료: 2026-09-14T17:43:37Z (agent-observed, 터미널 UTC). 경과 약 130초 (한도 12분 이내). 보관 작업 시간은 별도이며 포함하지 않는다.\n- 입력: `input-writing-v2/deployment.md` (SHA-256 646222db…46989, sources.json과 일치, 검증됨). 기존 llama.cpp 입력은 고쳐 쓰지 않았다.\n- 읽은 범위: Updating a Deployment(172~301행), Rolling Back a Deployment(386~599행), Deployment status(872~976행), Pausing and Resuming(741~870행), Clean up Policy·Revision History·Paused(1084~1108행, 1330~1376행). include 대상·링크 페이지는 읽었다고",
+          "resultFile": "runs/opencode-muse-spark-1.3-contributor-free/20260913T163601Z-k7q2/outputs/WRITE-02/RESULT.md"
+        }
+      }
+    },
+    {
+      "modelSlug": "swe-2-high",
+      "runId": "20260913T142640Z-7d3e",
+      "runPath": "runs/swe-2-high/20260913T142640Z-7d3e",
+      "totalTasks": 18,
+      "hasAddonReasoning": true,
+      "totalTimeText": "약 40분",
+      "verifiedBadge": "자기 검증 제출",
+      "submissionPath": "runs/swe-2-high/20260913T142640Z-7d3e/SUBMISSION.md",
+      "scorecard": {
+        "method": "v0.4-unified-18-1",
+        "reviewId": "v04-devin-20260915",
+        "reviewedAt": "2026-09-14T19:24Z",
+        "evaluationPath": "reports/swe-2-high/20260913T142640Z-7d3e/v04-devin-20260915/evaluation.json",
+        "weightedScore": 98.7051282051282,
+        "groups": {
+          "code": 99.48717948717949,
+          "tools": 100,
+          "web_games": 99.16666666666667,
+          "writing": 100,
+          "research": 100,
+          "reasoning": 90
+        },
+        "statusCounts": {
+          "scored": 18,
+          "passed": 17,
+          "failed": 1,
+          "pending": 0
+        }
+      },
+      "tasks": {
+        "ALG-01": {
+          "id": "ALG-01",
+          "meta": {
+            "category": "reason",
+            "title": "가중 구간 알고리즘",
+            "brief": "겹치지 않는 반열린 작업 구간의 최대 가치 합을 O(n log n) 이하로 계산하는 함수를 구현한다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# ALG-01 RESULT\n\n## 수행\n\n- `solution.mjs`: 종료 시각 정렬 + 이진 탐색 DP(가중 작업 선택). 입력 검증 → `RangeError`, 빈 입력 → 0, 입력 비파괴.\n- `test_solution.mjs`: `node --test`로 자체 검증.\n- 검증 명령: `node --test test_solution.mjs` → **9/9 통과**(공개 예시, 반열린 경계, 중복 구간, 무효 입력, 비파괴, 20만 건 약 56ms).\n- 사용 도구: 파일 쓰기, 로컬 `node --test`. 외부 검색·패키지·계산 보조 없음.\n\n## 한계·미확인\n\n- 자체 테스트 통과이며 독립 평가 통과가 아니다(미채점).\n- 20만 건 측정은 이 머신 1회 실행 값으로 다른 환경에서는 다를 수 있다.\n- value 합이 안전 정수 범위라는 문제 조건을 신뢰하고 일반 Number로 합산했다.\n",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/ALG-01/RESULT.md"
+        },
+        "CODE-01": {
+          "id": "CODE-01",
+          "meta": {
+            "category": "code",
+            "title": "예약 충돌 버그 수정",
+            "brief": "반열린 예약 구간의 겹침 판정과 입력 검증을 수정하고 경계·오류 테스트를 실행한다.",
+            "weight": 0.125
+          },
+          "status": "submitted",
+          "files": [
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# CODE-01 RESULT\n\n- 상태: submitted\n- 시작(UTC, agent-observed): 2026-09-13T14:48:27Z\n- 종료(UTC, agent-observed): 2026-09-13T14:48:43Z\n- 경과: 약 16초 (측정 출처: macOS `date -u`)\n\n## 수정 내용\n\n- 겹침 판정을 `[start,end)` 반개구간에 맞게 `start < b && end > a`로 수정. 원본의 `<=`/`>=`는 인접(경계 접촉) 예약도 겹침으로 잘못 판정했다.\n- 신규 구간 검증: 정수이고 `0 <= start < end <= 1440`이 아니면 `RangeError`.\n- 기존 구간 각각도 `[a,b)` 2원소 배열이며 같은 범위 규칙을 만족하지 않으면 `RangeError`.\n- `existing`이 배열이 아니면 `RangeError`. 입력 배열은 순회만 하고 변경하지 않음.\n- 공개 인터페이스 `canBook(existing, start, end)` 유지.\n\n## 검증\n\n- `node --test test_booking.mjs` 실행 — 9개 테스트 전부 통과(`test-output.txt`).\n- 커버 사례: ",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/CODE-01/RESULT.md"
+        },
+        "GAME-01": {
+          "id": "GAME-01",
+          "meta": {
+            "category": "web",
+            "title": "테트리스 (Hold 포함)",
+            "brief": "10×20 보드, 7종 블록, 점수·다음 블록·일시정지와 1회 제한 Hold 기능을 갖춘 테트리스를 만든다.",
+            "weight": 0.067,
+            "hasHtml": true
+          },
+          "status": "submitted",
+          "files": [
+            "index.html",
+            "RESULT.md"
+          ],
+          "hasHtml": true,
+          "htmlPath": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/GAME-01/index.html",
+          "resultSnippet": "# GAME-01 RESULT\n\n- 상태: submitted\n- 시작(UTC, agent-observed): 2026-09-13T14:34:00Z\n- 종료(UTC, agent-observed): 2026-09-13T14:40:32Z\n- 경과: 약 6분 32초 (측정 출처: macOS `date -u`)\n\n## 산출물\n\n- `index.html` — 외부 의존성 없는 단일 파일. 10×20 보드, 7종 블록, 좌우 이동·시계 방향 회전(↑/X)·빠른 낙하(↓)·즉시 낙하(Space), 일시정지(P), 재시작(Enter/R).\n- `shot.png` — headless Chrome 렌더 캡처.\n- `verify-output.txt` — 상호작용 검증 로그 15건 전부 PASS (puppeteer-core + 시스템 Chrome).\n\n## 확인한 동작 (Chrome headless, 실제 키 이벤트)\n\n- 보관(C/Shift 모두 동작): 빈 슬롯은 현재 블록 보관 후 대기열에서 다음 블록 생성.\n- 슬롯이 차 있으면 현재↔보관 교환, 대기열(next) 유지.\n- 고정 전 재보관 차단: C·Shift 연타·교차 입력 모두 `canHold`로 차단.\n- 회전된 상태",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/GAME-01/RESULT.md"
+        },
+        "GAME-02": {
+          "id": "GAME-02",
+          "meta": {
+            "category": "web",
+            "title": "플랫포머 게임",
+            "brief": "고정 맵에서 이동·점프·충돌·코인·적·카메라·재시작과 완주가 가능한 플랫폼 게임을 만든다.",
+            "weight": 0.066,
+            "hasHtml": true
+          },
+          "status": "submitted",
+          "files": [
+            "index.html",
+            "RESULT.md"
+          ],
+          "hasHtml": true,
+          "htmlPath": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/GAME-02/index.html",
+          "resultSnippet": "# GAME-02 RESULT\n\n- 상태: submitted\n- 시작(UTC, agent-observed): 2026-09-13T14:41:11Z\n- 종료(UTC, agent-observed): 2026-09-13T14:48:01Z\n- 경과: 약 6분 50초 (측정 출처: macOS `date -u`)\n\n## 산출물\n\n- `index.html` — 외부 의존성 없는 단일 파일, 캔버스·자체 도형.\n- `verify-output.txt` — headless Chrome(puppeteer-core) 검증 11건 전부 PASS.\n- `shot.png` — 캡처.\n\n## 사용한 물리 수치\n\n- 중력 1500 px/s², 이동 속도 240 px/s, 점프 초속 -560 px/s, 밟기 반동 -430 px/s\n- dt 상한 0.033s, 추락 판정 y>640, 카메라는 플레이어 중심·[0, 1600] 클램프\n- 점프 체공 ≈0.75s·수평 도달 ≈180px → 두 틈(130px, 140px) 통과 가능\n\n## 확인한 동작 (headless Chrome, debug.step으로 결정적 구동)\n\n- 공중 점프 불가 / 지면 점프만 동작.\n- 코인 1회 획득(중복 획득 없음",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/GAME-02/RESULT.md"
+        },
+        "H-01": {
+          "id": "H-01",
+          "meta": {
+            "category": "tools",
+            "title": "긴 지시 및 설정 수정",
+            "brief": "여러 보존 조건을 유지하며 지정 서비스의 타임아웃 한 필드만 수정하고 검증한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# H-01 RESULT\n\n- 상태: submitted\n- 시작(UTC, agent-observed): 2026-09-13T14:28:19Z\n- 종료(UTC, agent-observed): 2026-09-13T14:28:27Z\n- 경과: 약 8초 (측정 출처: macOS `date -u`)\n\n## 변경 내용\n\n- `id`가 `document-indexer`인 서비스의 `request_timeout_seconds`를 5 → 30으로 변경.\n- 변경 전후 `diff` 결과: 해당 필드 한 곳만 차이(6번째 줄의 `5` → `30`).\n\n## 검증\n\n- `python3 -c \"json.load(...)\"`으로 파싱 성공.\n- 세 서비스의 `request_timeout_seconds`: image-preview=12(유지), document-indexer=30(변경), archive-export=45(유지).\n- `retry_count`, `port`, `enabled`, `user_note` 모두 원본과 동일. 키 추가·이름 변경·주석 없음.\n- 원본 `cases/v0.1/input/service-config.json`은 미수정(diff 기준으로 복사본만 변경됨을",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/H-01/RESULT.md"
+        },
+        "H-03": {
+          "id": "H-03",
+          "meta": {
+            "category": "code",
+            "title": "실패한 테스트 수정",
+            "brief": "배송비 구현의 실패 테스트를 재현한 뒤 테스트는 유지하고 경계 조건 버그를 수정한다.",
+            "weight": 0.125
+          },
+          "status": "submitted",
+          "files": [
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# H-03 RESULT\n\n- 상태: submitted\n- 시작(UTC, agent-observed): 2026-09-13T14:28:40Z\n- 종료(UTC, agent-observed): 2026-09-13T14:28:58Z\n- 경과: 약 18초 (측정 출처: macOS `date -u`)\n\n## 수행 내용\n\n1. `shipping.py`(합성 결함 코드 그대로)·`test_shipping.py` 작성 후 테스트 실행 → 3건 실패 확인(`test-output-before.txt`).\n   - test_free_threshold: 주문 50,000원에서 무료가 되지 않음(`>`를 `>=`로 고쳐야 함).\n   - test_partial_band / test_next_band: 초과 중량 구간을 floor로 계산해 \"시작된 500g 구간\" 규칙(ceil)과 불일치.\n2. 구현 수정:\n   - `order_total_won > 50000` → `>= 50000` (50,000원 이상 무료).\n   - `int(max(0, weight-1000)/500)*500` → `math.ceil(max(0, weight-1000)/500)*500` (시작된 구간마다 50",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/H-03/RESULT.md"
+        },
+        "REASON-KO-01": {
+          "id": "REASON-KO-01",
+          "meta": {
+            "category": "reason",
+            "title": "국어 조건·예외 독해",
+            "brief": "가상 자료실 안내의 조건·시각·예외를 읽고 다섯 주장을 뒷받침·충돌·확정 불가로 판정한다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# REASON-KO-01 RESULT\n\n## 수행\n\n- 지문 P1~P4만 근거로 K1~K5를 supported/contradicted/not_established로 판정했다.\n- 사용 도구: 파일 쓰기·읽기만. 외부 검색·계산기·코드 실행 없음.\n- 파일 저장·기록 명령 사용은 계산 도구로 세지 않는다는 안내에 따랐다.\n\n## 한계·미확인\n\n- 판정은 응시자의 독해 결과이며 채점 전 미확정이다(미채점).\n- K4는 \"사실과 반하는 주장\"과 \"미확정 주장\"의 구분이 쟁점인 문항으로, 지문이 대체 원인 가능성만 제시한다는 이유로 not_established를 선택했다. K2·K3·K5처럼 지문 문장과 정면으로 충돌하는 경우와 구분했다.\n",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/REASON-KO-01/RESULT.md"
+        },
+        "REASON-MATH-01": {
+          "id": "REASON-MATH-01",
+          "meta": {
+            "category": "reason",
+            "title": "수학 경계·할인 계산",
+            "brief": "구간별 종이 요금, 200장 할인과 배송비 조건을 계산하고 무료 배송의 최소 장수 경계를 찾는다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# REASON-MATH-01 RESULT\n\n## 수행\n\n- M1~M5를 문제의 요금 규칙으로 직접 계산해 `answers.json`(정수만)과 `explanation.md`(계산식·경계 비교)에 기록했다.\n- 사용 도구: 파일 쓰기·읽기만. 외부 검색·계산기·코드 실행으로 풀이하지 않았다(파일 저장·기록 명령은 계산 도구로 세지 않는 안내에 따름).\n- M5는 n<200 구간과 n≥200 구간을 나눠 최소값을 비교했다(189 vs 214).\n\n## 한계·미확인\n\n- 계산은 수작업이며 독립 채점 전 미확정이다(미채점).\n- 반올림 없음 조건을 그대로 적용했고, 모든 중간값이 정수 또는 유한 소수로 정확히 계산됐다.\n",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/REASON-MATH-01/RESULT.md"
+        },
+        "REASON-SCI-01": {
+          "id": "REASON-SCI-01",
+          "meta": {
+            "category": "reason",
+            "title": "과학 실험·변수 판단",
+            "brief": "조명 시간과 비료가 다른 모의 묘목 실험에서 평균·비교 집단·일반화 가능 여부를 판단한다.",
+            "profile": "reason",
+            "weight": 0.25
+          },
+          "status": "submitted",
+          "files": [
+            "explanation.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# REASON-SCI-01 RESULT\n\n## 수행\n\n- 제공된 설계 문장과 표만 근거로 S1~S5를 판정했다.\n- 사용 도구: 파일 쓰기·읽기만. 외부 검색·계산기·코드 실행 없음.\n- 변수 통제 관점으로 집단 쌍을 골랐다: S2는 조명을 같게(B-C), S3은 비료를 같게(A-B).\n\n## 한계·미확인\n\n- S4는 해석 여지가 있는 문항이다. \"모든 품종에서 효과가 1cm\" 자체는 not_established로 볼 수 있으나, 문항 문구가 \"이 표만으로 … 확정한다\"이므로 단일 품종 설계와 충돌한다고 판단해 contradicted를 선택하고 근거에 구분 기준을 적었다.\n- 평균 계산(5, 6, 3 등)은 관찰값 산술이며 유의성 검정은 수행하지 않았다.\n- 미채점. 독립 평가에서 문항 해석이 다를 수 있다.\n",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/REASON-SCI-01/RESULT.md"
+        },
+        "SEARCH-01": {
+          "id": "SEARCH-01",
+          "meta": {
+            "category": "search",
+            "title": "공식 기능 확인 리서치",
+            "brief": "Python 3.12 tomllib의 TOML 읽기·쓰기 지원 여부, 도입 버전과 파일 모드를 공식 문서에서 확인한다.",
+            "weight": 0.075
+          },
+          "status": "submitted",
+          "files": [
+            "research.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# SEARCH-01 RESULT\n\n- 상태: submitted\n- 시작(UTC, agent-observed): 2026-09-13T14:55:37Z\n- 종료(UTC, agent-observed): 2026-09-13T14:56:34Z\n- 경과: 약 57초 (측정 출처: macOS `date -u`)\n\n## 수행 내용\n\n- 웹 검색(`docs.python.org` 한정)으로 공식 문서 위치 확인 → `https://docs.python.org/3.12/library/tomllib.html`을 webfetch로 원문 직접 조회.\n- 확인: 읽기 지원(load/loads), 쓰기 미지원 명시, 추가 버전 3.11, `load()`는 binary file object 필요(`\"rb\"` 예제).\n\n## 조회 수단\n\n- 사용한 도구: 웹 검색 + 웹 페이지 조회(webfetch). 검색 요약만 본 출처와 원문을 읽은 출처를 `sources.json`에서 구분했다.\n\n## 미측정\n\n- 토큰·비용·첫 토큰 시간: 플랫폼 미제공(not_exposed).\n",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/SEARCH-01/RESULT.md"
+        },
+        "SEARCH-03": {
+          "id": "SEARCH-03",
+          "meta": {
+            "category": "search",
+            "title": "환경별 비교 리서치",
+            "brief": "Apple Silicon·64GB 환경에서 한국어 글쓰기와 코딩 연동 용도로 Ollama·llama.cpp·LM Studio를 공식 자료 기반으로 비교한다.",
+            "weight": 0.075
+          },
+          "status": "submitted",
+          "files": [
+            "research.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# SEARCH-03 RESULT\n\n- 상태: submitted\n- 시작(UTC, agent-observed): 2026-09-13T14:56:39Z\n- 종료(UTC, agent-observed): 2026-09-13T14:58:23Z\n- 경과: 약 1분 44초 (측정 출처: macOS `date -u`)\n\n## 산출물\n\n- `research.md` — 한국어 비교 보고서, 비교표(설치·운영/모델 형식/로컬 API/툴 호출 조건/오프라인) + 조건별 추천 + 미확인 사항. 조사 기준일 2026-09-13 명시.\n- `sources.json` — 출처 11건, 공식 문서/저장소/릴리스 노트 유형 구분, 검색 요약 열람과 원문 직접 조회 구분.\n\n## 수행 내용과 한계\n\n- 웹 검색으로 Ollama 공식 문서(docs.ollama.com), Ollama GitHub 문서, LM Studio 공식 문서·블로그를 조회. llama.cpp는 벤치마크 고정 커밋의 공식 문서 원문(이번 응시의 고정 입력)을 근거로 사용.\n- API 지원과 개별 모델의 툴 호출 능력을 구분해 기록. 직접 측정하지 않은 속도·메모리·비용은 실측으로 쓰지 않음.\n- 검색 결과 본문 발췌로 확",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/SEARCH-03/RESULT.md"
+        },
+        "TC-01": {
+          "id": "TC-01",
+          "meta": {
+            "category": "tools",
+            "title": "선택적 도구 조회",
+            "brief": "프로젝트 파일에서 필요한 사실만 조회하고, 조회가 필요 없는 요약 요청은 도구 없이 처리한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "answer.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# TC-01 RESULT\n\n- 상태: submitted\n- 시작(UTC, agent-observed): 2026-09-13T14:26:50Z\n- 종료(UTC, agent-observed): 2026-09-13T14:27:15Z\n- 경과 시간: 약 25초 (측정 출처: macOS `date -u`, 응시자 관측)\n\n## 수행 내용\n\n1. 요청 1: `cases/v0.1/input/project-facts.json`을 `cat`으로 실제 읽고 `api_port`(8765), `max_parallel_jobs`(3)을 확인해 `answer.md`에 기록. 응시 폴더에 복사본도 보관.\n2. 요청 2: 문장 요약은 외부 자료가 필요 없어 도구 없이 한 문장으로 축약.\n\n## 요청별 도구 사용과 이유\n\n- 요청 1: 파일 읽기(터미널 `cat`) 사용 — 답이 입력 파일 안에만 존재하므로 조회가 필요했다.\n- 요청 2: 도구 미사용 — 주어진 문장 자체가 입력의 전부이므로 외부 조회가 불필요했다.\n- `answer.md`/`RESULT.md` 파일 저장은 두 번째 답변을 위한 정보 조회가 아니라 기록용 산출물이다.\n\n## 확인하지 못한 부분 / 한계\n\n- 토큰 수·첫",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/TC-01/RESULT.md"
+        },
+        "TC-02": {
+          "id": "TC-02",
+          "meta": {
+            "category": "tools",
+            "title": "일정 생성 및 멱등성",
+            "brief": "서울 기준 자연어 일정을 UTC 인자로 변환해 모의 캘린더에 만들고 목록 조회로 확인한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "answer.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# TC-02 RESULT\n\n- 상태: submitted\n- 시작(UTC, agent-observed): 2026-09-13T14:27:15Z\n- 종료(UTC, agent-observed): 2026-09-13T14:27:54Z\n- 경과: 약 39초 (측정 출처: macOS `date -u`)\n\n## 수행 내용\n\n- 기준일 서울 2026-09-14, \"내일 오후 3시부터 45분\" → 서울 2026-09-15 15:00–15:45 KST → UTC 2026-09-15T06:00:00Z–06:45:00Z로 변환해 `request.json` 작성.\n- `python3 cases/v0.1/toolbox.py --workspace runs/swe-2-high/20260913T142640Z-7d3e/tool-workspace --tool calendar.create --args-file .../request.json` 호출 → `ok: true`, `event_id: event-001`.\n- `calendar.list`({})로 확인 → 생성된 일정 1건 반환.\n\n## 확인한 동작\n\n- 생성 응답과 목록 조회 결과가 요청 인자와 일치.\n- 실제 캘린더 미사용(모의 서비",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/TC-02/RESULT.md"
+        },
+        "TC-04": {
+          "id": "TC-04",
+          "meta": {
+            "category": "tools",
+            "title": "오류 복구 및 재시도",
+            "brief": "모의 상품 조회의 일시적 오류에서 복구하고 존재하지 않는 상품의 실패를 정확히 구분한다.",
+            "weight": 0.05
+          },
+          "status": "submitted",
+          "files": [
+            "answer.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# TC-04 RESULT\n\n- 상태: submitted\n- 시작(UTC, agent-observed): 2026-09-13T14:27:54Z\n- 종료(UTC, agent-observed): 2026-09-13T14:28:04Z\n- 경과: 약 10초 (측정 출처: macOS `date -u`)\n\n## 호출·오류·재시도 기록\n\n| # | 도구 | 인자 | 결과 |\n|---|---|---|---|\n| 1 | catalog.quote | {\"sku\": \"LNU-USB\"} | ok:false, TEMP_UNAVAILABLE, retryable:true |\n| 2 | catalog.quote | {\"sku\": \"LNU-USB\"} (동일 재시도) | ok:true — Leneu USB Hub, 32000원, 재고 7 |\n| 3 | catalog.quote | {\"sku\": \"NO-SUCH-ITEM\"} | ok:false, NOT_FOUND, retryable:false |\n| 4 | catalog.list | {} | ok:true — [\"LNU-USB\", \"LNU-STAND\"] |\n\n- 감사 로그는 tool-workspace의 `tool-events.jsonl`에 서",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/TC-04/RESULT.md"
+        },
+        "THINK-01": {
+          "id": "THINK-01",
+          "meta": {
+            "category": "write",
+            "title": "장애 복구 요약·근거 대조",
+            "brief": "Kubernetes 복구 문서와 GitHub 장애 사례를 대조해 롤백 명령만으로 안전한 복구가 보장되는지 판단한다.",
+            "weight": 0.06
+          },
+          "status": "submitted",
+          "files": [
+            "summary.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# THINK-01 RESULT (재응시)\n\n- case_version: writing-v2.1\n- attempt_id: 20260914T173922Z-w21a\n- 상태: submitted(독립 채점 대기, 미채점)\n\n## 입력과 해시\n\n- `input-writing-v2/deployment.md`(SRC-DEPLOY) — SHA-256 `646222dba416b371e5c8eafda2ff7d2b4bb0fb648f9aa1d4f1bdb87abeb46989`, sources.json 일치 확인.\n- `input-writing-v2/incident.md`(SRC-INCIDENT) — SHA-256 `8bddd77b2925ded5854d93893f1e3fa392e36452e8de162c3b3f7546112a4e09`, sources.json 일치 확인.\n\n## 실제 읽은 범위와 잘림\n\n- incident.md: 1-25 전체.\n- deployment.md(1,384행): 1-175, 176-385, 386-505, 506-645, 645-740, 741-780, 781-935, 934-993, 994-1083, 1084-1113, 1114-1333, 1334-137",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/THINK-01/RESULT.md"
+        },
+        "WEB-01": {
+          "id": "WEB-01",
+          "meta": {
+            "category": "web",
+            "title": "반응형 제품 웹앱",
+            "brief": "개인 AI 작업 기록 서비스 Leneu Desk의 반응형 랜딩페이지와 가격·FAQ·신청 상호작용을 만든다.",
+            "weight": 0.067,
+            "hasHtml": true
+          },
+          "status": "submitted",
+          "files": [
+            "index.html",
+            "RESULT.md"
+          ],
+          "hasHtml": true,
+          "htmlPath": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/WEB-01/index.html",
+          "resultSnippet": "# WEB-01 RESULT\n\n- 상태: submitted\n- 시작(UTC, agent-observed): 2026-09-13T14:29:27Z\n- 종료(UTC, agent-observed): 2026-09-13T14:33:21Z\n- 경과: 약 3분 54초 (측정 출처: macOS `date -u`; 검증 도구 설치 시간 포함)\n\n## 산출물\n\n- `index.html` — 외부 이미지·글꼴·CDN 없이 CSS와 인라인 SVG만 사용한 단일 파일. 첫 화면·기능·사용 흐름·가격·FAQ·신청 폼 구현. CTA는 `#signup`으로 이동. 폼은 실제 전송하지 않음.\n- `shot-1440.png`, `shot-768.png`, `shot-390.png` — headless Chrome 렌더 캡처.\n- `verify-output.txt` — headless Chrome(puppeteer-core) 상호작용 검증 로그 14건 전부 PASS.\n\n## 확인한 동작 (Chrome headless, 실제 DOM 조작)\n\n- 1440/768/390px에서 가로 스크롤 없음(scrollWidth=clientWidth).\n- 390px에서 모바일 메뉴 열기·닫기(`aria-e",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/WEB-01/RESULT.md"
+        },
+        "WRITE-01": {
+          "id": "WRITE-01",
+          "meta": {
+            "category": "write",
+            "title": "저장소 작업 규칙 기술 블로그",
+            "brief": "AI 코딩 도구에 반복 설명할 저장소 공통·경로별 작업 규칙을 어디에 어떻게 기록할지 설명하는 기술 글을 쓴다.",
+            "weight": 0.08
+          },
+          "status": "submitted",
+          "files": [
+            "article.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# WRITE-01 RESULT (재응시)\n\n- case_version: writing-v2.1\n- attempt_id: 20260914T173922Z-w21a\n- 상태: submitted(독립 채점 대기, 미채점)\n\n## 입력과 해시\n\n- `input-writing-v2/repository-instructions.md`(SRC-AGENT) — SHA-256 `365153628c94ae1f846e82edcdc814d5162bd71c44ce0a68079542873e75501b`, sources.json과 **일치 확인**.\n- 읽은 범위: 1–255행 전체(단일 read 호출, 잘림 없음).\n\n## 시행 기록(보관 작업과 분리)\n\n- 과제 시계 시작(자료 읽기 전): 2026-09-14T17:39:41Z\n- 작성·형식 검토 종료: 2026-09-14T17:41:50Z\n- 관측 경과: 약 2분 9초(macOS `date -u`, agent-observed). 이전 답안 보관 작업 시간은 포함하지 않는다.\n\n## 산출물과 형식 확인\n\n- `article.md`: H1 1개, H2 6개, 본문 약 2,151자(코드 블록·URL 제외 계산) — 2,000~3,500자",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/WRITE-01/RESULT.md"
+        },
+        "WRITE-02": {
+          "id": "WRITE-02",
+          "meta": {
+            "category": "write",
+            "title": "배포·롤백 운영 문서",
+            "brief": "Kubernetes 공식 자료를 당직 개발자가 사용할 수 있는 배포 실패 확인·판단·롤백 런북으로 편집한다.",
+            "weight": 0.06
+          },
+          "status": "submitted",
+          "files": [
+            "edited.md",
+            "RESULT.md"
+          ],
+          "hasHtml": false,
+          "htmlPath": null,
+          "resultSnippet": "# WRITE-02 RESULT (재응시)\n\n- case_version: writing-v2.1\n- attempt_id: 20260914T173922Z-w21a\n- 상태: submitted(독립 채점 대기, 미채점)\n\n## 입력과 해시\n\n- `input-writing-v2/deployment.md`(SRC-DEPLOY) — SHA-256 `646222dba416b371e5c8eafda2ff7d2b4bb0fb648f9aa1d4f1bdb87abeb46989`, sources.json과 **일치 확인**.\n- 읽은 범위: 문제가 지정한 절 — Updating(172-291), Rolling Back(386-641), Deployment status의 Failed(934-993), Pausing(741-780), Operating on a failed deployment·Clean up Policy(1084-1113), Progress Deadline Seconds~Paused(1330-1379). paused 롤백 제약은 869행을 별도 확인. include 대상 파일은 미포함으로 간주.\n- 읽기 도중 출력이 291·644·993·1113·780·1379행에서 잘",
+          "resultFile": "runs/swe-2-high/20260913T142640Z-7d3e/outputs/WRITE-02/RESULT.md"
+        }
+      }
+    }
+  ]
+}

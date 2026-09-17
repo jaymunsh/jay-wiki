@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LocalBench — 로컬 LLM 벤치마크 도구</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --bg-alt: #111827;
+    --card: #161f2e;
+    --border: #243044;
+    --text: #e6edf3;
+    --muted: #8b98a9;
+    --accent: #4f9cff;
+    --accent2: #7c5cff;
+    --green: #34d399;
+    --gradient: linear-gradient(135deg, #4f9cff 0%, #7c5cff 100%);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Malgun Gothic", dotum, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+  a { text-decoration: none; color: inherit; }
+
+  /* Header */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,14,23,0.82);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px; max-width: 1140px; margin: 0 auto;
+  }
+  .logo { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
+  .logo-mark {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--gradient); display: grid; place-items: center;
+    font-size: 16px; box-shadow: 0 0 20px rgba(79,156,255,0.4);
+  }
+  .nav-links { display: flex; gap: 28px; align-items: center; }
+  .nav-links a { color: var(--muted); font-size: 15px; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+  .btn {
+    display: inline-block; padding: 10px 20px; border-radius: 9px; font-weight: 600;
+    font-size: 15px; cursor: pointer; border: none; transition: transform 0.15s, box-shadow 0.2s;
+  }
+  .btn-primary { background: var(--gradient); color: #fff; box-shadow: 0 4px 18px rgba(79,156,255,0.3); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(79,156,255,0.45); }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--accent); }
+
+  /* Hero */
+  .hero { padding: 96px 24px 80px; position: relative; overflow: hidden; }
+  .hero::before {
+    content: ""; position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+    width: 900px; height: 600px; background: radial-gradient(circle, rgba(124,92,255,0.18), transparent 60%);
+    z-index: 0;
+  }
+  .hero-inner { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; text-align: center; }
+  .badge {
+    display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 13px;
+    background: rgba(79,156,255,0.12); border: 1px solid var(--border); color: var(--accent);
+    margin-bottom: 26px;
+  }
+  .hero h1 { font-size: 54px; font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 22px; }
+  .hero h1 .grad { background: var(--gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { font-size: 19px; color: var(--muted); max-width: 620px; margin: 0 auto 36px; }
+  .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .hero-actions .btn { padding: 14px 28px; font-size: 16px; }
+  .code-demo {
+    margin-top: 56px; max-width: 680px; margin-left: auto; margin-right: auto;
+    background: #060a12; border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px 22px; text-align: left; font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 14px; box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  }
+  .code-demo .dots { display: flex; gap: 7px; margin-bottom: 16px; }
+  .code-demo .dots span { width: 12px; height: 12px; border-radius: 50%; }
+  .code-demo .dots span:nth-child(1){ background:#ff5f56; }
+  .code-demo .dots span:nth-child(2){ background:#ffbd2e; }
+  .code-demo .dots span:nth-child(3){ background:#27c93f; }
+  .code-demo .line { color: var(--muted); }
+  .code-demo .k { color: #7c5cff; }
+  .code-demo .s { color: #34d399; }
+  .code-demo .c { color: #4f9cff; }
+
+  /* Stats */
+  .stats { padding: 40px 24px 70px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .stat { text-align: center; padding: 24px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; }
+  .stat .num { font-size: 38px; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .stat .lbl { color: var(--muted); font-size: 14px; margin-top: 6px; }
+
+  /* Section base */
+  section { padding: 84px 24px; }
+  .section-head { text-align: center; max-width: 640px; margin: 0 auto 56px; }
+  .section-head .eyebrow { color: var(--accent); font-weight: 700; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
+  .section-head h2 { font-size: 38px; font-weight: 800; letter-spacing: -1px; margin: 10px 0 14px; }
+  .section-head p { color: var(--muted); font-size: 17px; }
+
+  /* Features */
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .feature {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 30px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .feature:hover { transform: translateY(-4px); border-color: var(--accent); }
+  .feature .icon {
+    width: 48px; height: 48px; border-radius: 12px; background: rgba(79,156,255,0.12);
+    display: grid; place-items: center; font-size: 24px; margin-bottom: 18px;
+  }
+  .feature h3 { font-size: 19px; margin-bottom: 10px; }
+  .feature p { color: var(--muted); font-size: 15px; }
+
+  /* Benchmarks list */
+  .benchmarks { background: var(--bg-alt); }
+  .bench-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .bench-tag {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px; text-align: center; transition: all 0.2s;
+  }
+  .bench-tag:hover { border-color: var(--accent2); transform: scale(1.03); }
+  .bench-tag .name { font-weight: 700; font-size: 16px; }
+  .bench-tag .desc { color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+  /* Steps */
+  .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; position: relative; }
+  .step { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 32px 28px; position: relative; }
+  .step .num {
+    position: absolute; top: -16px; left: 28px; width: 40px; height: 40px; border-radius: 10px;
+    background: var(--gradient); display: grid; place-items: center; font-weight: 800; font-size: 18px;
+  }
+  .step h3 { margin-top: 14px; margin-bottom: 10px; font-size: 19px; }
+  .step p { color: var(--muted); font-size: 15px; }
+
+  /* Pricing */
+  .pricing { background: var(--bg-alt); }
+  .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-items: stretch; }
+  .price-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 34px 30px;
+    display: flex; flex-direction: column; position: relative;
+  }
+  .price-card.featured { border-color: var(--accent); box-shadow: 0 0 40px rgba(79,156,255,0.18); }
+  .price-card .tag {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: var(--gradient); padding: 5px 16px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  }
+  .price-card .plan { font-size: 20px; font-weight: 700; }
+  .price-card .price { font-size: 42px; font-weight: 800; margin: 12px 0 4px; }
+  .price-card .price small { font-size: 16px; color: var(--muted); font-weight: 500; }
+  .price-card .desc { color: var(--muted); font-size: 14px; margin-bottom: 22px; }
+  .price-card ul { list-style: none; margin-bottom: 26px; flex: 1; }
+  .price-card ul li { padding: 9px 0; color: var(--text); font-size: 15px; display: flex; gap: 10px; align-items: flex-start; }
+  .price-card ul li::before { content: "✓"; color: var(--green); font-weight: 800; }
+  .price-card .btn { text-align: center; }
+
+  /* CTA */
+  .cta { text-align: center; }
+  .cta-box {
+    background: var(--gradient); border-radius: 24px; padding: 64px 40px; position: relative; overflow: hidden;
+  }
+  .cta-box h2 { font-size: 34px; font-weight: 800; margin-bottom: 14px; }
+  .cta-box p { color: rgba(255,255,255,0.85); font-size: 17px; margin-bottom: 28px; }
+  .cta-box .btn { background: #fff; color: #1a1f2e; }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--border); padding: 48px 24px 40px; }
+  .footer-grid { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px; max-width: 1140px; margin: 0 auto; }
+  .footer-col h4 { font-size: 15px; margin-bottom: 14px; }
+  .footer-col a { display: block; color: var(--muted); font-size: 14px; margin-bottom: 9px; }
+  .footer-col a:hover { color: var(--text); }
+  .footer-bottom { max-width: 1140px; margin: 34px auto 0; padding-top: 22px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+
+  @media (max-width: 900px) {
+    .stats-grid, .features-grid, .bench-grid, .steps-grid, .price-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 38px; }
+    .section-head h2 { font-size: 30px; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="logo"><span class="logo-mark">◈</span> LocalBench</div>
+    <nav class="nav-links">
+      <a href="#features">기능</a>
+      <a href="#benchmarks">벤치마크</a>
+      <a href="#how">사용법</a>
+      <a href="#pricing">가격</a>
+      <a href="#" class="btn btn-primary" style="padding:8px 18px;">다운로드</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <span class="badge">● 100% 로컬 실행 · 데이터 외부 전송 없음</span>
+    <h1>내 PC에서 돌아가는<br><span class="grad">로컬 LLM 벤치마크 도구</span></h1>
+    <p>LocalBench는 모델 성능을 객관적으로 측정·비교하는 오픈소스 도구입니다. 인터넷 연결 없이, 개인정보가 خارج로 나가지 않고도 전문 벤치마크를 실행하세요.</p>
+    <div class="hero-actions">
+      <a href="#" class="btn btn-primary">무료로 시작 →</a>
+      <a href="#" class="btn btn-ghost">GitHub에서 보기</a>
+    </div>
+    <div class="code-demo">
+      <div class="dots"><span></span><span></span><span></span></div>
+      <div class="line"><span class="c">$</span> localbench run --model llama-3.1-8b --bench mmlu,helm</div>
+      <div class="line">→ 로컬 GPU에서 4개 태스크 동시 실행 중...</div>
+      <div class="line"><span class="k">accuracy</span>: <span class="s">0.742</span> &nbsp; <span class="k">tok/s</span>: <span class="s">48.6</span></div>
+      <div class="line"><span class="c">✓</span> 결과 로컬에 저장됨 → ./results/2024-05-20.json</div>
+    </div>
+  </div>
+</section>
+
+<div class="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat"><div class="num">30+</div><div class="lbl">내장 벤치마크</div></div>
+      <div class="stat"><div class="num">100%</div><div class="lbl">로컬 처리</div></div>
+      <div class="stat"><div class="num">5min</div><div class="lbl">설치 시간</div></div>
+      <div class="stat"><div class="num">0원</div><div class="lbl">영구 무료</div></div>
+    </div>
+  </div>
+</div>
+
+<section id="features">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Features</div>
+      <h2>개발자를 위한 강력한 기능</h2>
+      <p>복잡한 설정 없이, 로컬 환경에 최적화된 벤치마크 경험을 제공합니다.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature">
+        <div class="icon">⚡</div>
+        <h3>최적화된 추론 엔진</h3>
+        <p>CUDA, Metal, DirectML, CPU까지 자동 감지하여 하드웨어에 맞는 속도로 벤치마크를 실행합니다.</p>
+      </div>
+      <div class="feature">
+        <div class="icon">🔒</div>
+        <h3>완전한 프라이버시</h3>
+        <p>모델·데이터·결과가 모두 로컬에 머집니다. 클라우드 계정이나 API 키도 필요 없습니다.</p>
+      </div>
+      <div class="feature">
+        <div class="icon">📊</div>
+        <h3>비교 대시보드</h3>
+        <p>여러 모델의 성능을 차트와 표로 한눈에 비교하고 CSV·JSON으로 내보냅니다.</p>
+      </div>
+      <div class="feature">
+        <div class="icon">🧩</div>
+        <h3>플러그인 방식</h3>
+        <p>자체 벤치마크를 JavaScript로 간단히 작성해 확장할 수 있는 유연한 구조입니다.</p>
+      </div>
+      <div class="feature">
+        <div class="icon">⚙️</div>
+        <h3>세밀한 파라미터</h3>
+        <p>토큰 수, temperature, parallel 설정까지 세밀하게 제어해 재현 가능한 결과를 얻으세요.</p>
+      </div>
+      <div class="feature">
+        <div class="icon">📈</div>
+        <h3>성능 메트릭</h3>
+        <p>정확도 외에도 지연시간, 처리량, 메모리 사용량까지 함께 측정합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="benchmarks" class="benchmarks">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Benchmarks</div>
+      <h2>다양한 평가 벤치마크</h2>
+      <p>지식·추론·수학·코딩까지, 산업 표준 벤치마크를 바로 사용할 수 있습니다.</p>
+    </div>
+    <div class="bench-grid">
+      <div class="bench-tag"><div class="name">MMLU</div><div class="desc">광범위 지식 평가</div></div>
+      <div class="bench-tag"><div class="name">HellaSwag</div><div class="desc">일상 추론</div></div>
+      <div class="bench-tag"><div class="name">GSM8K</div><div class="desc">수학적 문제 해결</div></div>
+      <div class="bench-tag"><div class="name">HumanEval</div><div class="desc">Python 코딩</div></div>
+      <div class="bench-tag"><div class="name">MBCB</div><div class="desc">다국어 코딩</div></div>
+      <div class="bench-tag"><div class="name">ARC</div><div class="desc">창의적 추론</div></div>
+      <div class="bench-tag"><div class="name">WinoGrande</div><div class="desc">원인·관계 추론</div></div>
+      <div class="bench-tag"><div class="name">TruthfulQA</div><div class="desc">신뢰할 수 있는 답변</div></div>
+      <div class="bench-tag"><div class="name">Custom</div><div class="desc">자체 벤치마크</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">How it works</div>
+      <h2>3단계로 끝내는 성능 평가</h2>
+      <p>전문 지식이 필요 없습니다. 명령어 몇 개로 시작하세요.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="num">1</div>
+        <h3>모델 로드</h3>
+        <p>GGUF, Safetensors 등 주요 포맷의 로컬 모델을 지정하여 불러옵니다.</p>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <h3>벤치마크 선택</h3>
+        <p>평가하고 싶은 벤치마크를 선택하고 데이터셋을 로컬에 준비합니다.</p>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <h3>결과 확인</h3>
+        <p>실행 후 대시보드에서 점수와 성능 지표를 즉시 확인할 수 있습니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing" class="pricing">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Pricing</div>
+      <h2>간단하고 투명한 가격</h2>
+      <p>핵심 기능은 모두 무료입니다. 팀 협업이 필요할 때만 업그레이드하세요.</p>
+    </div>
+    <div class="price-grid">
+      <div class="price-card">
+        <div class="plan">Personal</div>
+        <div class="price">₩0<small>/영구</small></div>
+        <div class="desc">개인 개발자 및 연구자에게</div>
+        <ul>
+          <li>모든 벤치마크 접근</li>
+          <li>무제한 로컬 실행</li>
+          <li>결과 내보내기</li>
+          <li>커뮤니티 지원</li>
+        </ul>
+        <a href="#" class="btn btn-ghost">시작하기</a>
+      </div>
+      <div class="price-card featured">
+        <div class="tag">가장 인기</div>
+        <div class="plan">Team</div>
+        <div class="price">₩19,000<small>/월</small></div>
+        <div class="desc">여러 사람이 함께 평가할 때</div>
+        <ul>
+          <li>Personal의 모든 기능</li>
+          <li>팀 결과 공유 대시보드</li>
+          <li>커스텀 벤치마크 저장</li>
+          <li>우선 기술 지원</li>
+        </ul>
+        <a href="#" class="btn btn-primary">무료 체험</a>
+      </div>
+      <div class="price-card">
+        <div class="plan">Enterprise</div>
+        <div class="price">문의<small></small></div>
+        <div class="desc">대규모 조직용</div>
+        <ul>
+          <li>온프레미스 배포</li>
+          <li>SSO·권한 관리</li>
+          <li>Dedicated 지원</li>
+          <li>SLA 계약</li>
+        </ul>
+        <a href="#" class="btn btn-ghost">영업팀 문의</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="container">
+    <div class="cta-box">
+      <h2>지금 바로 로컬 벤치마크를 시작하세요</h2>
+      <p>설치 5분, 데이터는 절대 خارج로 나가지 않습니다.</p>
+      <a href="#" class="btn">무료로 다운로드 →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="logo" style="margin-bottom:12px;"><span class="logo-mark">◈</span> LocalBench</div>
+      <p style="color:var(--muted); font-size:14px; max-width:240px;">로컬에서 빠르게, 안전하게 LLM을 평가하는 도구.</p>
+    </div>
+    <div class="footer-col">
+      <h4>제품</h4>
+      <a href="#">기능</a><a href="#">벤치마크</a><a href="#">가격</a><a href="#">변경 로그</a>
+    </div>
+    <div class="footer-col">
+      <h4>리소스</h4>
+      <a href="#">사용 문서</a><a href="#">API</a><a href="#">블로그</a><a href="#">예제</a>
+    </div>
+    <div class="footer-col">
+      <h4>회사</h4>
+      <a href="#">소개</a><a href="#">문의</a><a href="#">개인정보처리방침</a><a href="#">약관</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2024 LocalBench. All rights reserved.</span>
+    <span>MIT License · Made for local AI developers</span>
+  </div>
+</footer>
+
+</body>
+</html>

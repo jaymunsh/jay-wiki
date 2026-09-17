@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leneu Platformer — 2400×600 월드 플랫폼 게임</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #141b29;
+      --border: #232f45;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --gold: #f59e0b;
+      --success: #22c55e;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    header h1 {
+      font-size: 1.6rem;
+      color: var(--accent);
+    }
+    header p {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      width: 800px;
+      background: var(--panel);
+      padding: 8px 16px;
+      border-radius: 8px 8px 0 0;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .hud-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hud-val {
+      color: var(--accent);
+      font-family: monospace;
+      font-size: 1.1rem;
+    }
+    .canvas-container {
+      position: relative;
+      width: 800px;
+      height: 500px;
+      border: 2px solid var(--border);
+      border-radius: 0 0 8px 8px;
+      overflow: hidden;
+      background: #0d1527;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.6);
+    }
+    canvas {
+      display: block;
+    }
+    .overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .overlay h2 {
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+    }
+    .overlay p {
+      color: var(--muted);
+      margin-bottom: 20px;
+      font-size: 1rem;
+    }
+    .btn {
+      padding: 10px 24px;
+      background: var(--accent);
+      color: #090d16;
+      border: none;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .instructions {
+      width: 800px;
+      margin-top: 14px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    .key {
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--text);
+      font-family: monospace;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Leneu Platformer</h1>
+    <p>공통 맵: 2400×600 월드 | 지면 3구간 | 3개 플랫폼 & 코인 | 적 2마리 | 골인 x=2310</p>
+  </header>
+
+  <div class="hud">
+    <div class="hud-item">
+      <span>코인:</span>
+      <span class="hud-val" id="coinCount" style="color:var(--gold);">0 / 3</span>
+    </div>
+    <div class="hud-item">
+      <span>시간:</span>
+      <span class="hud-val" id="timerVal">0.0s</span>
+    </div>
+    <div class="hud-item">
+      <span>위치 (X):</span>
+      <span class="hud-val" id="posXVal">80</span>
+    </div>
+  </div>
+
+  <div class="canvas-container">
+    <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" style="display:none;">
+      <h2 id="overlayTitle">스테이지 클리어!</h2>
+      <p id="overlaySub">시간: 12.4s | 코인: 3/3</p>
+      <button class="btn" onclick="resetGame()">다시 도전</button>
+    </div>
+  </div>
+
+  <div class="instructions">
+    <div>
+      <strong>조작:</strong> 이동: <span class="key">←</span> <span class="key">→</span> 또는 <span class="key">A</span> <span class="key">D</span> | 점프: <span class="key">Space</span> 또는 <span class="key">↑</span> / <span class="key">W</span> (지면/플랫폼에서만 가능)
+    </div>
+    <div>
+      재시작: <span class="key">R</span> | 적 처치: 위에서 밟기 (적 바운스 점프)
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const overlay = document.getElementById("overlay");
+    const overlayTitle = document.getElementById("overlayTitle");
+    const overlaySub = document.getElementById("overlaySub");
+    const coinCountEl = document.getElementById("coinCount");
+    const timerValEl = document.getElementById("timerVal");
+    const posXValEl = document.getElementById("posXVal");
+
+    // Constants & Specs
+    const WORLD_W = 2400;
+    const WORLD_H = 600;
+    const VIEW_W = 800;
+    const VIEW_H = 500;
+
+    // Physics parameters (calibrated to ensure completion)
+    const GRAVITY = 0.58;
+    const JUMP_FORCE = -12.5;
+    const MOVE_SPEED = 4.8;
+    const ENEMY_BOUNCE_FORCE = -9.0;
+
+    // Map definition
+    const GROUND_SEGMENTS = [
+      { x1: 0, x2: 650 },
+      { x1: 780, x2: 1500 },
+      { x1: 1640, x2: 2400 }
+    ];
+    const GROUND_Y = 520;
+
+    const PLATFORMS = [
+      { x: 350, y: 410, w: 160, h: 20 },
+      { x: 1100, y: 400, w: 180, h: 20 },
+      { x: 1800, y: 380, w: 180, h: 20 }
+    ];
+
+    const COIN_CONFIGS = [
+      { cx: 420, cy: 370, r: 12 },
+      { cx: 1170, cy: 360, r: 12 },
+      { cx: 1860, cy: 340, r: 12 }
+    ];
+
+    const ENEMY_CONFIGS = [
+      { minX: 900, maxX: 1040, y: 488, w: 32, h: 32, speed: 1.6 },
+      { minX: 2000, maxX: 2180, y: 488, w: 32, h: 32, speed: 1.6 }
+    ];
+
+    const GOAL_X = 2310;
+
+    // State
+    let player = {
+      x: 80,
+      y: 476,
+      w: 32,
+      h: 44,
+      vx: 0,
+      vy: 0,
+      grounded: false
+    };
+
+    let enemies = [];
+    let coins = [];
+    let cameraX = 0;
+    let coinsCollected = 0;
+    let gameState = "playing"; // playing, clear, gameover
+    let startTime = 0;
+    let elapsedMs = 0;
+    let keys = {};
+    let animId = null;
+
+    function resetGame() {
+      if (animId) cancelAnimationFrame(animId);
+
+      player.x = 80;
+      player.y = 476;
+      player.vx = 0;
+      player.vy = 0;
+      player.grounded = true;
+
+      enemies = ENEMY_CONFIGS.map(cfg => ({
+        ...cfg,
+        x: cfg.minX,
+        dir: 1,
+        alive: true
+      }));
+
+      coins = COIN_CONFIGS.map(cfg => ({
+        ...cfg,
+        collected: false
+      }));
+
+      coinsCollected = 0;
+      gameState = "playing";
+      cameraX = 0;
+      startTime = performance.now();
+      elapsedMs = 0;
+
+      overlay.style.display = "none";
+      coinCountEl.textContent = "0 / 3";
+      timerValEl.textContent = "0.0s";
+      posXValEl.textContent = "80";
+
+      animId = requestAnimationFrame(gameLoop);
+    }
+
+    // Input handlers
+    window.addEventListener("keydown", (e) => {
+      keys[e.code] = true;
+      if (e.code === "KeyR") {
+        resetGame();
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      keys[e.code] = false;
+    });
+
+    function update() {
+      if (gameState !== "playing") return;
+
+      elapsedMs = performance.now() - startTime;
+      timerValEl.textContent = (elapsedMs / 1000).toFixed(1) + "s";
+      posXValEl.textContent = Math.round(player.x);
+
+      // Horizontal movement
+      player.vx = 0;
+      if (keys["ArrowLeft"] || keys["KeyA"]) {
+        player.vx = -MOVE_SPEED;
+      }
+      if (keys["ArrowRight"] || keys["KeyD"]) {
+        player.vx = MOVE_SPEED;
+      }
+
+      // Jump (only when grounded)
+      if ((keys["Space"] || keys["ArrowUp"] || keys["KeyW"]) && player.grounded) {
+        player.vy = JUMP_FORCE;
+        player.grounded = false;
+      }
+
+      // Apply gravity
+      player.vy += GRAVITY;
+
+      // Update position
+      player.x += player.vx;
+      player.y += player.vy;
+
+      // Boundary check
+      if (player.x < 0) player.x = 0;
+      if (player.x + player.w > WORLD_W) player.x = WORLD_W - player.w;
+
+      // Reset grounded flag before collision checks
+      player.grounded = false;
+
+      // Collision with ground segments
+      if (player.y + player.h >= GROUND_Y && player.y + player.h - player.vy <= GROUND_Y + 14) {
+        for (const seg of GROUND_SEGMENTS) {
+          const footLeft = player.x;
+          const footRight = player.x + player.w;
+          if (footRight > seg.x1 && footLeft < seg.x2) {
+            player.y = GROUND_Y - player.h;
+            player.vy = 0;
+            player.grounded = true;
+            break;
+          }
+        }
+      }
+
+      // Collision with platforms (one-way / top landing)
+      for (const p of PLATFORMS) {
+        if (
+          player.x + player.w > p.x &&
+          player.x < p.x + p.w &&
+          player.y + player.h >= p.y &&
+          player.y + player.h - player.vy <= p.y + 12 &&
+          player.vy >= 0
+        ) {
+          player.y = p.y - player.h;
+          player.vy = 0;
+          player.grounded = true;
+        }
+      }
+
+      // Pit check
+      if (player.y > WORLD_H) {
+        triggerGameOver("낭떠러지로 추락했습니다!");
+        return;
+      }
+
+      // Coins collection
+      for (const c of coins) {
+        if (!c.collected) {
+          const px = player.x + player.w / 2;
+          const py = player.y + player.h / 2;
+          const dist = Math.hypot(px - c.cx, py - c.cy);
+          if (dist < c.r + 18) {
+            c.collected = true;
+            coinsCollected++;
+            coinCountEl.textContent = coinsCollected + " / 3";
+          }
+        }
+      }
+
+      // Update enemies & enemy collision
+      for (const e of enemies) {
+        if (!e.alive) continue;
+
+        e.x += e.speed * e.dir;
+        if (e.x <= e.minX) {
+          e.x = e.minX;
+          e.dir = 1;
+        } else if (e.x + e.w >= e.maxX) {
+          e.x = e.maxX - e.w;
+          e.dir = -1;
+        }
+
+        // AABB check with player
+        if (
+          player.x + player.w > e.x &&
+          player.x < e.x + e.w &&
+          player.y + player.h > e.y &&
+          player.y < e.y + e.h
+        ) {
+          // Check stomp from above
+          const prevBottom = player.y + player.h - player.vy;
+          if (player.vy > 0 && prevBottom <= e.y + 14) {
+            // Stomp success!
+            e.alive = false;
+            player.vy = ENEMY_BOUNCE_FORCE;
+            player.y = e.y - player.h;
+          } else {
+            // Side collision -> Game Over
+            triggerGameOver("적과 충돌했습니다!");
+            return;
+          }
+        }
+      }
+
+      // Goal check
+      if (player.x >= GOAL_X - 10) {
+        triggerClear();
+        return;
+      }
+
+      // Camera tracking: center player in viewport, clamp to world bounds
+      cameraX = player.x - VIEW_W / 2 + player.w / 2;
+      if (cameraX < 0) cameraX = 0;
+      if (cameraX > WORLD_W - VIEW_W) cameraX = WORLD_W - VIEW_W;
+    }
+
+    function triggerGameOver(reason) {
+      gameState = "gameover";
+      overlayTitle.textContent = "게임 오버";
+      overlayTitle.style.color = "var(--danger)";
+      overlaySub.textContent = reason + " (R키로 재시작)";
+      overlay.style.display = "flex";
+    }
+
+    function triggerClear() {
+      gameState = "clear";
+      const totalSec = (elapsedMs / 1000).toFixed(2);
+      overlayTitle.textContent = "★ 스테이지 클리어! ★";
+      overlayTitle.style.color = "var(--success)";
+      overlaySub.textContent = `클리어 시간: ${totalSec}s | 수집한 코인: ${coinsCollected}/3`;
+      overlay.style.display = "flex";
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, VIEW_W, VIEW_H);
+
+      ctx.save();
+      // Translate camera
+      ctx.translate(-cameraX, 0);
+
+      // Background decorative grid & mountains
+      ctx.fillStyle = "#111a2e";
+      ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+
+      // Ground segments
+      ctx.fillStyle = "#22c55e";
+      for (const seg of GROUND_SEGMENTS) {
+        // grass top
+        ctx.fillRect(seg.x1, GROUND_Y, seg.x2 - seg.x1, 10);
+        // dirt body
+        ctx.fillStyle = "#3f2d1d";
+        ctx.fillRect(seg.x1, GROUND_Y + 10, seg.x2 - seg.x1, WORLD_H - GROUND_Y - 10);
+        ctx.fillStyle = "#22c55e";
+      }
+
+      // Platforms
+      for (const p of PLATFORMS) {
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillRect(p.x, p.y, p.w, 4);
+        ctx.fillStyle = "#1e293b";
+        ctx.fillRect(p.x, p.y + 4, p.w, p.h - 4);
+      }
+
+      // Coins
+      for (const c of coins) {
+        if (!c.collected) {
+          ctx.beginPath();
+          ctx.arc(c.cx, c.cy, c.r, 0, Math.PI * 2);
+          ctx.fillStyle = "#f59e0b";
+          ctx.fill();
+          ctx.strokeStyle = "#fbbf24";
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          ctx.fillStyle = "#d97706";
+          ctx.font = "bold 12px sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("★", c.cx, c.cy);
+        }
+      }
+
+      // Enemies
+      for (const e of enemies) {
+        if (e.alive) {
+          // Body
+          ctx.fillStyle = "#ef4444";
+          ctx.fillRect(e.x, e.y, e.w, e.h);
+          // Eyes
+          ctx.fillStyle = "#fff";
+          const eyeOff = e.dir > 0 ? 18 : 6;
+          ctx.fillRect(e.x + eyeOff, e.y + 8, 6, 6);
+          ctx.fillStyle = "#000";
+          ctx.fillRect(e.x + eyeOff + (e.dir > 0 ? 2 : 0), e.y + 10, 4, 4);
+        }
+      }
+
+      // Goal Flag at x = 2310
+      ctx.fillStyle = "#cbd5e1";
+      ctx.fillRect(GOAL_X, GROUND_Y - 140, 6, 140);
+      ctx.beginPath();
+      ctx.moveTo(GOAL_X + 6, GROUND_Y - 140);
+      ctx.lineTo(GOAL_X + 46, GROUND_Y - 115);
+      ctx.lineTo(GOAL_X + 6, GROUND_Y - 90);
+      ctx.closePath();
+      ctx.fillStyle = "#22c55e";
+      ctx.fill();
+
+      // Player
+      // Body
+      ctx.fillStyle = "#38bdf8";
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+      // Face visor
+      ctx.fillStyle = "#0f172a";
+      const faceOff = player.vx < 0 ? 4 : 16;
+      ctx.fillRect(player.x + faceOff, player.y + 8, 12, 10);
+
+      ctx.restore();
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      animId = requestAnimationFrame(gameLoop);
+    }
+
+    resetGame();
+  </script>
+</body>
+</html>

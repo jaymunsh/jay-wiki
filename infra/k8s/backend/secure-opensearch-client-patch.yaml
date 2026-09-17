@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaywiki
+  namespace: backend
+spec:
+  template:
+    spec:
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: jaywiki
+          env:
+            - {name: APP_OPENSEARCH_URL, value: 'https://secure-search.data.svc.cluster.local:9200'}
+            - {name: APP_OPENSEARCH_SECURITY_REQUIRED, value: 'true'}
+            - {name: APP_OPENSEARCH_CA_CERTIFICATE, value: /opensearch-ca/ca.pem}
+            - name: APP_OPENSEARCH_USERNAME
+              valueFrom: {secretKeyRef: {name: opensearch-app-auth, key: username}}
+            - name: APP_OPENSEARCH_PASSWORD
+              valueFrom: {secretKeyRef: {name: opensearch-app-auth, key: password}}
+          volumeMounts:
+            - {name: opensearch-ca, mountPath: /opensearch-ca, readOnly: true}
+      volumes:
+        - name: opensearch-ca
+          secret:
+            secretName: opensearch-app-auth
+            defaultMode: 0440
+            items: [{key: ca.pem, path: ca.pem}]

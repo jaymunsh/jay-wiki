@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>모래 물리 샌드박스</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d0d17;
+    color: #c8c8d8;
+    font-family: "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 12px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  h1 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+    color: #e8e8f0;
+  }
+  #toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    max-width: 900px;
+  }
+  .grp {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #171728;
+    border: 1px solid #2a2a40;
+    border-radius: 8px;
+    padding: 4px 6px;
+  }
+  .grp label { font-size: 12px; color: #9999b3; }
+  .mat-btn {
+    border: 2px solid transparent;
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e8e8f0;
+    background: #22223a;
+    transition: all 0.12s ease;
+    white-space: nowrap;
+  }
+  .mat-btn:hover { background: #2c2c48; }
+  .mat-btn.active { border-color: #7c7cff; background: #33335a; }
+  .mat-btn.m-sand { background: #5a4a22; }
+  .mat-btn.m-water { background: #1e3a5a; }
+  .mat-btn.m-wall { background: #3a3a3a; }
+  .mat-btn.m-mountain { background: #3a2240; }
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 90px;
+    height: 4px;
+    border-radius: 2px;
+    background: #3a3a55;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #7c7cff;
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border: none;
+    border-radius: 50%;
+    background: #7c7cff;
+    cursor: pointer;
+  }
+  #brushVal { font-size: 12px; min-width: 20px; text-align: center; color: #a0a0d0; }
+  .btn {
+    border: 1px solid #2a2a40;
+    border-radius: 6px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e8e8f0;
+    background: #22223a;
+    transition: all 0.12s ease;
+  }
+  .btn:hover { background: #33335a; }
+  .btn.on { background: #2a5a3a; border-color: #3a8a5a; color: #a0f0b0; }
+  .btn.danger:hover { background: #5a2a2a; border-color: #8a3a3a; }
+  #canvasWrap {
+    border: 1px solid #2a2a40;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    line-height: 0;
+    background: #000;
+  }
+  canvas { display: block; cursor: crosshair; image-rendering: pixelated; }
+  #stats {
+    display: flex;
+    gap: 18px;
+    margin-top: 10px;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+  #stats span { color: #9999b3; }
+  #stats b { color: #e8e8f0; font-weight: 600; }
+  #hint { font-size: 11px; color: #66667a; margin-top: 8px; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>🏖️ 셀룰러 오토마타 모래 물리 샌드박스</h1>
+  <div id="toolbar">
+    <div class="grp" id="matGroup">
+      <button class="mat-btn m-sand active" data-m="1">모래</button>
+      <button class="mat-btn m-water" data-m="2">물</button>
+      <button class="mat-btn m-wall" data-m="3">벽</button>
+      <button class="mat-btn m-mountain" data-m="4">산</button>
+    </div>
+    <div class="grp">
+      <label>브러시</label>
+      <input type="range" id="brush" min="1" max="30" value="6">
+      <span id="brushVal">6</span>
+    </div>
+    <div class="grp">
+      <button class="btn" id="pauseBtn">⏸ 일시정지</button>
+      <button class="btn danger" id="clearBtn">🗑 초기화</button>
+    </div>
+  </div>
+  <div id="canvasWrap">
+    <canvas id="canvas"></canvas>
+  </div>
+  <div id="stats">
+    <div><span>입자 수: </span><b id="particleCount">0</b></div>
+    <div><span>FPS: </span><b id="fps">0</b></div>
+  </div>
+  <div id="hint">좌클릭: 그리기 · 우클릭: 지우기 · 드래그: 연속 그리기</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- 상수 정의 ----
+  var EMPTY = 0, SAND = 1, WATER = 2, WALL = 3, MOUNTAIN = 4;
+  var UPDATE_EVERY = 2;   // 물리 업데이트 주기 (프레임당)
+  var UPDATE_INTERVAL = 3; // 물리 업데이트 간격 (틱당)
+
+  // ---- 그리드 설정 ----
+  var CELL = 3;
+  var COLS = 240;
+  var ROWS = 180;
+  var N = COLS * ROWS;
+
+  // ---- 그리드 배열 ----
+  var grid = new Uint8Array(N);
+  var next = new Uint8Array(N);
+  var updated = new Uint8Array(N);
+  var moved = new Uint8Array(N);
+
+  // ---- 색상 테이블 (RGB) ----
+  var colors = [
+    [10, 10, 18],       // EMPTY
+    [218, 178, 88],     // SAND
+    [48, 110, 190],     // WATER
+    [110, 110, 118],    // WALL
+    [120, 70, 140]      // MOUNTAIN
+  ];
+
+  // ---- 캔버스 ----
+  var canvas = document.getElementById("canvas");
+  var ctx = canvas.getContext("2d");
+  canvas.width = COLS * CELL;
+  canvas.height = ROWS * CELL;
+  var imageData = ctx.createImageData(canvas.width, canvas.height);
+  var buf32 = new Uint32Array(imageData.data.buffer);
+  var bufLen = canvas.width * canvas.height;
+
+  // ---- 상태 ----
+  var currentMat = SAND;
+  var brushSize = 6;
+  var paused = false;
+  var tickCount = 0;
+
+  // ---- 입력 상태 ----
+  var mouseDown = false;
+  var rightDown = false;
+  var lastMX = -1, lastMY = -1;
+
+  // ---- FPS 계산 ----
+  var frameTimes = [];
+  var lastFrameTime = performance.now();
+  var displayFps = 60;
+
+  // ---- DOM ----
+  var particleCountEl = document.getElementById("particleCount");
+  var fpsEl = document.getElementById("fps");
+  var brushEl = document.getElementById("brush");
+  var brushValEl = document.getElementById("brushVal");
+  var pauseBtn = document.getElementById("pauseBtn");
+  var clearBtn = document.getElementById("clearBtn");
+
+  // ---- 좌표 변환 ----
+  function toCanvasX(gx) { return gx * CELL; }
+  function toCanvasY(gy) { return gy * CELL; }
+
+  function canvasToGrid(clientX, clientY) {
+    var rect = canvas.getBoundingClientRect();
+    var x = clientX - rect.left;
+    var y = clientY - rect.top;
+    var scaleX = canvas.width / rect.width;
+    var scaleY = canvas.height / rect.height;
+    x *= scaleX;
+    y *= scaleY;
+    return {
+      gx: Math.floor(x / CELL),
+      gy: Math.floor(y / CELL)
+    };
+  }
+
+  // ---- 그리드 인덱스 ----
+  function idx(x, y) { return y * COLS + x; }
+  function inBounds(x, y) {
+    return x >= 0 && x < COLS && y >= 0 && y < ROWS;
+  }
+
+  // ---- 재료 유효성 ----
+  function isSolid(m) {
+    return m === WALL || m === MOUNTAIN;
+  }
+  function isPowder(m) {
+    return m === SAND || m === MOUNTAIN;
+  }
+  function isLiquid(m) {
+    return m === WATER;
+  }
+
+  // ---- 그리기 ----
+  function drawAt(gx, gy) {
+    var r = brushSize;
+    for (var dy = -r; dy <= r; dy++) {
+      for (var dx = -r; dx <= r; dx++) {
+        if (dx * dx + dy * dy > r * r) continue;
+        var x = gx + dx;
+        var y = gy + dy;
+        if (!inBounds(x, y)) continue;
+        var i = idx(x, y);
+        if (rightDown) {
+          grid[i] = EMPTY;
+        } else if (currentMat === EMPTY) {
+          grid[i] = EMPTY;
+        } else {
+          // 모래/물은 확률적으로, 벽/산은 꽉 채움
+          if (isPowder(currentMat) || isLiquid(currentMat)) {
+            if (grid[i] === EMPTY) {
+              grid[i] = currentMat;
+            }
+          } else {
+            grid[i] = currentMat;
+          }
+        }
+      }
+    }
+  }
+
+  function drawLine(x0, y0, x1, y1) {
+    var dx = Math.abs(x1 - x0);
+    var dy = Math.abs(y1 - y0);
+    var sx = x0 < x1 ? 1 : -1;
+    var sy = y0 < y1 ? 1 : -1;
+    var err = dx - dy;
+    while (true) {
+      drawAt(x0, y0);
+      if (x0 === x1 && y0 === y1) break;
+      var e2 = 2 * err;
+      if (e2 > -dy) { err -= dy; x0 += sx; }
+      if (e2 < dx) { err += dx; y0 += sy; }
+    }
+  }
+
+  // ---- 물리 시뮬레이션 ----
+  function update() {
+    // 다음 프레임용 moved 배열 초기화
+    moved.fill(0);
+
+    // 아래에서 위로 처리 (중력 방향)
+    for (var y = ROWS - 2; y >= 0; y--) {
+      // 랜덤 수평 순서 (좌우 흔들기)
+      var leftToRight = (Math.random() < 0.5);
+      var xStart = leftToRight ? 0 : COLS - 1;
+      var xEnd = leftToRight ? COLS : -1;
+      var xStep = leftToRight ? 1 : -1;
+
+      for (var x = xStart; x !== xEnd; x += xStep) {
+        var i = idx(x, y);
+        var m = grid[i];
+        if (m === EMPTY || isSolid(m)) continue;
+
+        if (isPowder(m)) {
+          updatePowder(x, y, i, m);
+        } else if (isLiquid(m)) {
+          updateLiquid(x, y, i, m);
+        }
+      }
+    }
+  }
+
+  function canDisplace(target, mover) {
+    // mover가 target을 대체 가능한가? (고체는 대체 불가,powder/liquid은 대체 가능)
+    if (target === EMPTY) return true;
+    if (isSolid(target)) return false;
+    // 액체가 고체가 아닌 것을 대체: 물은 모래 대체 불가 (일반적으로 물은 아래로)
+    // powder는 powder 대체 불가
+    return false;
+  }
+
+  function swap(a, b) {
+    var tmp = grid[a];
+    grid[a] = grid[b];
+    grid[b] = tmp;
+    moved[a] = 1;
+    moved[b] = 1;
+  }
+
+  function updatePowder(x, y, i, m) {
+    var below = idx(x, y + 1);
+    if (y + 1 < ROWS) {
+      var bm = grid[below];
+      if (canDisplace(bm, m)) {
+        swap(i, below);
+        return;
+      }
+      // 대각 방향
+      var dir = Math.random() < 0.5 ? 1 : -1;
+      for (var k = 0; k < 2; k++) {
+        var nx = x + dir;
+        if (nx >= 0 && nx < COLS) {
+          var bi = idx(nx, y + 1);
+          if (canDisplace(grid[bi], m)) {
+            swap(i, bi);
+            return;
+          }
+        }
+        dir = -dir;
+      }
+    }
+  }
+
+  function updateLiquid(x, y, i, m) {
+    // 1) 아래로
+    var below = idx(x, y + 1);
+    if (y + 1 < ROWS && grid[below] === EMPTY) {
+      swap(i, below);
+      return;
+    }
+    // 2) 대각 아래
+    var dir = Math.random() < 0.5 ? 1 : -1;
+    for (var k = 0; k < 2; k++) {
+      var nx = x + dir;
+      if (nx >= 0 && nx < COLS) {
+        var bi = idx(nx, y + 1);
+        if (grid[bi] === EMPTY) {
+          swap(i, bi);
+          return;
+        }
+      }
+      dir = -dir;
+    }
+    // 3) 수평 확산
+    var spread = 3 + Math.floor(Math.random() * 3);
+    for (var s = 1; s <= spread; s++) {
+      var lx = x + dir * s;
+      if (lx < 0 || lx >= COLS) break;
+      if (grid[lx + y * COLS] === EMPTY) {
+        swap(i, lx + y * COLS);
+        return;
+      } else {
+        break;
+      }
+    }
+    // 수평 확산 (반대 방향도 시도)
+    dir = -dir;
+    for (var s2 = 1; s2 <= spread; s2++) {
+      var rx = x + dir * s2;
+      if (rx < 0 || rx >= COLS) break;
+      if (grid[rx + y * COLS] === EMPTY) {
+        swap(i, rx + y * COLS);
+        return;
+      } else {
+        break;
+      }
+    }
+  }
+
+  // ---- 렌더링 ----
+  function render() {
+    // 그리드를 캔버스로 확장
+    for (var gy = 0; gy < ROWS; gy++) {
+      for (var gx = 0; gx < COLS; gx++) {
+        var c = colors[grid[gy * COLS + gx]];
+        var r = c[0], g = c[1], b = c[2];
+        var color = (255 << 24) | (b << 16) | (g << 8) | r;
+        var cx = gx * CELL;
+        var cy = gy * CELL;
+        for (var py = 0; py < CELL; py++) {
+          var rowBase = (cy + py) * canvas.width + cx;
+          for (var px = 0; px < CELL; px++) {
+            buf32[rowBase + px] = color;
+          }
+        }
+      }
+    }
+    ctx.putImageData(imageData, 0, 0);
+
+    // 브러시 미리보기
+    if (mouseDown || rightDown || hoverGX >= 0) {
+      // 그리드 좌표로 그리기
+    }
+  }
+
+  // ---- 입자 수 계산 ----
+  function countParticles() {
+    var count = 0;
+    for (var i = 0; i < N; i++) {
+      if (grid[i] !== EMPTY) count++;
+    }
+    return count;
+  }
+
+  // ---- 메인 루프 ----
+  function loop() {
+    var now = performance.now();
+    var dt = now - lastFrameTime;
+    lastFrameTime = now;
+
+    // FPS 계산 (이동 평균)
+    frameTimes.push(dt);
+    if (frameTimes.length > 30) frameTimes.shift();
+    var avgDt = 0;
+    for (var i = 0; i < frameTimes.length; i++) avgDt += frameTimes[i];
+    avgDt /= frameTimes.length;
+    displayFps = Math.round(1000 / (avgDt || 16.67));
+
+    // 물리 업데이트
+    if (!paused) {
+      tickCount++;
+      if (tickCount % UPDATE_INTERVAL === 0) {
+        update();
+      }
+    }
+
+    render();
+
+    // 통계 업데이트 (2프레임마다)
+    if (tickCount % 2 === 0) {
+      particleCountEl.textContent = countParticles().toLocaleString();
+      fpsEl.textContent = displayFps;
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  // ---- 이벤트 핸들러 ----
+  function getGridFromEvent(e) {
+    var touch = e.touches && e.touches[0];
+    var clientX = touch ? touch.clientX : e.clientX;
+    var clientY = touch ? touch.clientY : e.clientY;
+    return canvasToGrid(clientX, clientY);
+  }
+
+  canvas.addEventListener("mousedown", function (e) {
+    e.preventDefault();
+    var g = canvasToGrid(e.clientX, e.clientY);
+    if (e.button === 2) {
+      rightDown = true;
+    } else {
+      mouseDown = true;
+    }
+    lastMX = g.gx;
+    lastMY = g.gy;
+    drawAt(g.gx, g.gy);
+  });
+
+  window.addEventListener("mousemove", function (e) {
+    var g = canvasToGrid(e.clientX, e.clientY);
+    if (mouseDown || rightDown) {
+      drawLine(lastMX, lastMY, g.gx, g.gy);
+      lastMX = g.gx;
+      lastMY = g.gy;
+    }
+  });
+
+  window.addEventListener("mouseup", function (e) {
+    if (e.button === 2) rightDown = false;
+    else mouseDown = false;
+  });
+
+  canvas.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
+  });
+
+  // 터치 지원
+  canvas.addEventListener("touchstart", function (e) {
+    e.preventDefault();
+    var g = getGridFromEvent(e);
+    mouseDown = true;
+    rightDown = false;
+    lastMX = g.gx;
+    lastMY = g.gy;
+    drawAt(g.gx, g.gy);
+  }, { passive: false });
+
+  canvas.addEventListener("touchmove", function (e) {
+    e.preventDefault();
+    var g = getGridFromEvent(e);
+    if (mouseDown) {
+      drawLine(lastMX, lastMY, g.gx, g.gy);
+      lastMX = g.gx;
+      lastMY = g.gy;
+    }
+  }, { passive: false });
+
+  canvas.addEventListener("touchend", function (e) {
+    e.preventDefault();
+    mouseDown = false;
+  }, { passive: false });
+
+  // 재료 버튼
+  var matBtns = document.querySelectorAll(".mat-btn");
+  matBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      matBtns.forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      currentMat = parseInt(btn.getAttribute("data-m"), 10);
+    });
+  });
+
+  // 브러시 슬라이더
+  brushEl.addEventListener("input", function () {
+    brushSize = parseInt(brushEl.value, 10);
+    brushValEl.textContent = brushSize;
+  });
+
+  // 일시정지
+  pauseBtn.addEventListener("click", function () {
+    paused = !paused;
+    if (paused) {
+      pauseBtn.textContent = "▶ 재생";
+      pauseBtn.classList.add("on");
+    } else {
+      pauseBtn.textContent = "⏸ 일시정지";
+      pauseBtn.classList.remove("on");
+    }
+  });
+
+  // 초기화
+  clearBtn.addEventListener("click", function () {
+    grid.fill(EMPTY);
+    next.fill(0);
+    updated.fill(0);
+    moved.fill(0);
+    tickCount = 0;
+  });
+
+  // 키보드 단축키
+  window.addEventListener("keydown", function (e) {
+    if (e.key === " ") {
+      e.preventDefault();
+      pauseBtn.click();
+    } else if (e.key === "c" || e.key === "C") {
+      clearBtn.click();
+    } else if (e.key === "1") { matBtns[0].click(); }
+    else if (e.key === "2") { matBtns[1].click(); }
+    else if (e.key === "3") { matBtns[2].click(); }
+    else if (e.key === "4") { matBtns[3].click(); }
+  });
+
+  // ---- 초기 렌더링 및 시작 ----
+  render();
+  particleCountEl.textContent = "0";
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>

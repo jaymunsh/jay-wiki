@@ -1,0 +1,35 @@
+# Bitnami redis 차트의 networkPolicy 를 쓰지 않고 이 파일로 직접 쓴다.
+# 차트는 allowExternal: false 를 줘도 "같은 네임스페이스에서 redis-client: true 라벨을 단 파드"
+# 를 통과시키는 항목을 항상 끼워 넣는데, 그 라벨을 쓰는 곳이 하나도 없다.
+# NetworkPolicy 의 ingress 는 합집합이라 그 항목 하나가 정책 전체를 넓힌다.
+# opensearch-network-policy.yaml 과 같은 방식이다.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: redis-allow-backend
+  namespace: data
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: redis
+      app.kubernetes.io/name: redis
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: backend
+          podSelector:
+            matchLabels:
+              app: jaywiki
+      ports:
+        - protocol: TCP
+          port: 6379
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: redis
+              app.kubernetes.io/name: redis
+      ports:
+        - protocol: TCP
+          port: 6379

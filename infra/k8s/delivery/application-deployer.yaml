@@ -1,0 +1,635 @@
+{
+  "apiVersion": "v1",
+  "kind": "Namespace",
+  "metadata": {
+    "name": "delivery",
+    "labels": {
+      "pod-security.kubernetes.io/enforce": "restricted",
+      "pod-security.kubernetes.io/enforce-version": "v1.36"
+    }
+  }
+}
+---
+{
+  "apiVersion": "v1",
+  "kind": "ServiceAccount",
+  "metadata": {
+    "name": "application-deployer",
+    "namespace": "delivery"
+  },
+  "automountServiceAccountToken": false
+}
+---
+{
+  "apiVersion": "rbac.authorization.k8s.io/v1",
+  "kind": "Role",
+  "metadata": {
+    "name": "application-deployer",
+    "namespace": "backend"
+  },
+  "rules": [
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "pods",
+        "pods/log",
+        "events"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch"
+      ]
+    },
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "pods/exec"
+      ],
+      "verbs": [
+        "create"
+      ]
+    },
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "configmaps"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch",
+        "create",
+        "update",
+        "patch",
+        "delete"
+      ]
+    },
+    {
+      "apiGroups": [
+        "batch"
+      ],
+      "resources": [
+        "jobs"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch",
+        "create",
+        "update",
+        "patch",
+        "delete"
+      ]
+    },
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "secrets"
+      ],
+      "resourceNames": [
+        "ghcr-pull",
+        "jaywiki-secrets",
+        "security-redis-auth",
+        "cache-redis-auth",
+        "opensearch-app-auth"
+      ],
+      "verbs": [
+        "get"
+      ]
+    },
+    {
+      "apiGroups": [
+        "apps"
+      ],
+      "resources": [
+        "deployments",
+        "deployments/scale",
+        "replicasets"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch",
+        "create",
+        "patch",
+        "update"
+      ]
+    },
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "services"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch",
+        "create",
+        "patch",
+        "update"
+      ]
+    },
+    {
+      "apiGroups": [
+        "autoscaling"
+      ],
+      "resources": [
+        "horizontalpodautoscalers"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch",
+        "create",
+        "patch",
+        "update"
+      ]
+    },
+    {
+      "apiGroups": [
+        "networking.k8s.io"
+      ],
+      "resources": [
+        "ingresses"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch",
+        "create",
+        "patch",
+        "update"
+      ]
+    }
+  ]
+}
+---
+{
+  "apiVersion": "rbac.authorization.k8s.io/v1",
+  "kind": "RoleBinding",
+  "metadata": {
+    "name": "application-deployer",
+    "namespace": "backend"
+  },
+  "subjects": [
+    {
+      "kind": "ServiceAccount",
+      "name": "application-deployer",
+      "namespace": "delivery"
+    }
+  ],
+  "roleRef": {
+    "apiGroup": "rbac.authorization.k8s.io",
+    "kind": "Role",
+    "name": "application-deployer"
+  }
+}
+---
+{
+  "apiVersion": "rbac.authorization.k8s.io/v1",
+  "kind": "Role",
+  "metadata": {
+    "name": "application-deployer",
+    "namespace": "frontend"
+  },
+  "rules": [
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "pods",
+        "pods/log",
+        "events"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch"
+      ]
+    },
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "pods/exec"
+      ],
+      "verbs": [
+        "create"
+      ]
+    },
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "configmaps"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch",
+        "create",
+        "update",
+        "patch",
+        "delete"
+      ]
+    },
+    {
+      "apiGroups": [
+        "batch"
+      ],
+      "resources": [
+        "jobs"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch",
+        "create",
+        "update",
+        "patch",
+        "delete"
+      ]
+    },
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "secrets"
+      ],
+      "resourceNames": [
+        "ghcr-pull",
+        "jaywiki-secrets",
+        "security-redis-auth",
+        "cache-redis-auth",
+        "opensearch-app-auth"
+      ],
+      "verbs": [
+        "get"
+      ]
+    },
+    {
+      "apiGroups": [
+        "apps"
+      ],
+      "resources": [
+        "deployments",
+        "deployments/scale",
+        "replicasets"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch",
+        "create",
+        "patch",
+        "update"
+      ]
+    },
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "services"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch",
+        "create",
+        "patch",
+        "update"
+      ]
+    },
+    {
+      "apiGroups": [
+        "autoscaling"
+      ],
+      "resources": [
+        "horizontalpodautoscalers"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch",
+        "create",
+        "patch",
+        "update"
+      ]
+    },
+    {
+      "apiGroups": [
+        "networking.k8s.io"
+      ],
+      "resources": [
+        "ingresses"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch",
+        "create",
+        "patch",
+        "update"
+      ]
+    },
+    {
+      "apiGroups": [
+        "traefik.io"
+      ],
+      "resources": [
+        "middlewares"
+      ],
+      "resourceNames": [
+        "jaywiki-public-https-origin",
+        "jaywiki-public-https-redirect"
+      ],
+      "verbs": [
+        "get"
+      ]
+    },
+    {
+      "apiGroups": [
+        "traefik.io"
+      ],
+      "resources": [
+        "ingressroutes"
+      ],
+      "resourceNames": [
+        "jaywiki-public-http-redirect"
+      ],
+      "verbs": [
+        "get"
+      ]
+    }
+  ]
+}
+---
+{
+  "apiVersion": "rbac.authorization.k8s.io/v1",
+  "kind": "RoleBinding",
+  "metadata": {
+    "name": "application-deployer",
+    "namespace": "frontend"
+  },
+  "subjects": [
+    {
+      "kind": "ServiceAccount",
+      "name": "application-deployer",
+      "namespace": "delivery"
+    }
+  ],
+  "roleRef": {
+    "apiGroup": "rbac.authorization.k8s.io",
+    "kind": "Role",
+    "name": "application-deployer"
+  }
+}
+---
+{
+  "apiVersion": "rbac.authorization.k8s.io/v1",
+  "kind": "Role",
+  "metadata": {
+    "name": "application-deployer",
+    "namespace": "data"
+  },
+  "rules": [
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "pods",
+        "pods/log",
+        "events"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch"
+      ]
+    },
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "pods/exec"
+      ],
+      "verbs": [
+        "create"
+      ]
+    },
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "configmaps"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch",
+        "create",
+        "update",
+        "patch",
+        "delete"
+      ]
+    },
+    {
+      "apiGroups": [
+        "batch"
+      ],
+      "resources": [
+        "jobs"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch",
+        "create",
+        "update",
+        "patch",
+        "delete"
+      ]
+    },
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "secrets"
+      ],
+      "resourceNames": [
+        "ghcr-pull",
+        "jaywiki-secrets",
+        "security-redis-auth",
+        "cache-redis-auth",
+        "opensearch-app-auth"
+      ],
+      "verbs": [
+        "get"
+      ]
+    },
+    {
+      "apiGroups": [
+        "apps"
+      ],
+      "resources": [
+        "statefulsets"
+      ],
+      "resourceNames": [
+        "secure-search"
+      ],
+      "verbs": [
+        "get",
+        "watch",
+        "patch",
+        "update"
+      ]
+    },
+    {
+      "apiGroups": [
+        "batch"
+      ],
+      "resources": [
+        "cronjobs"
+      ],
+      "resourceNames": [
+        "jaywiki-postgres-backup"
+      ],
+      "verbs": [
+        "get"
+      ]
+    }
+  ]
+}
+---
+{
+  "apiVersion": "rbac.authorization.k8s.io/v1",
+  "kind": "RoleBinding",
+  "metadata": {
+    "name": "application-deployer",
+    "namespace": "data"
+  },
+  "subjects": [
+    {
+      "kind": "ServiceAccount",
+      "name": "application-deployer",
+      "namespace": "delivery"
+    }
+  ],
+  "roleRef": {
+    "apiGroup": "rbac.authorization.k8s.io",
+    "kind": "Role",
+    "name": "application-deployer"
+  }
+}
+---
+{
+  "apiVersion": "rbac.authorization.k8s.io/v1",
+  "kind": "Role",
+  "metadata": {
+    "name": "bootstrap-reader",
+    "namespace": "delivery"
+  },
+  "rules": [
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "configmaps"
+      ],
+      "resourceNames": [
+        "approved-bootstrap"
+      ],
+      "verbs": [
+        "get"
+      ]
+    }
+  ]
+}
+---
+{
+  "apiVersion": "rbac.authorization.k8s.io/v1",
+  "kind": "RoleBinding",
+  "metadata": {
+    "name": "bootstrap-reader",
+    "namespace": "delivery"
+  },
+  "subjects": [
+    {
+      "kind": "ServiceAccount",
+      "name": "application-deployer",
+      "namespace": "delivery"
+    }
+  ],
+  "roleRef": {
+    "apiGroup": "rbac.authorization.k8s.io",
+    "kind": "Role",
+    "name": "bootstrap-reader"
+  }
+}
+---
+{
+  "apiVersion": "rbac.authorization.k8s.io/v1",
+  "kind": "Role",
+  "metadata": {
+    "name": "deployment-notification",
+    "namespace": "obs"
+  },
+  "rules": [
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "secrets"
+      ],
+      "resourceNames": [
+        "alertmanager-telegram"
+      ],
+      "verbs": [
+        "get"
+      ]
+    }
+  ]
+}
+---
+{
+  "apiVersion": "rbac.authorization.k8s.io/v1",
+  "kind": "RoleBinding",
+  "metadata": {
+    "name": "deployment-notification",
+    "namespace": "obs"
+  },
+  "subjects": [
+    {
+      "kind": "ServiceAccount",
+      "name": "application-deployer",
+      "namespace": "delivery"
+    }
+  ],
+  "roleRef": {
+    "apiGroup": "rbac.authorization.k8s.io",
+    "kind": "Role",
+    "name": "deployment-notification"
+  }
+}

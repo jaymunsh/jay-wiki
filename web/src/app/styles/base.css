@@ -1,0 +1,85 @@
+/* ============================================================
+   Base
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { width: 100%; max-width: 100%; margin: 0; padding: 0; overflow-x: clip; }
+body {
+  font-family: var(--font);
+  background: var(--bg-0);
+  color: var(--text);
+  line-height: 1.55;
+  /* 위키는 탭·문서를 바꿀 때 본문을 통째로 갈아끼운다. 스크롤 앵커링은 그때마다 "보던 것을
+     붙잡아 둔다"며 스크롤을 65px 씩 옮겼고, 탭을 누를수록 화면이 계속 올라갔다.
+     문서가 통째로 바뀌는 화면에서 붙잡을 것은 없다. 좁은 선택자로는 앵커가 옆으로 옮겨가
+     안 잡히고, body 에서 꺼야 멈춘다. */
+  overflow-anchor: none;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  background-image: var(--grad-glow);
+  background-repeat: no-repeat;
+  background-size: 100% 800px;
+}
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; }
+code, pre { font-family: var(--mono); font-size: var(--fs-sm); }
+
+
+/* 키보드 사용자용 본문 건너뛰기 링크 — Tab 포커스를 받을 때만 화면에 나타난다 */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 12px;
+  z-index: 1000;
+  padding: 10px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  /* 포커스를 받아야 보이는 링크라 배경이 비면 뒤 글자와 겹쳐 읽힌다.
+     예전 값 var(--item) 은 tokens.css 에 없는 이름이라 아무 배경도 안 그렸다. */
+  background: var(--bg-1);
+  color: inherit;
+  box-shadow: var(--shadow-lg);
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* 404 화면. 위키와 블로그가 같이 쓴다. 되돌아갈 길 하나만 두고 나머지는 비운다 */
+.notfound {
+  /* 블로그 layout 이 .blog-grid(레일 + 본문)라 그냥 두면 250px 레일 칸에 끼워진다 */
+  grid-column: 1 / -1;
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 48px 20px;
+  text-align: center;
+}
+
+.notfound .code {
+  font-family: var(--mono);
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--border-strong);
+  letter-spacing: 2px;
+}
+
+.notfound h1 {
+  margin: 0;
+  font-size: var(--fs-2xl);
+}
+
+.notfound p {
+  margin: 0;
+  color: var(--text-dim);
+  max-width: 34ch;
+  word-break: keep-all;
+}
+
+.notfound .btn-primary {
+  margin-top: 6px;
+}

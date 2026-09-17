@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hold Tetris</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d1117; color: #e6edf3;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px;
+  }
+  h1 { font-size: 20px; margin-bottom: 14px; letter-spacing: .04em; }
+  .wrap { display: flex; gap: 18px; align-items: flex-start; }
+  .side { display: flex; flex-direction: column; gap: 12px; width: 120px; }
+  .panel { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 10px; }
+  .panel h2 { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+  canvas { display: block; background: #010409; border: 1px solid #30363d; border-radius: 6px; }
+  .board-wrap { position: relative; }
+  #board { border-radius: 8px; }
+  .overlay {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    flex-direction: column; gap: 10px; background: rgba(1,4,9,.78); border-radius: 8px; text-align: center;
+  }
+  .overlay.show { display: flex; }
+  .overlay strong { font-size: 20px; }
+  .overlay span { font-size: 13px; color: #8b949e; }
+  #score { font-size: 26px; font-weight: 700; }
+  #lines { font-size: 14px; color: #8b949e; }
+  .keys { margin-top: 14px; font-size: 12px; color: #8b949e; line-height: 1.9; text-align: center; }
+  .keys kbd {
+    background: #21262d; border: 1px solid #30363d; border-radius: 4px;
+    padding: 1px 6px; font-family: inherit; font-size: 11px;
+  }
+</style>
+</head>
+<body>
+<h1>HOLD TETRIS</h1>
+<div class="wrap">
+  <div class="side">
+    <div class="panel"><h2>Hold</h2><canvas id="hold" width="96" height="64"></canvas></div>
+    <div class="panel"><h2>Score</h2><div id="score">0</div><div id="lines">0 lines</div></div>
+  </div>
+  <div class="board-wrap">
+    <canvas id="board" width="300" height="600"></canvas>
+    <div class="overlay" id="pauseOverlay"><strong>일시정지</strong><span>P를 눌러 계속하기</span></div>
+    <div class="overlay" id="overOverlay"><strong>게임 오버</strong><span>Enter 또는 R로 재시작</span></div>
+  </div>
+  <div class="side">
+    <div class="panel"><h2>Next</h2><canvas id="next" width="96" height="64"></canvas></div>
+    <div class="panel"><h2>조작</h2><div class="keys" style="text-align:left;margin-top:0">
+      <kbd>←</kbd><kbd>→</kbd> 이동<br>
+      <kbd>↑</kbd>/<kbd>X</kbd> 회전<br>
+      <kbd>↓</kbd> 빠른 낙하<br>
+      <kbd>Space</kbd> 즉시 낙하<br>
+      <kbd>C</kbd>/<kbd>Shift</kbd> 보관<br>
+      <kbd>P</kbd> 일시정지<br>
+      <kbd>Enter</kbd>/<kbd>R</kbd> 재시작
+    </div></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var COLS = 10, ROWS = 20, CELL = 30;
+  var boardCv = document.getElementById("board"), bctx = boardCv.getContext("2d");
+  var holdCv = document.getElementById("hold"), hctx = holdCv.getContext("2d");
+  var nextCv = document.getElementById("next"), nctx = nextCv.getContext("2d");
+  var scoreEl = document.getElementById("score"), linesEl = document.getElementById("lines");
+  var pauseOverlay = document.getElementById("pauseOverlay"), overOverlay = document.getElementById("overOverlay");
+
+  var SHAPES = {
+    I: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+    J: [[1,0,0],[1,1,1],[0,0,0]],
+    L: [[0,0,1],[1,1,1],[0,0,0]],
+    O: [[1,1],[1,1]],
+    S: [[0,1,1],[1,1,0],[0,0,0]],
+    T: [[0,1,0],[1,1,1],[0,0,0]],
+    Z: [[1,1,0],[0,1,1],[0,0,0]]
+  };
+  var COLORS = { I:"#53c6f0", J:"#5b8cff", L:"#f0a44a", O:"#f0d04a", S:"#5fd97e", T:"#b87cf0", Z:"#f05f6e" };
+  var LINE_SCORE = { 1:100, 2:300, 3:500, 4:800 };
+  var DROP_MS = 700;
+
+  var grid, current, holdType, canHold, bag, score, lines;
+  var paused, over, timerId;
+
+  function emptyGrid() {
+    var g = [];
+    for (var y = 0; y < ROWS; y++) { g.push(new Array(COLS).fill(null)); }
+    return g;
+  }
+  function refillBag() {
+    bag = bag.concat(["I","J","L","O","S","T","Z"].sort(function () { return Math.random() - 0.5; }));
+  }
+  function nextType() {
+    if (bag.length === 0) refillBag();
+    return bag.shift();
+  }
+  function newPiece(type) {
+    var shape = SHAPES[type].map(function (row) { return row.slice(); });
+    return { type: type, shape: shape, x: Math.floor((COLS - shape[0].length) / 2), y: 0 };
+  }
+  function collides(piece, dx, dy, shape) {
+    var s = shape || piece.shape;
+    for (var y = 0; y < s.length; y++) {
+      for (var x = 0; x < s[y].length; x++) {
+        if (!s[y][x]) continue;
+        var bx = piece.x + x + dx, by = piece.y + y + dy;
+        if (bx < 0 || bx >= COLS || by >= ROWS) return true;
+        if (by >= 0 && grid[by][bx]) return true;
+      }
+    }
+    return false;
+  }
+  function rotate(shape) {
+    var n = shape.length, m = shape[0].length, out = [];
+    for (var x = 0; x < m; x++) {
+      var row = [];
+      for (var y = n - 1; y >= 0; y--) row.push(shape[y][x]);
+      out.push(row);
+    }
+    return out;
+  }
+  function spawn(type) {
+    current = newPiece(type);
+    if (collides(current, 0, 0)) gameOver();
+  }
+  function lockPiece() {
+    for (var y = 0; y < current.shape.length; y++) {
+      for (var x = 0; x < current.shape[y].length; x++) {
+        if (current.shape[y][x]) {
+          var by = current.y + y, bx = current.x + x;
+          if (by >= 0) grid[by][bx] = current.type;
+        }
+      }
+    }
+    var cleared = 0;
+    for (var yy = ROWS - 1; yy >= 0; yy--) {
+      if (grid[yy].every(function (c) { return c; })) {
+        grid.splice(yy, 1);
+        grid.unshift(new Array(COLS).fill(null));
+        cleared++; yy++;
+      }
+    }
+    if (cleared > 0) {
+      lines += cleared;
+      score += LINE_SCORE[cleared] || 0;
+    }
+    canHold = true;
+    spawn(nextType());
+    draw();
+  }
+  function tick() {
+    if (paused || over) return;
+    if (!collides(current, 0, 1)) { current.y++; }
+    else { lockPiece(); }
+    draw();
+  }
+  function move(dx) {
+    if (paused || over || !current) return;
+    if (!collides(current, dx, 0)) { current.x += dx; draw(); }
+  }
+  function softDrop() {
+    if (paused || over || !current) return;
+    if (!collides(current, 0, 1)) { current.y++; draw(); }
+    else lockPiece();
+  }
+  function hardDrop() {
+    if (paused || over || !current) return;
+    while (!collides(current, 0, 1)) current.y++;
+    lockPiece();
+  }
+  function rotateCurrent() {
+    if (paused || over || !current) return;
+    var rotated = rotate(current.shape);
+    if (!collides(current, 0, 0, rotated)) { current.shape = rotated; draw(); }
+  }
+  function hold() {
+    if (paused || over || !current || !canHold) return;
+    canHold = false;
+    var out = current.type;
+    if (holdType === null) {
+      holdType = out;
+      spawn(nextType());
+    } else {
+      var swap = holdType;
+      holdType = out;
+      spawn(swap);
+    }
+    draw();
+  }
+  function togglePause() {
+    if (over) return;
+    paused = !paused;
+    pauseOverlay.classList.toggle("show", paused);
+    draw();
+  }
+  function gameOver() {
+    over = true;
+    stopLoop();
+    overOverlay.classList.add("show");
+    draw();
+  }
+  function startLoop() {
+    stopLoop();
+    timerId = setInterval(tick, DROP_MS);
+  }
+  function stopLoop() {
+    if (timerId !== null) { clearInterval(timerId); timerId = null; }
+  }
+  function restart() {
+    grid = emptyGrid();
+    holdType = null;
+    canHold = true;
+    bag = [];
+    score = 0; lines = 0;
+    paused = false; over = false;
+    pauseOverlay.classList.remove("show");
+    overOverlay.classList.remove("show");
+    spawn(nextType());
+    startLoop();
+    draw();
+  }
+
+  function drawCell(ctx, x, y, size, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
+  }
+  function drawBoard() {
+    bctx.fillStyle = "#010409";
+    bctx.fillRect(0, 0, boardCv.width, boardCv.height);
+    for (var y = 0; y < ROWS; y++) {
+      for (var x = 0; x < COLS; x++) {
+        if (grid[y][x]) drawCell(bctx, x, y, CELL, COLORS[grid[y][x]]);
+      }
+    }
+    if (current && !over) {
+      for (var y2 = 0; y2 < current.shape.length; y2++) {
+        for (var x2 = 0; x2 < current.shape[y2].length; x2++) {
+          if (current.shape[y2][x2] && current.y + y2 >= 0) {
+            drawCell(bctx, current.x + x2, current.y + y2, CELL, COLORS[current.type]);
+          }
+        }
+      }
+    }
+  }
+  function drawMini(ctx, cv, type, dimmed) {
+    ctx.fillStyle = "#010409";
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    if (!type) return;
+    var shape = SHAPES[type], size = 16;
+    var w = shape[0].length * size, h = shape.length * size;
+    var ox = Math.floor((cv.width - w) / 2 / size), oy = Math.floor((cv.height - h) / 2 / size);
+    ctx.globalAlpha = dimmed ? 0.35 : 1;
+    for (var y = 0; y < shape.length; y++) {
+      for (var x = 0; x < shape[y].length; x++) {
+        if (shape[y][x]) drawCell(ctx, ox + x, oy + y, size, COLORS[type]);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+  function draw() {
+    drawBoard();
+    drawMini(hctx, holdCv, holdType, !canHold);
+    var peek = bag.length ? bag[0] : null;
+    drawMini(nctx, nextCv, peek, false);
+    scoreEl.textContent = score;
+    linesEl.textContent = lines + " lines";
+  }
+
+  document.addEventListener("keydown", function (e) {
+    var k = e.key;
+    if (["ArrowLeft","ArrowRight","ArrowDown","ArrowUp"," "].indexOf(k) !== -1) e.preventDefault();
+    if (k === "Enter" || k === "r" || k === "R") { restart(); return; }
+    if (k === "p" || k === "P") { togglePause(); return; }
+    if (e.repeat) return;
+    if (k === "ArrowLeft") move(-1);
+    else if (k === "ArrowRight") move(1);
+    else if (k === "ArrowDown") softDrop();
+    else if (k === "ArrowUp" || k === "x" || k === "X") rotateCurrent();
+    else if (k === " ") hardDrop();
+    else if (k === "c" || k === "C" || k === "Shift") hold();
+  });
+
+  restart();
+
+  // 검증 전용 디버그 핸들 — 일반 플레이에는 사용하지 않는다(RESULT.md 참조).
+  // state는 읽기 스냅샷, debug는 자동 검사용 상태 주입(점수·승리 조건과 무관한 도우미).
+  window.__tetris = {
+    debug: {
+      setGrid: function (g) { grid = g.map(function (r) { return r.slice(); }); draw(); },
+      setCurrent: function (type, x, y, shape) {
+        current = { type: type, x: x, y: y, shape: shape || SHAPES[type].map(function (r) { return r.slice(); }) };
+        draw();
+      },
+      setBag: function (arr) { bag = arr.slice(); draw(); }
+    },
+    get state() {
+      return {
+        grid: grid.map(function (r) { return r.slice(); }),
+        current: current ? { type: current.type, x: current.x, y: current.y, shape: current.shape.map(function (r) { return r.slice(); }) } : null,
+        holdType: holdType, canHold: canHold, next: bag.length ? bag[0] : null,
+        score: score, lines: lines, paused: paused, over: over,
+        timerActive: timerId !== null
+      };
+    },
+    hold: hold, restart: restart, tick: tick
+  };
+})();
+</script>
+</body>
+</html>

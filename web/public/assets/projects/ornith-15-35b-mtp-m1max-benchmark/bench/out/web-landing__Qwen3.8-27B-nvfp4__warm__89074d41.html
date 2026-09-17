@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>벤치마크 · 로컬 LLM 성능 측정 도구</title>
+<style>
+:root{
+  --bg:#0a0c10;
+  --bg-2:#0d1016;
+  --panel:#12161e;
+  --panel-2:#171c26;
+  --line:rgba(255,255,255,.07);
+  --line-2:rgba(255,255,255,.13);
+  --ink:#eef1f6;
+  --ink-2:#aeb6c4;
+  --ink-3:#6b7484;
+  --amber:#ffb454;
+  --amber-2:#ff8a3d;
+  --teal:#4fd6c4;
+  --teal-2:#2fb8a6;
+  --coral:#ff6f5e;
+  --violet:#a98bff;
+  --grid:rgba(255,255,255,.035);
+  --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Code",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--sans);
+  line-height:1.6;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--amber);color:#1a1206}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+
+/* ---------- background ---------- */
+.bg{position:fixed;inset:0;z-index:-2;pointer-events:none}
+.bg::before{
+  content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(1200px 700px at 82% -8%, rgba(255,138,61,.10), transparent 60%),
+    radial-gradient(900px 600px at 8% 12%, rgba(79,214,196,.07), transparent 55%),
+    radial-gradient(700px 500px at 50% 120%, rgba(169,139,255,.06), transparent 60%);
+}
+.bg::after{
+  content:"";position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size:46px 46px;
+  mask-image:radial-gradient(120% 120% at 50% 0%, #000 40%, transparent 90%);
+}
+.noise{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.04;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- nav ---------- */
+header{position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);
+  background:linear-gradient(180deg, rgba(10,12,16,.85), rgba(10,12,16,.55));
+  border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+.brand{display:flex;align-items:center;gap:11px;font-weight:700;letter-spacing:-.02em;font-size:1.02rem}
+.brand .mark{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;
+  background:linear-gradient(150deg,var(--amber),var(--amber-2));color:#1a1206;
+  box-shadow:0 0 0 1px rgba(255,180,84,.35), 0 6px 18px -6px rgba(255,138,61,.6)}
+.brand .mark svg{width:18px;height:18px}
+.brand small{color:var(--ink-3);font-weight:500;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase}
+.nav-links{display:flex;gap:26px;font-size:.9rem;color:var(--ink-2)}
+.nav-links a{position:relative;padding:4px 0;transition:color .2s}
+.nav-links a::after{content:"";position:absolute;left:0;bottom:-2px;height:2px;width:0;background:var(--amber);transition:width .25s}
+.nav-links a:hover{color:var(--ink)}
+.nav-links a:hover::after{width:100%}
+.nav-cta{display:flex;align-items:center;gap:14px}
+.ver{font-family:var(--mono);font-size:.72rem;color:var(--teal);border:1px solid rgba(79,214,196,.3);
+  padding:3px 8px;border-radius:20px;background:rgba(79,214,196,.06)}
+.btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:.9rem;
+  padding:10px 18px;border-radius:10px;cursor:pointer;transition:transform .18s, box-shadow .18s, background .18s;
+  border:1px solid transparent}
+.btn-primary{background:linear-gradient(150deg,var(--amber),var(--amber-2));color:#1a1206;
+  box-shadow:0 8px 24px -10px rgba(255,138,61,.7)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 30px -10px rgba(255,138,61,.85)}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line-2)}
+.btn-ghost:hover{background:rgba(255,255,255,.05);transform:translateY(-2px)}
+@media(max-width:820px){.nav-links{display:none}}
+
+/* ---------- hero ---------- */
+.hero{padding:72px 0 40px}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.74rem;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--teal);
+  border:1px solid rgba(79,214,196,.25);padding:6px 14px;border-radius:30px;background:rgba(79,214,196,.05)}
+.eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px var(--teal);
+  animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+h1{font-size:clamp(2.6rem,6vw,4.4rem);line-height:1.02;letter-spacing:-.035em;font-weight:800;margin:22px 0 20px}
+h1 .hl{color:var(--amber);position:relative;white-space:nowrap}
+h1 .hl::after{content:"";position:absolute;left:0;right:0;bottom:.06em;height:.14em;background:rgba(255,180,84,.28);border-radius:3px}
+.lead{font-size:1.12rem;color:var(--ink-2);max-width:34em}
+.lead b{color:var(--ink);font-weight:600}
+.hero-actions{display:flex;flex-wrap:wrap;gap:14px;margin:30px 0 26px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:22px;font-size:.82rem;color:var(--ink-3)}
+.hero-meta span{display:flex;align-items:center;gap:7px}
+.hero-meta svg{width:15px;height:15px;color:var(--teal)}
+
+/* ---------- console ---------- */
+.console{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line-2);
+  border-radius:16px;overflow:hidden;box-shadow:0 40px 80px -40px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.04);
+  position:relative}
+.console::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(600px 200px at 50% -30%, rgba(255,180,84,.12), transparent 70%)}
+.console-bar{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line);
+  background:rgba(255,255,255,.02)}
+.console-bar .lights{display:flex;gap:7px}
+.console-bar .lights i{width:11px;height:11px;border-radius:50%;display:block}
+.console-bar .lights i:nth-child(1){background:#ff5f57}
+.console-bar .lights i:nth-child(2){background:#febc2e}
+.console-bar .lights i:nth-child(3){background:#28c840}
+.console-bar .path{font-family:var(--mono);font-size:.74rem;color:var(--ink-3);margin-left:6px}
+.console-bar .live{margin-left:auto;font-family:var(--mono);font-size:.68rem;color:var(--teal);
+  display:flex;align-items:center;gap:6px}
+.console-bar .live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--teal);
+  box-shadow:0 0 8px var(--teal);animation:pulse 1.4s infinite}
+.console-body{padding:18px 18px 20px;font-family:var(--mono);font-size:.82rem;line-height:1.75}
+.console-body .ln{display:flex;gap:10px;white-space:pre-wrap;word-break:break-word}
+.console-body .ln .n{color:var(--ink-3);user-select:none;min-width:1.4em;text-align:right}
+.console-body .cmd{color:var(--ink)}
+.console-body .cmd .p{color:var(--teal)}
+.console-body .out{color:var(--ink-2)}
+.console-body .ok{color:var(--teal)}
+.console-body .warn{color:var(--amber)}
+.console-body .err{color:var(--coral)}
+.console-body .dim{color:var(--ink-3)}
+.cursor{display:inline-block;width:8px;height:1.05em;background:var(--amber);vertical-align:-2px;
+  animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.console-foot{display:flex;gap:14px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--line);
+  background:rgba(255,255,255,.015);font-family:var(--mono);font-size:.72rem;color:var(--ink-3)}
+.console-foot b{color:var(--ink-2);font-weight:600}
+
+/* ---------- ticker ---------- */
+.ticker{border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:var(--bg-2);overflow:hidden;white-space:nowrap;padding:14px 0;position:relative}
+.ticker::before,.ticker::after{content:"";position:absolute;top:0;bottom:0;width:120px;z-index:2}
+.ticker::before{left:0;background:linear-gradient(90deg,var(--bg-2),transparent)}
+.ticker::after{right:0;background:linear-gradient(270deg,var(--bg-2),transparent)}
+.ticker-track{display:inline-flex;gap:44px;animation:scroll 34s linear infinite}
+.ticker:hover .ticker-track{animation-play-state:paused}
+@keyframes scroll{to{transform:translateX(-50%)}}
+.ticker-item{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.82rem;color:var(--ink-2)}
+.ticker-item .m{color:var(--ink);font-weight:600}
+.ticker-item .v{color:var(--amber)}
+.ticker-item .up{color:var(--teal)}
+.ticker-item .dn{color:var(--coral)}
+.ticker-item .sep{color:var(--ink-3)}
+
+/* ---------- section shell ---------- */
+section{padding:88px 0}
+.sec-head{max-width:640px;margin-bottom:44px}
+.sec-idx{font-family:var(--mono);font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);
+  display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.sec-idx::before{content:"";width:34px;height:1px;background:var(--amber);opacity:.5}
+h2{font-size:clamp(1.9rem,3.6vw,2.7rem);line-height:1.08;letter-spacing:-.03em;font-weight:800}
+.sec-head p{color:var(--ink-2);margin-top:14px;font-size:1.02rem}
+
+/* ---------- bento ---------- */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.card{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);
+  border-radius:14px;padding:24px;position:relative;overflow:hidden;transition:transform .25s, border-color .25s}
+.card:hover{transform:translateY(-4px);border-color:var(--line-2)}
+.card .tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);
+  display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.card .tag svg{width:15px;height:15px}
+.card h3{font-size:1.18rem;letter-spacing:-.02em;margin-bottom:8px}
+.card p{color:var(--ink-2);font-size:.92rem}
+.c-a{grid-column:span 3;grid-row:span 2}
+.c-b{grid-column:span 3}
+.c-c{grid-column:span 2}
+.c-d{grid-column:span 2}
+.c-e{grid-column:span 2}
+.c-f{grid-column:span 3}
+.c-g{grid-column:span 3}
+@media(max-width:900px){.bento{grid-template-columns:repeat(2,1fr)}
+  .c-a,.c-b,.c-c,.c-d,.c-e,.c-f,.c-g{grid-column:span 1;grid-row:auto}}
+@media(max-width:560px){.bento{grid-template-columns:1fr}
+  .c-a,.c-b,.c-c,.c-d,.c-e,.c-f,.c-g{grid-column:span 1}}
+
+/* sparkline in card a */
+.spark{margin-top:20px;height:70px;display:flex;align-items:flex-end;gap:5px}
+.spark .bar{flex:1;background:linear-gradient(180deg,var(--amber),rgba(255,138,61,.25));border-radius:3px 3px 0 0;
+  min-height:6px;transition:height .5s}
+.spark .bar.t{background:linear-gradient(180deg,var(--teal),rgba(79,214,196,.25))}
+.spark-lbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.66rem;color:var(--ink-3);margin-top:8px}
+
+/* mini table in card b */
+.mini-tbl{margin-top:18px;font-family:var(--mono);font-size:.78rem}
+.mini-tbl .row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)}
+.mini-tbl .row:last-child{border-bottom:0}
+.mini-tbl .row .k{color:var(--ink-2)}
+.mini-tbl .row .v{color:var(--ink)}
+.mini-tbl .row .v.hot{color:var(--amber)}
+
+/* chip list */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chip{font-family:var(--mono);font-size:.72rem;padding:5px 11px;border-radius:20px;
+  border:1px solid var(--line-2);color:var(--ink-2);background:rgba(255,255,255,.02)}
+.chip.on{color:var(--teal);border-color:rgba(79,214,196,.4);background:rgba(79,214,196,.07)}
+
+/* ---------- leaderboard ---------- */
+.lb{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);
+  border-radius:16px;overflow:hidden}
+.lb-head{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1fr;gap:12px;padding:16px 22px;
+  border-bottom:1px solid var(--line);font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);background:rgba(255,255,255,.02)}
+.lb-head span:nth-child(n+2){text-align:right}
+.lb-row{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1fr;gap:12px;padding:15px 22px;
+  border-bottom:1px solid var(--line);align-items:center;transition:background .2s;position:relative}
+.lb-row:last-child{border-bottom:0}
+.lb-row:hover{background:rgba(255,180,84,.04)}
+.lb-row .rank{display:flex;align-items:center;gap:12px}
+.lb-row .rk{font-family:var(--mono);font-weight:700;font-size:1rem;width:26px;height:26px;border-radius:7px;
+  display:grid;place-items:center;background:rgba(255,255,255,.05);color:var(--ink-2);flex-shrink:0}
+.lb-row:nth-child(2) .rk{background:linear-gradient(150deg,var(--amber),var(--amber-2));color:#1a1206}
+.lb-row:nth-child(3) .rk{background:rgba(255,255,255,.14);color:var(--ink)}
+.lb-row:nth-child(4) .rk{background:rgba(255,138,61,.18);color:var(--amber)}
+.lb-row .model{font-weight:600;font-size:.95rem}
+.lb-row .model small{display:block;font-family:var(--mono);font-size:.68rem;color:var(--ink-3);font-weight:400}
+.lb-row .num{font-family:var(--mono);text-align:right;font-size:.9rem}
+.lb-row .num .score{color:var(--ink);font-weight:600}
+.lb-row .num .sub{display:block;font-size:.66rem;color:var(--ink-3)}
+.lb-row .num .score.hot{color:var(--amber)}
+.lb-row .num .score.teal{color:var(--teal)}
+.lb-row .num .score.violet{color:var(--violet)}
+.lb-row .num .score.coral{color:var(--coral)}
+.lb-note{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:14px 22px;
+  font-family:var(--mono);font-size:.72rem;color:var(--ink-3);background:rgba(255,255,255,.015)}
+.lb-note b{color:var(--teal)}
+@media(max-width:720px){
+  .lb-head{display:none}
+  .lb-row{grid-template-columns:1fr auto;gap:6px 14px}
+  .lb-row .rank{grid-column:1/-1}
+  .lb-row .num{text-align:left}
+  .lb-row .num .sub{display:inline;margin-left:6px}
+}
+
+/* ---------- pipeline ---------- */
+.pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:0;position:relative}
+.pipe::before{content:"";position:absolute;top:26px;left:6%;right:6%;height:2px;
+  background:linear-gradient(90deg,var(--teal),var(--amber),var(--violet));opacity:.4}
+.step{position:relative;padding:0 14px;text-align:center}
+.step .node{width:54px;height:54px;border-radius:14px;margin:0 auto 18px;display:grid;place-items:center;
+  background:var(--panel-2);border:1px solid var(--line-2);position:relative;z-index:1;
+  transition:transform .25s, border-color .25s}
+.step:hover .node{transform:translateY(-4px);border-color:var(--amber)}
+.step .node svg{width:24px;height:24px;color:var(--amber)}
+.step:nth-child(2) .node svg{color:var(--teal)}
+.step:nth-child(3) .node svg{color:var(--violet)}
+.step:nth-child(4) .node svg{color:var(--coral)}
+.step:nth-child(5) .node svg{color:var(--amber-2)}
+.step .num{font-family:var(--mono);font-size:.68rem;color:var(--ink-3);letter-spacing:.1em}
+.step h4{font-size:1rem;margin:6px 0 6px;letter-spacing:-.01em}
+.step p{font-size:.82rem;color:var(--ink-2)}
+@media(max-width:820px){.pipe{grid-template-columns:1fr;gap:26px}
+  .pipe::before{display:none}
+  .step{text-align:left;display:flex;gap:16px;align-items:flex-start}
+  .step .node{margin:0}
+  .step .num{margin-top:2px}}
+
+/* ---------- hardware ---------- */
+.hw{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.hw-card{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);
+  border-radius:14px;padding:26px;position:relative;overflow:hidden;transition:transform .25s,border-color .25s}
+.hw-card:hover{transform:translateY(-4px);border-color:var(--line-2)}
+.hw-card .tier{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:14px}
+.hw-card h3{font-size:1.3rem;letter-spacing:-.02em;margin-bottom:6px}
+.hw-card .spec{font-family:var(--mono);font-size:.82rem;color:var(--amber);margin-bottom:16px}
+.hw-card ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+.hw-card li{font-size:.88rem;color:var(--ink-2);display:flex;gap:10px;align-items:flex-start}
+.hw-card li svg{width:15px;height:15px;color:var(--teal);flex-shrink:0;margin-top:3px}
+.hw-card .badge{position:absolute;top:22px;right:22px;font-family:var(--mono);font-size:.66rem;
+  padding:4px 10px;border-radius:20px;border:1px solid rgba(79,214,196,.35);color:var(--teal);background:rgba(79,214,196,.06)}
+@media(max-width:820px){.hw{grid-template-columns:1fr}}
+
+/* ---------- metrics ---------- */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.metric{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);
+  border-radius:14px;padding:24px;position:relative;overflow:hidden}
+.metric::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--amber)}
+.metric:nth-child(2)::after{background:var(--teal)}
+.metric:nth-child(3)::after{background:var(--violet)}
+.metric:nth-child(4)::after{background:var(--coral)}
+.metric .val{font-family:var(--mono);font-size:2.4rem;font-weight:700;letter-spacing:-.03em;line-height:1}
+.metric .val small{font-size:1rem;color:var(--ink-3);font-weight:400}
+.metric .lbl{margin-top:12px;font-size:.9rem;color:var(--ink-2)}
+.metric .lbl b{color:var(--ink);font-weight:600}
+@media(max-width:820px){.metrics{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.metrics{grid-template-columns:1fr}}
+
+/* ---------- code block ---------- */
+.code{background:#0b0e13;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.code-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);
+  font-family:var(--mono);font-size:.74rem;color:var(--ink-3)}
+.code-bar .tab{color:var(--ink);background:rgba(255,255,255,.05);padding:4px 12px;border-radius:6px}
+.code-bar .copy{margin-left:auto;cursor:pointer;color:var(--ink-2);display:flex;align-items:center;gap:6px;
+  border:1px solid var(--line-2);padding:4px 10px;border-radius:6px;transition:background .2s}
+.code-bar .copy:hover{background:rgba(255,255,255,.06)}
+.code pre{padding:20px 22px;overflow-x:auto;font-family:var(--mono);font-size:.82rem;line-height:1.85}
+.code .c{color:var(--ink-3)}
+.code .k{color:var(--violet)}
+.code .s{color:var(--teal)}
+.code .f{color:var(--amber)}
+.code .n{color:var(--coral)}
+.code .v{color:var(--ink)}
+
+/* ---------- faq ---------- */
+.faq{max-width:820px}
+.faq-item{border:1px solid var(--line);border-radius:12px;margin-bottom:12px;background:var(--panel);
+  overflow:hidden;transition:border-color .2s}
+.faq-item.open{border-color:var(--line-2)}
+.faq-q{width:100%;text-align:left;background:none;border:0;color:var(--ink);cursor:pointer;
+  padding:20px 22px;font-size:1.02rem;font-weight:600;font-family:var(--sans);display:flex;justify-content:space-between;
+  align-items:center;gap:16px}
+.faq-q .ic{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;flex-shrink:0;
+  background:rgba(255,180,84,.12);color:var(--amber);transition:transform .3s}
+.faq-item.open .faq-q .ic{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.faq-a p{padding:0 22px 22px;color:var(--ink-2);font-size:.95rem}
+
+/* ---------- cta ---------- */
+.cta{background:linear-gradient(135deg, rgba(255,138,61,.12), rgba(79,214,196,.08));
+  border:1px solid var(--line-2);border-radius:20px;padding:56px 48px;text-align:center;position:relative;overflow:hidden}
+.cta::before{content:"";position:absolute;inset:0;
+  background:radial-gradient(500px 300px at 50% 0%, rgba(255,180,84,.14), transparent 70%)}
+.cta h2{position:relative}
+.cta p{position:relative;color:var(--ink-2);max-width:44em;margin:16px auto 30px;font-size:1.05rem}
+.cta-actions{position:relative;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.cta .mono{font-family:var(--mono);font-size:.8rem;color:var(--ink-3);margin-top:22px;position:relative}
+.cta .mono code{color:var(--teal);background:rgba(79,214,196,.08);padding:3px 8px;border-radius:6px}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);padding:56px 0 40px;background:var(--bg-2)}
+.foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:32px}
+.foot-brand p{color:var(--ink-3);font-size:.9rem;margin-top:14px;max-width:26em}
+.foot-col h5{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:16px}
+.foot-col a{display:block;color:var(--ink-2);font-size:.9rem;padding:6px 0;transition:color .2s}
+.foot-col a:hover{color:var(--amber)}
+.foot-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-top:44px;padding-top:24px;
+  border-top:1px solid var(--line);font-family:var(--mono);font-size:.74rem;color:var(--ink-3)}
+@media(max-width:820px){.foot-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.foot-grid{grid-template-columns:1fr}}
+
+/* ---------- reveal ---------- */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.reveal.d1{transition-delay:.08s}
+.reveal.d2{transition-delay:.16s}
+.reveal.d3{transition-delay:.24s}
+.reveal.d4{transition-delay:.32s}
+
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+  .ticker-track{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="noise"></div>
+
+<!-- NAV -->
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top">
+      <span class="mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12h4l2 6 4-14 2 8h6"/>
+        </svg>
+      </span>
+      <span>벤치마크<small>local llm</small></span>
+    </a>
+    <nav class="nav-links">
+      <a href="#features">기능</a>
+      <a href="#leaderboard">리더보드</a>
+      <a href="#pipeline">파이프라인</a>
+      <a href="#hardware">하드웨어</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-cta">
+      <span class="ver">v2.4.1</span>
+      <a href="#cta" class="btn btn-primary">다운로드</a>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div id="top" class="hero">
+  <div class="wrap hero-grid">
+    <div class="reveal">
+      <span class="eyebrow"><span class="dot"></span> 로컬 · 오프라인 · 재현 가능</span>
+      <h1>로컬 LLM을<br><span class="hl">숫자로</span> 증명하라</h1>
+      <p class="lead">벤치마크는 <b>토큰/초</b>, <b>첫 토큰 지연</b>, <b>VRAM</b>, <b>정확도</b>를 한 번에 측정합니다.
+        클라우드 없이, <b>재현 가능한</b> 결과로 모델과 하드웨어를 비교하세요.</p>
+      <div class="hero-actions">
+        <a href="#cta" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+          지금 설치하기
+        </a>
+        <a href="#leaderboard" class="btn btn-ghost">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 14l4-4 3 3 5-6"/></svg>
+          리더보드 보기
+        </a>
+      </div>
+      <div class="hero-meta">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> MIT 라이선스</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7 4v6c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6z"/></svg> 오프라인 실행</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> 재현 가능</span>
+      </div>
+    </div>
+
+    <!-- CONSOLE -->
+    <div class="console reveal d2">
+      <div class="console-bar">
+        <div class="lights"><i></i><i></i><i></i></div>
+        <span class="path">~/benchmarks · zsh</span>
+        <span class="live">LIVE</span>
+      </div>
+      <div class="console-body" id="console">
+        <div class="ln"><span class="n">1</span><span class="cmd"><span class="p">$</span> bench run llama-3.1-8b --suite full --gpu 0</span></div>
+        <div class="ln"><span class="n">2</span><span class="out dim">→ 로딩 모델 · quantization=Q4_K_M · ctx=4096</span></div>
+        <div class="ln"><span class="n">3</span><span class="out dim">→ GPU: NVIDIA RTX 4090 · VRAM 24.0 GB</span></div>
+        <div class="ln"><span class="n">4</span><span class="out">→ warmup 3회 완료 · seed=42</span></div>
+        <div class="ln"><span class="n">5</span><span class="out">→ MMLU · GSM8K · HumanEval · MT-Bench 실행 중…</span></div>
+        <div class="ln"><span class="n">6</span><span class="out ok">✓ MMLU 71.4 · GSM8K 82.1 · HumanEval 68.9</span></div>
+        <div class="ln"><span class="n">7</span><span class="out ok">✓ throughput 142.6 tok/s · TTFT 38ms · VRAM 11.2GB</span></div>
+        <div class="ln"><span class="n">8</span><span class="out warn">⚠ MT-Bench 8.4/10 (LLM-judge)</span></div>
+        <div class="ln"><span class="n">9</span><span class="cmd"><span class="p">$</span> bench report --format json <span class="cursor"></span></div>
+      </div>
+      <div class="console-foot">
+        <span>평균 <b>142.6</b> tok/s</span>
+        <span>TTFT <b>38</b> ms</span>
+        <span>VRAM <b>11.2</b> GB</span>
+        <span>재현 <b>seed 42</b></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track" id="ticker">
+    <span class="ticker-item"><span class="m">llama-3.1-8b</span> <span class="v">142.6 tok/s</span> <span class="sep">·</span> <span class="up">▲ 4.2%</span></span>
+    <span class="ticker-item"><span class="m">mistral-7b</span> <span class="v">168.3 tok/s</span> <span class="sep">·</span> <span class="up">▲ 1.8%</span></span>
+    <span class="ticker-item"><span class="m">phi-3-mini</span> <span class="v">210.7 tok/s</span> <span class="sep">·</span> <span class="up">▲ 6.1%</span></span>
+    <span class="ticker-item"><span class="m">qwen-2.5-14b</span> <span class="v">96.4 tok/s</span> <span class="sep">·</span> <span class="dn">▼ 0.9%</span></span>
+    <span class="ticker-item"><span class="m">gemma-2-9b</span> <span class="v">121.0 tok/s</span> <span class="sep">·</span> <span class="up">▲ 2.4%</span></span>
+    <span class="ticker-item"><span class="m">deepseek-7b</span> <span class="v">134.9 tok/s</span> <span class="sep">·</span> <span class="up">▲ 3.3%</span></span>
+    <span class="ticker-item"><span class="m">llama-3.1-8b</span> <span class="v">142.6 tok/s</span> <span class="sep">·</span> <span class="up">▲ 4.2%</span></span>
+    <span class="ticker-item"><span class="m">mistral-7b</span> <span class="v">168.3 tok/s</span> <span class="sep">·</span> <span class="up">▲ 1.8%</span></span>
+    <span class="ticker-item"><span class="m">phi-3-mini</span> <span class="v">210.7 tok/s</span> <span class="sep">·</span> <span class="up">▲ 6.1%</span></span>
+    <span class="ticker-item"><span class="m">qwen-2.5-14b</span> <span class="v">96.4 tok/s</span> <span class="sep">·</span> <span class="dn">▼ 0.9%</span></span>
+    <span class="ticker-item"><span class="m">gemma-2-9b</span> <span class="v">121.0 tok/s</span> <span class="sep">·</span> <span class="up">▲ 2.4%</span></span>
+    <span class="ticker-item"><span class="m">deepseek-7b</span> <span class="v">134.9 tok/s</span> <span class="sep">·</span> <span class="up">▲ 3.3%</span></span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-idx">01 · 기능</div>
+      <h2>측정에서 리포트까지, 한 도구가 다</h2>
+      <p>단일 바이너리로 설치하고, CLI · API · 대시보드로 실행하세요. 모든 결과는 JSON으로 내보내 재현할 수 있습니다.</p>
+    </div>
+
+    <div class="bento">
+      <div class="card c-a reveal">
+        <div class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 14l4-4 3 3 5-6"/></svg> 실시간 성능</div>
+        <h3>토큰/초 · 지연 · VRAM</h3>
+        <p>생성 속도와 첫 토큰 지연(TTFT), 메모리 사용량을 실시간으로 추적합니다. 부하 프로파일링으로 병목 지점을 찾습니다.</p>
+        <div class="spark" id="spark"></div>
+        <div class="spark-lbl"><span>10s</span><span>20s</span><span>30s</span><span>40s</span><span>50s</span></div>
+      </div>
+
+      <div class="card c-b reveal d1">
+        <div class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg> 표준 벤치마크</div>
+        <h3>12개 표준 스위트</h3>
+        <div class="mini-tbl">
+          <div class="row"><span class="k">MMLU</span><span class="v hot">71.4</span></div>
+          <div class="row"><span class="k">GSM8K</span><span class="v">82.1</span></div>
+          <div class="row"><span class="k">HumanEval</span><span class="v">68.9</span></div>
+          <div class="row"><span class="k">MT-Bench</span><span class="v">8.4/10</span></div>
+        </div>
+      </div>
+
+      <div class="card c-c reveal">
+        <div class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7 4v6c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6z"/></svg> 오프라인</div>
+        <h3>클라우드 불필요</h3>
+        <p>모든 데이터셋을 로컬에 캐시하고, 네트워크 없이 실행합니다. 민감한 프롬프트가 외부로 나가지 않습니다.</p>
+      </div>
+
+      <div class="card c-d reveal d1">
+        <div class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4zM4 10h16M10 4v16"/></svg> 재현 가능</h3>
+        <h3>시드 고정</h3>
+        <p>seed, temperature, ctx를 고정해 같은 환경에서 동일한 결과를 재현합니다. CI에 붙여 회귀를 잡습니다.</p>
+      </div>
+
+      <div class="card c-e reveal d2">
+        <div class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg> 리포트</div>
+        <h3>JSON · HTML · CSV</h3>
+        <p>결과를 JSON으로 내보내고, 비교 리포트는 HTML로 렌더링합니다. 팀에 공유하거나 아카이브로 저장하세요.</p>
+      </div>
+
+      <div class="card c-f reveal">
+        <div class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7 4v6c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6z"/></svg> 양자화</div>
+        <h3>양자화 비교</h3>
+        <p>Q4_K_M · Q5_K · Q8_0 · FP16을 같은 프롬프트로 비교해, 정확도 대비 메모리 트레이드오프를 확인하세요.</p>
+        <div class="chips">
+          <span class="chip on">Q4_K_M</span><span class="chip on">Q5_K</span><span class="chip">Q8_0</span><span class="chip">FP16</span><span class="chip">AWQ</span>
+        </div>
+      </div>
+
+      <div class="card c-g reveal d1">
+        <div class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-6 4 4 6-8M20 7v4M20 7h-4"/></svg> 대시보드</div>
+        <h3>로컬 대시보드</h3>
+        <p><code style="font-family:var(--mono);color:var(--teal)">bench serve</code>로 로컬 웹 대시보드를 띄웁니다. 히트맵, 시계열, 모델 비교를 브라우저에서 확인합니다.</p>
+        <div class="chips">
+          <span class="chip on">히트맵</span><span class="chip on">시계열</span><span class="chip on">모델 비교</span><span class="chip">알림</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LEADERBOARD -->
+<section id="leaderboard">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-idx">02 · 리더보드</div>
+      <h2>RTX 4090 기준 종합 순위</h2>
+      <p>동일 하드웨어 · 동일 양자화(Q4_K_M) · ctx 4096 · seed 42. 종합 점수는 성능과 정확도의 가중 평균입니다.</p>
+    </div>
+
+    <div class="lb reveal d1">
+      <div class="lb-head">
+        <span>모델</span><span>토큰/초</span><span>TTFT</span><span>VRAM</span><span>종합</span>
+      </div>
+      <div class="lb-row">
+        <div class="rank"><span class="rk">1</span><span class="model">phi-3-mini-4k<small>3.8B · Q4_K_M</small></span></div>
+        <div class="num"><span class="score teal">210.7</span><span class="sub">tok/s</span></div>
+        <div class="num"><span class="score">24</span><span class="sub">ms</span></div>
+        <div class="num"><span class="score">3.1</span><span class="sub">GB</span></div>
+        <div class="num"><span class="score hot">92.4</span><span class="sub">/100</span></div>
+      </div>
+      <div class="lb-row">
+        <div class="rank"><span class="rk">2</span><span class="model">mistral-7b-instruct<small>7.1B · Q4_K_M</small></span></div>
+        <div class="num"><span class="score teal">168.3</span><span class="sub">tok/s</span></div>
+        <div class="num"><span class="score">31</span><span class="sub">ms</span></div>
+        <div class="num"><span class="score">4.6</span><span class="sub">GB</span></div>
+        <div class="num"><span class="score hot">88.1</span><span class="sub">/100</span></div>
+      </div>
+      <div class="lb-row">
+        <div class="rank"><span class="rk">3</span><span class="model">llama-3.1-8b-instruct<small>8.0B · Q4_K_M</small></span></div>
+        <div class="num"><span class="score">142.6</span><span class="sub">tok/s</span></div>
+        <div class="num"><span class="score">38</span><span class="sub">ms</span></div>
+        <div class="num"><span class="score">5.2</span><span class="sub">GB</span></div>
+        <div class="num"><span class="score hot">86.7</span><span class="sub">/100</span></div>
+      </div>
+      <div class="lb-row">
+        <div class="rank"><span class="rk">4</span><span class="model">gemma-2-9b-it<small>9.2B · Q4_K_M</small></span></div>
+        <div class="num"><span class="score">121.0</span><span class="sub">tok/s</span></div>
+        <div class="num"><span class="score">44</span><span class="sub">ms</span></div>
+        <div class="num"><span class="score">5.8</span><span class="sub">GB</span></div>
+        <div class="num"><span class="score teal">84.2</span><span class="sub">/100</span></div>
+      </div>
+      <div class="lb-row">
+        <div class="rank"><span class="rk">5</span><span class="model">deepseek-7b-chat<small>7.3B · Q4_K_M</small></span></div>
+        <div class="num"><span class="score">134.9</span><span class="sub">tok/s</span></div>
+        <div class="num"><span class="score">36</span><span class="sub">ms</span></div>
+        <div class="num"><span class="score">4.9</span><span class="sub">GB</span></div>
+        <div class="num"><span class="score teal">83.5</span><span class="sub">/100</span></div>
+      </div>
+      <div class="lb-row">
+        <div class="rank"><span class="rk">6</span><span class="model">qwen-2.5-14b-instruct<small>14.8B · Q4_K_M</small></span></div>
+        <div class="num"><span class="score">96.4</span><span class="sub">tok/s</span></div>
+        <div class="num"><span class="score">52</span><span class="sub">ms</span></div>
+        <div class="num"><span class="score">9.4</span><span class="sub">GB</span></div>
+        <div class="num"><span class="score violet">81.9</span><span class="sub">/100</span></div>
+      </div>
+      <div class="lb-row">
+        <div class="rank"><span class="rk">7</span><span class="model">llama-3.1-70b-instruct<small>70.6B · Q4_K_M</small></span></div>
+        <div class="num"><span class="score coral">28.3</span><span class="sub">tok/s</span></div>
+        <div class="num"><span class="score">180</span><span class="sub">ms</span></div>
+        <div class="num"><span class="score">41.2</span><span class="sub">GB</span></div>
+        <div class="num"><span class="score violet">79.6</span><span class="sub">/100</span></div>
+      </div>
+      <div class="lb-note">
+        <span>측정 환경: <b>NVIDIA RTX 4090 24GB</b> · CUDA 12.4 · CPU 128GB DDR5</span>
+        <span>마지막 갱신: <b>2025-06-14</b> · 42개 모델 · 12개 스위트</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section id="pipeline">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-idx">03 · 파이프라인</div>
+      <h2>실행 흐름</h2>
+      <p>모델 로딩부터 리포트 생성까지, 모든 단계가 로컬에서 순차적으로 처리됩니다.</p>
+    </div>
+    <div class="pipe">
+      <div class="step reveal">
+        <div class="node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></div>
+        <div class="num">01</div>
+        <h4>모델 로딩</h4>
+        <p>GGUF · safetensors를 로컬에서 로드하고 양자화를 적용합니다.</p>
+      </div>
+      <div class="step reveal d1">
+        <div class="node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></div>
+        <div class="num">02</div>
+        <h4>웜업</h4>
+        <p>3회 워밍업으로 캐시와 커널 컴파일을 안정화합니다.</p>
+      </div>
+      <div class="step reveal d2">
+        <div class="node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 14l4-4 3 3 5-6"/></svg></div>
+        <div class="num">03</div>
+        <h4>벤치마크 실행</h4>
+        <p>선택한 스위트를 시드 고정으로 실행하고 지연을 기록합니다.</p>
+      </div>
+      <div class="step reveal d3">
+        <div class="node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+        <div class="num">04</div>
+        <h4>정확도 평가</h4>
+        <p>객관식·코드·LLM-judge로 정확도를 측정합니다.</p>
+      </div>
+      <div class="step reveal d4">
+        <div class="node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M9 13h6M9 17h6"/></svg></div>
+        <div class="num">05</div>
+        <h4>리포트 생성</h4>
+        <p>JSON · HTML · CSV로 내보내고 대시보드에 반영합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HARDWARE -->
+<section id="hardware">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-idx">04 · 하드웨어</div>
+      <h2>어디서든 실행</h2>
+      <p>GPU가 없어도, ARM Mac이든, x86 서버든 — 벤치마크는 자동 감지하고 최적화된 경로를 사용합니다.</p>
+    </div>
+    <div class="hw">
+      <div class="hw-card reveal">
+        <span class="badge">최적화</span>
+        <div class="tier">GPU · NVIDIA</div>
+        <h3>CUDA 가속</h3>
+        <div class="spec">RTX 30/40/50 · A100 · H100</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> FP16 · INT8 · INT4 커널 자동 선택</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> 다중 GPU 분산 추론</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> VRAM 실시간 모니터링</li>
+        </ul>
+      </div>
+      <div class="hw-card reveal d1">
+        <span class="badge">Metal</span>
+        <div class="tier">Apple Silicon</div>
+        <h3>M1 · M2 · M3 · M4</h3>
+        <div class="spec">Unified Memory · 8–512GB</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Metal 가속 · 통합 메모리 활용</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> 70B 모델도 로컬 실행 가능</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> 배터리 모드 대비 측정</li>
+        </ul>
+      </div>
+      <div class="hw-card reveal d2">
+        <span class="badge">CPU</div>
+        <div class="tier">CPU · x86 / ARM</div>
+        <h3>AVX2 · AVX-512</h3>
+        <div class="spec">GPU 없는 환경 · 서버</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> SIMD 자동 감지 · 스레드 튜닝</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> CPU 전용 벤치마크 프로파일</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> 저사양 환경도 측정 가능</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METRICS -->
+<section>
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-idx">05 · 규모</div>
+      <h2>숫자로 보는 벤치마크</h2>
+    </div>
+    <div class="metrics">
+      <div class="metric reveal">
+        <div class="val" data-count="42">0</div>
+        <div class="lbl"><b>지원 모델</b> · 7B~70B</div>
+      </div>
+      <div class="metric reveal d1">
+        <div class="val" data-count="12">0</div>
+        <div class="lbl"><b>표준 스위트</b> · MMLU~MT-Bench</div>
+      </div>
+      <div class="metric reveal d2">
+        <div class="val" data-count="3">0</div>
+        <div class="lbl"><b>백엔드</b> · CUDA · Metal · CPU</div>
+      </div>
+      <div class="metric reveal d3">
+        <div class="val" data-count="100" data-suffix="%">0</div>
+        <div class="lbl"><b>오프라인</b> · 재현 가능</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CODE -->
+<section>
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-idx">06 · 시작하기</div>
+      <h2>3줄로 실행</h2>
+      <p>설치 후 바로 실행합니다. 모든 옵션은 CLI 플래그로 제어할 수 있습니다.</p>
+    </div>
+    <div class="code reveal d1">
+      <div class="code-bar">
+        <span class="tab">terminal</span>
+        <span class="copy" id="copyBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          복사
+        </span>
+      </div>
+      <pre id="codeBlock"><span class="c"># 설치 (단일 바이너리)</span>
+<span class="k">curl</span> -fsSL <span class="s">https://get.benchmark.dev</span> | <span class="k">sh</span>
+
+<span class="c"># 모델 로딩 + 전체 스위트 실행</span>
+<span class="f">bench</span> run <span class="v">llama-3.1-8b</span> --suite <span class="v">full</span> --gpu <span class="n">0</span> --seed <span class="n">42</span>
+
+<span class="c"># 양자화 비교</span>
+<span class="f">bench</span> compare <span class="v">mistral-7b</span> --quant <span class="v">Q4_K_M,Q5_K,Q8_0</span>
+
+<span class="c"># 리포트 내보내기</span>
+<span class="f">bench</span> report --format <span class="v">json,html</span> --out <span class="v">./results</span>
+
+<span class="c"># 로컬 대시보드</span>
+<span class="f">bench</span> serve --port <span class="n">8080</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-idx">07 · FAQ</div>
+      <h2>자주 묻는 질문</h2>
+    </div>
+    <div class="faq">
+      <div class="faq-item reveal">
+        <button class="faq-q">클라우드 API가 필요한가요?
+          <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        </button>
+        <div class="faq-a"><p>아니요. 모든 데이터셋을 로컬에 캐시하고, 추론과 평가까지 전부 로컬에서 실행됩니다. 네트워크 연결 없이도 동작하며, 민감한 프롬프트가 외부로 전송되지 않습니다.</p></div>
+      </div>
+      <div class="faq-item reveal d1">
+        <button class="faq-q">GPU가 없어도 실행할 수 있나요?
+          <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        </button>
+        <div class="faq-a"><p>가능합니다. CPU 백엔드(AVX2/AVX-512)를 자동 감지해 실행합니다. 속도는 GPU보다 느리지만, CPU 전용 벤치마크 프로파일로 정확한 비교가 가능합니다.</p></div>
+      </div>
+      <div class="faq-item reveal d2">
+        <button class="faq-q">결과를 재현할 수 있나요?
+          <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        </button>
+        <div class="faq-a"><p>네. seed, temperature, context length, 양자화를 고정하면 같은 환경에서 동일한 결과를 재현할 수 있습니다. 모든 실행은 환경 메타데이터와 함께 JSON으로 기록됩니다.</p></div>
+      </div>
+      <div class="faq-item reveal d3">
+        <button class="faq-q">CI/CD에 통합할 수 있나요?
+          <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        </button>
+        <div class="faq-a"><p>가능합니다. <code style="font-family:var(--mono);color:var(--teal)">bench run --ci</code> 플래그로 비대화형 실행과 JSON 출력을 지원하며, 임계값 초과 시 exit code를 반환해 회귀를 자동 감지합니다.</p></div>
+      </div>
+      <div class="faq-item reveal d4">
+        <button class="faq-q">라이선스는 무엇인가요?
+          <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        </button>
+        <div class="faq-a"><p>MIT 라이선스로 배포됩니다. 개인·상업 용도로 자유롭게 사용, 수정, 재배포할 수 있습니다. 데이터셋은 각 원본 라이선스를 따릅니다.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="wrap">
+    <div class="cta reveal">
+      <h2>지금 로컬 LLM을 측정해 보세요</h2>
+      <p>설치는 30초, 첫 벤치마크는 2분. 클라우드 없이, 재현 가능한 결과로 모델과 하드웨어를 비교하세요.</p>
+      <div class="cta-actions">
+        <a href="#top" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+          다운로드 시작
+        </a>
+        <a href="#leaderboard" class="btn btn-ghost">리더보드 보기</a>
+      </div>
+      <div class="mono"><code>curl -fsSL https://get.benchmark.dev | sh</code></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="#top">
+          <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg></span>
+          <span>벤치마크<small>local llm</small></span>
+        </a>
+        <p>로컬 LLM 성능을 측정하고, 재현 가능한 결과로 모델과 하드웨어를 비교하는 오픈소스 도구.</p>
+      </div>
+      <div class="foot-col">
+        <h5>제품</h5>
+        <a href="#features">기능</a>
+        <a href="#leaderboard">리더보드</a>
+        <a href="#hardware">하드웨어</a>
+        <a href="#cta">다운로드</a>
+      </div>
+      <div class="foot-col">
+        <h5>문서</h5>
+        <a href="#faq">FAQ</a>
+        <a href="#pipeline">파이프라인</a>
+        <a href="#top">CLI 레퍼런스</a>
+        <a href="#top">API</a>
+      </div>
+      <div class="foot-col">
+        <h5>프로젝트</h5>
+        <a href="#top">GitHub</a>
+        <a href="#top">릴리스 노트</a>
+        <a href="#top">라이선스</a>
+        <a href="#top">컨트리뷰트</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2025 벤치마크 · MIT License</span>
+      <span>v2.4.1 · build 20250614</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- reveal on scroll ---- */
+  var reveals = document.querySelectorAll('.reveal');
+  if(reduce){
+    reveals.forEach(function(el){ el.classList.add('in'); });
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, {threshold:0.12, rootMargin:'0px 0px -40px 0px'});
+    reveals.forEach(function(el){ io.observe(el); });
+  }
+
+  /* ---- sparkline bars ---- */
+  var spark = document.getElementById('spark');
+  if(spark){
+    var data = [30,42,38,55,48,62,58,70,64,78,72,85,80,92,88,96,90,100,94,100];
+    data.forEach(function(v,i){
+      var b = document.createElement('div');
+      b.className = 'bar' + (i%3===0 ? ' t' : '');
+      b.style.height = '0%';
+      spark.appendChild(b);
+      if(reduce){ b.style.height = v + '%'; }
+      else { setTimeout(function(){ b.style.height = v + '%'; }, 200 + i*40); }
+    });
+  }
+
+  /* ---- count up ---- */
+  var counters = document.querySelectorAll('[data-count]');
+  function animateCount(el){
+    var target = parseInt(el.getAttribute('data-count'),10);
+    var suffix = el.getAttribute('data-suffix') || '';
+    if(reduce){ el.textContent = target + suffix; return; }
+    var start = 0, dur = 1400, t0 = null;
+    function step(ts){
+      if(!t0) t0 = ts;
+      var p = Math.min((ts - t0)/dur, 1);
+      var eased = 1 - Math.pow(1-p, 3);
+      el.textContent = Math.floor(eased*target) + suffix;
+      if(p < 1) requestAnimationFrame(step);
+      else el.textContent = target + suffix;
+    }
+    requestAnimationFrame(step);
+  }
+  var cio = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ animateCount(e.target); cio.unobserve(e.target); }
+    });
+  }, {threshold:0.5});
+  counters.forEach(function(el){ cio.observe(el); });
+
+  /* ---- console typing ---- */
+  var consoleEl = document.getElementById('console');
+  if(consoleEl && !reduce){
+    var lines = consoleEl.querySelectorAll('.ln');
+    lines.forEach(function(l){ l.style.opacity = '0'; l.style.transition = 'opacity .4s'; });
+    var i = 0;
+    (function show(){
+      if(i < lines.length){
+        lines[i].style.opacity = '1';
+        i++;
+        setTimeout(show, 320);
+      }
+    })();
+  }
+
+  /* ---- copy code ---- */
+  var copyBtn = document.getElementById('copyBtn');
+  var codeBlock = document.getElementById('codeBlock');
+  if(copyBtn && codeBlock){
+    copyBtn.addEventListener('click', function(){
+      var text = codeBlock.textContent;
+      function done(){
+        var orig = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> 복사됨';
+        setTimeout(function(){ copyBtn.innerHTML = orig; }, 1600);
+      }
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done, done);
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); }catch(e){}
+        document.body.removeChild(ta); done();
+      }
+    });
+  }
+
+  /* ---- faq accordion ---- */
+  document.querySelectorAll('.faq-item').forEach(function(item){
+    var q = item.querySelector('.faq-q');
+    var a = item.querySelector('.faq-a');
+    q.addEventListener('click', function(){
+      var open = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(function(o){
+        o.classList.remove('open');
+        o.querySelector('.faq-a').style.maxHeight = null;
+      });
+      if(!open){
+        item.classList.add('open');
+        a.style.maxHeight = a.scrollHeight + 'px';
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

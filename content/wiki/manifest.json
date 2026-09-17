@@ -1,0 +1,901 @@
+{
+  "featured": [
+    "all-in-one-deploy-build",
+    "postgres-backup-restore",
+    "audit-before-incident-default-open",
+    "silent-500-alert-gap",
+    "msa-data-ownership-split"
+  ],
+  "tabs": [
+    {
+      "tabId": "start",
+      "title": "대시보드",
+      "sortOrder": 0
+    },
+    {
+      "tabId": "infra",
+      "title": "인프라",
+      "sortOrder": 1
+    },
+    {
+      "tabId": "backend",
+      "title": "백엔드",
+      "sortOrder": 2
+    },
+    {
+      "tabId": "data",
+      "title": "데이터",
+      "sortOrder": 3
+    },
+    {
+      "tabId": "frontend",
+      "title": "프론트엔드",
+      "sortOrder": 4
+    },
+    {
+      "tabId": "operations",
+      "title": "운영·관측",
+      "sortOrder": 5
+    },
+    {
+      "tabId": "demo",
+      "title": "시나리오·시연",
+      "sortOrder": 7
+    },
+    {
+      "tabId": "security",
+      "title": "보안",
+      "sortOrder": 8
+    },
+    {
+      "tabId": "verification",
+      "title": "운영 검증",
+      "sortOrder": 9
+    },
+    {
+      "tabId": "development-process",
+      "title": "개발 방식·AI",
+      "sortOrder": 10
+    },
+    {
+      "tabId": "content-quality",
+      "title": "콘텐츠·품질",
+      "sortOrder": 11
+    }
+  ],
+  "articles": [
+    {
+      "slug": "jaywiki-main-map",
+      "parentId": "start",
+      "sortOrder": 0,
+      "title": "jay-wiki 한눈에 보기",
+      "summary": "이 사이트가 무엇이고, 무엇을 눌러 볼 수 있고, 쉬운 길 대신 무엇을 골랐는지 먼저 읽는 첫 화면.",
+      "kind": "wiki",
+      "tags": "overview,architecture,portfolio"
+    },
+    {
+      "slug": "jaywiki-full-map",
+      "parentId": "start",
+      "sortOrder": 1,
+      "tocEnabled": true,
+      "title": "jay-wiki 전체 지도",
+      "summary": "문서 묶음, 계층 경계, 구현 범위와 목적별 입구를 한 장에 모은 구조 안내.",
+      "kind": "wiki",
+      "tags": "overview,architecture,portfolio"
+    },
+    {
+      "slug": "orchestration-map-walkthrough",
+      "parentId": "infra",
+      "sortOrder": 7,
+      "tocEnabled": true,
+      "title": "오케스트레이션 지도를 한 칸씩 읽는 법",
+      "summary": "첫 화면의 오케스트레이션 지도에 있는 스물세 개 칸을 요청 경로 순서대로 하나씩 짚는다. 각 칸이 무엇이고, 왜 거기 있고, 지금 어떤 버전으로 도는지를 실측값과 함께 적었다.",
+      "kind": "wiki",
+      "tags": "architecture,k3s,kubernetes,observability,cicd,overview"
+    },
+    {
+      "slug": "minipc-hardware-capacity-design",
+      "parentId": "infra",
+      "sortOrder": 0,
+      "title": "GenMachine 4700U를 Kubernetes 노드로 준비한 과정",
+      "summary": "하드웨어 구성, 냉각 보강과 약 20W로 기억하는 전력 설정을 홈서버 운영 관점에서 판단하고 AWS와 비교한 기록.",
+      "kind": "wiki",
+      "tags": "minipc,hardware,ryzen,thermal,kubernetes,capacity,aws"
+    },
+    {
+      "slug": "minipc-k3s-cloudflare",
+      "parentId": "infra",
+      "sortOrder": 1,
+      "title": "miniPC k3s와 Cloudflare Tunnel 배포 구조",
+      "summary": "포트포워딩 없는 miniPC의 외부 hostname 6개를 익명 공개와 Cloudflare Access의 두 인증 경계로 나누고, 인증 없는 진입점을 Next.js 하나로 묶은 이유.",
+      "kind": "wiki",
+      "tags": "minipc,k3s,cloudflare,deploy"
+    },
+    {
+      "slug": "postgres-db-wiki-revision",
+      "parentId": "data",
+      "sortOrder": 0,
+      "title": "Markdown 파일에서 DB 위키로 전환한 이유",
+      "summary": "컨테이너 파일시스템 대신 PostgreSQL을 본문 SoT로 두고 revision을 구현한 결정.",
+      "kind": "wiki",
+      "tags": "postgres,wiki,revision,architecture"
+    },
+    {
+      "slug": "content-origin-and-history-boundary",
+      "parentId": "data",
+      "sortOrder": 6,
+      "title": "시드와 revision은 서로 다른 축이다",
+      "summary": "글이 어디서 오는가와 고친 기록을 남기는가는 별개의 결정이다. 둘을 켰을 때 실제로 치른 대가를 적는다.",
+      "kind": "adr",
+      "tags": "seed,revision,content,architecture,postgres"
+    },
+    {
+      "slug": "schema-simplification",
+      "parentId": "data",
+      "sortOrder": 7,
+      "title": "도메인별 PostgreSQL schema 분리를 걷어낸 이유",
+      "summary": "실제 권한 경계가 없는 곳에 wiki·community·account schema를 나누려다가, 전부 public에 tb_ 접두사로 되돌린 결정.",
+      "kind": "adr",
+      "tags": "postgres,schema,database,simplicity"
+    },
+    {
+      "slug": "db-schema-erd-map",
+      "parentId": "data",
+      "sortOrder": 5,
+      "title": "전체 DB 스키마를 도메인별 ERD로 읽기",
+      "summary": "모놀리스 PostgreSQL 29개 테이블을 8개 도메인 ERD로 나누고, 원본과 파생·실행 원장과 도메인 데이터·FK를 건 곳과 걸지 않은 곳의 경계를 설명한다. 결제·배송이 떨어져 나간 뒤라 이 DB가 전부가 아니라는 것부터 적는다.",
+      "kind": "wiki",
+      "tags": "postgres,schema,erd,data-model"
+    },
+    {
+      "slug": "spring-bff-auth-boundary",
+      "parentId": "backend",
+      "sortOrder": 0,
+      "title": "Spring HTTP API를 BFF 뒤에 둔 이유",
+      "summary": "일반 HTTP API는 Next.js BFF 뒤에 두고 실시간 채팅 WebSocket만 직접 연결한 인증·운영 경계.",
+      "kind": "wiki",
+      "tags": "spring,nextjs,bff,security"
+    },
+    {
+      "slug": "nextjs-frontend-redesign",
+      "parentId": "frontend",
+      "sortOrder": 0,
+      "title": "프론트 전면 개편의 기준",
+      "summary": "기능이 많아진 운영 포트폴리오를 허브, 시나리오, 회고 중심으로 정리하는 전략.",
+      "kind": "wiki",
+      "tags": "nextjs,frontend,ux"
+    },
+    {
+      "slug": "wiki-navigation-and-responsive-stability",
+      "parentId": "frontend",
+      "sortOrder": 1,
+      "title": "운영 위키의 읽기 성능과 반응형 안정성을 개선한 방법",
+      "summary": "URL 기반 탐색, 비동기 경쟁 방지, Mermaid 내부 스크롤로 문서 탐색이 흔들리지 않게 만든 기록.",
+      "kind": "wiki",
+      "tags": "nextjs,react,ux,performance,responsive,mermaid"
+    },
+    {
+      "slug": "frontend-payload-and-rendering-rules",
+      "parentId": "frontend",
+      "sortOrder": 2,
+      "title": "프론트엔드 최적화는 큰 것부터 했다 — 512kB를 228kB로",
+      "summary": "highlight.js 언어 정의를 192개에서 15개로 줄여 글 화면의 First Load JS 를 512kB 에서 228kB 로 내리고, 이미지·다이어그램·폰트·포매터에 같은 판단을 이어간 기록.",
+      "kind": "wiki",
+      "tags": "frontend,performance,nextjs,react,bundle,lazy-loading"
+    },
+    {
+      "slug": "wrong-address-routing",
+      "parentId": "frontend",
+      "sortOrder": 3,
+      "title": "없는 주소, 옮긴 주소, 터진 화면을 각각 다르게 다룬다",
+      "summary": "옮긴 글은 308 로 살리고 없는 글은 404, 형식이 어긋난 주소도 404, 우리 잘못만 오류 화면으로 나눈 기록. 그 화면을 만들다 퍼센트 인코딩 주소가 500 을 내던 이중 인코딩 버그를 찾았다.",
+      "kind": "wiki",
+      "tags": "frontend,nextjs,redirect,http-status,seo,error-handling"
+    },
+    {
+      "slug": "frontend-performance-measured",
+      "parentId": "frontend",
+      "sortOrder": 0,
+      "title": "프론트에서 무엇을 고칠지 눈이 아니라 측정으로 골랐다",
+      "summary": "탭을 바꿀 때마다 화면이 65px 씩 밀리던 원인을 두 번 잘못 짚은 기록과, 글 화면이 받는 JS 를 512kB 에서 228kB 로 줄인 근거.",
+      "kind": "wiki",
+      "tags": "frontend,performance,nextjs,react,measurement"
+    },
+    {
+      "slug": "markdown-security-and-admin-edit-boundary",
+      "parentId": "security",
+      "sortOrder": 0,
+      "title": "Markdown XSS와 관리자 편집 경계를 막은 방법",
+      "summary": "DB에 저장되는 Markdown의 렌더링 경로와 관리자 변경 요청을 각각 방어한 보안 개선 기록.",
+      "kind": "wiki",
+      "tags": "security,markdown,xss,nextjs,admin,csrf"
+    },
+    {
+      "slug": "account-secret-least-privilege-boundary",
+      "parentId": "security",
+      "sortOrder": 1,
+      "title": "관리자·사용자·서비스 계정과 Secret의 권한을 나눈 방법",
+      "summary": "사람과 애플리케이션, 배포 Job이 같은 자격 증명을 공유하지 않도록 인증 목적과 회전 경계를 분리한 기록.",
+      "kind": "adr",
+      "tags": "security,secrets,least-privilege,totp,kubernetes,service-account",
+      "lastReview": "2026-07-21"
+    },
+    {
+      "slug": "audit-before-incident-default-open",
+      "parentId": "security",
+      "sortOrder": 2,
+      "title": "막아 뒀다고 믿은 네 곳이 기본값으로 열려 있었다",
+      "summary": "관리자 조회·로그인 시도·채팅 신원·2FA 키가 값이 아니라 구조 때문에 기본으로 열려 있던 것을 점검으로 먼저 찾아 닫은 기록.",
+      "kind": "postmortem",
+      "tags": "security,spring-security,rate-limit,websocket,totp,audit",
+      "lastReview": "2026-08-13"
+    },
+    {
+      "slug": "observability-loki-tempo-grafana",
+      "parentId": "operations",
+      "sortOrder": 0,
+      "title": "Metrics·Logs·Traces를 연결한 관측 경계",
+      "summary": "서로 다른 수집 경로와 공개 범위를 나누고, 한 요청을 추적하기 위한 운영 기준을 정리한 기록.",
+      "kind": "wiki",
+      "tags": "loki,tempo,grafana,observability"
+    },
+    {
+      "slug": "grafana-reading-an-alert",
+      "parentId": "operations",
+      "sortOrder": 1,
+      "title": "Grafana 화면을 열어 알림 하나를 끝까지 읽은 기록",
+      "summary": "대시보드 둘과 Explore, 신호 사이를 잇는 다리 셋이 화면에서 각각 무엇을 보여주는지, 400 알림 하나를 실제로 좁혀 가며 정리한 기록.",
+      "kind": "wiki",
+      "tags": "grafana,prometheus,loki,tempo,promql,observability"
+    },
+    {
+      "slug": "cicd-ghcr-runner",
+      "parentId": "operations",
+      "sortOrder": 1,
+      "title": "GHCR와 self-hosted runner로 자동 배포하기",
+      "summary": "수동 tar 배포에서 GitHub Actions, GHCR, miniPC runner 배포로 전환한 이유.",
+      "kind": "wiki",
+      "tags": "github-actions,ghcr,k3s,cicd",
+      "lastReview": "2026-08-13"
+    },
+    {
+      "slug": "postgres-backup-restore",
+      "parentId": "operations",
+      "sortOrder": 2,
+      "title": "백업은 복원해보기 전까지 백업이 아니다",
+      "summary": "pg_dump CronJob과 sha256에서 시작해, 사본을 miniPC 밖으로 내보내고 복원 2.2초·알림 45초를 실측하기까지의 기록.",
+      "kind": "wiki",
+      "tags": "postgres,backup,restore,kubernetes,alert",
+      "lastReview": "2026-08-16"
+    },
+    {
+      "slug": "wiki-image-asset-lifecycle",
+      "parentId": "operations",
+      "sortOrder": 3,
+      "title": "위키 이미지와 MinIO 자산 수명주기를 관리하는 방법",
+      "summary": "MinIO 주소를 본문에 노출하지 않고 환경별 저장소와 revision까지 보존하는 위키 이미지 구현.",
+      "kind": "adr",
+      "tags": "minio,image,markdown,proxy,revision,lifecycle",
+      "lastReview": "2026-08-13"
+    },
+    {
+      "slug": "gitops-wiki-content-sync-boundary",
+      "parentId": "operations",
+      "sortOrder": 4,
+      "title": "TOTP를 우회하지 않고 위키 기준 콘텐츠를 자동 배포하는 방법",
+      "summary": "공개 관리자 인증과 내부 GitOps 동기화를 분리한 콘텐츠 배포 경계. 처음 둘이던 쓰기 endpoint 가 탭 삭제와 블로그 발행까지 넷이 되는 동안, TOTP 를 깎지 않는다는 원칙이 두 번 더 시험받아 이겼다.",
+      "kind": "adr",
+      "tags": "gitops,kubernetes,security,content-sync,totp,backup",
+      "lastReview": "2026-08-16"
+    },
+    {
+      "slug": "reboot-cadence-and-storage-growth-boundary",
+      "parentId": "operations",
+      "sortOrder": 5,
+      "title": "재부팅·로그 보존·이미지 정리를 어디까지 자동화할지",
+      "summary": "조건부 자동 재부팅은 켜고 고정 주기 재부팅·로그 보존·이미지 정리는 넣지 않기로 한 결정. 커널 패치 주기 12일, Loki 하루 4MB, 이미지 48GB 같은 실측값이 근거다.",
+      "kind": "adr",
+      "tags": "minipc,k3s,operations,unattended-upgrades,retention,evidence"
+    },
+    {
+      "slug": "reboot-visibility-alerts",
+      "parentId": "operations",
+      "sortOrder": 15,
+      "title": "자동 재부팅이 두 달간 아무에게도 알려지지 않았다",
+      "summary": "커널 패치가 요구할 때만 도는 자동 재부팅을 켜 두고 두 달을 돌렸는데, 그 사실을 켠 사람도 몰랐다. 재부팅을 보이게 만드는 알림 셋을 붙인 기록.",
+      "kind": "wiki",
+      "tags": "minipc,unattended-upgrades,alerting,prometheus,cronjob,observability"
+    },
+    {
+      "slug": "backup-r2-phase-b-plan",
+      "parentId": "operations",
+      "sortOrder": 6,
+      "title": "PostgreSQL 백업을 miniPC 밖으로 복제하는 계획",
+      "summary": "목적지를 Cloudflare R2로 정했다가 개발 머신으로 바꿔 실행한 기록. 무엇을 얻고 무엇을 포기했는지까지.",
+      "kind": "adr",
+      "lastReview": "2026-08-16",
+      "tags": "postgres,backup,r2,cloudflare,disaster-recovery"
+    },
+    {
+      "slug": "never-exercised-code",
+      "parentId": "operations",
+      "sortOrder": 13,
+      "title": "한 번도 안 돌아본 코드는 없는 코드다",
+      "summary": "한 번도 돌아본 적 없는 것 넷을 하루에 몰아서 돌려본 기록. 둘은 첫 실행에 깨졌고, 그 실패에서 롤백이 처음 진짜로 돌았다.",
+      "kind": "wiki",
+      "tags": "backup,restore,alerting,rollback,deploy,verification",
+      "lastReview": "2026-08-16"
+    },
+    {
+      "slug": "minipc-command-runbook",
+      "parentId": "operations",
+      "sortOrder": 7,
+      "title": "miniPC 상태를 확인할 때 매번 쓰는 명령을 한 곳에 모은 기록",
+      "summary": "SSH로 miniPC 상태·배포·러너·공개 smoke를 확인하는 명령과, 장애를 볼 때 확인하는 순서.",
+      "kind": "wiki",
+      "tags": "minipc,kubectl,ssh,runbook,operations"
+    },
+    {
+      "slug": "alerting-inventory-and-gaps",
+      "parentId": "operations",
+      "sortOrder": 8,
+      "title": "알림으로 오는 열다섯 개와 아직 오지 않는 둘",
+      "summary": "텔레그램에 닿는 경로 둘과 규칙 열다섯 개를 한 곳에 세고, 억제·해제 정책과 실제로 도착하는 메시지 예시, 다섯이던 구멍 중 메운 셋과 남은 둘을 그대로 적은 목록.",
+      "kind": "wiki",
+      "tags": "alerting,alertmanager,prometheus,loki,telegram,observability,operations"
+    },
+    {
+      "slug": "all-in-one-deploy-build",
+      "parentId": "operations",
+      "sortOrder": 8,
+      "title": "요청 한 번으로 All-In-One 배포가 끝난다",
+      "summary": "배포가 끝나도 사람 손이 넷 남아 있던 상태에서, 각각 되돌릴 길을 갖춰 파이프라인 안으로 들어와 0이 되기까지의 전체 그림. 배포 없이 글만 올리는 옆문 /sync 도 여기서 설명한다.",
+      "kind": "wiki",
+      "tags": "deployment,automation,operations,content-sync,helm,github-actions"
+    },
+    {
+      "slug": "deploy-rules-and-harness",
+      "parentId": "operations",
+      "sortOrder": 9,
+      "title": "배포는 머지 한 번이고, 그 한 번이 어디까지 하는지 정해 둔다",
+      "summary": "develop 을 main 에 머지하는 행동이 배포다. 그 한 번이 무엇을 부르고 어디서 멈추는지 — 경로 필터, 잡 셋, Helm 과 콘텐츠까지 품은 deploy 단계 목록, 스모크와 캡처 기반 롤백, 그리고 파이프라인 밖에 남은 것을 적은 규칙.",
+      "kind": "wiki",
+      "tags": "deployment,github-actions,k3s,rollback,operations,release"
+    },
+    {
+      "slug": "deploy-automation-boundary",
+      "parentId": "operations",
+      "sortOrder": 12,
+      "title": "자동화의 경계는 할 수 있느냐가 아니라 되돌릴 수 있느냐로 긋는다",
+      "summary": "되돌릴 수 있으면 파이프라인이 하고, 없으면 사람이 한다 — 그 경계를 세운 결정과, 남겨 뒀던 셋(블로그 발행·탭 삭제·데이터 계층 Helm)이 각각 안전장치를 갖춰 2026-08-16 경계 안으로 들어오기까지의 기록.",
+      "kind": "adr",
+      "tags": "deployment,automation,helm,rollback,operations,github-actions"
+    },
+    {
+      "slug": "helm-releases-and-boundary",
+      "parentId": "operations",
+      "sortOrder": 10,
+      "title": "Helm 릴리스의 자동 배포 경계를 다시 그은 기록",
+      "summary": "차트·릴리스·리비전·values 가 각각 무엇인지와, 이 저장소의 릴리스 열둘 중 무엇이 배포 파이프라인 밖에 있어 사람이 직접 올려야 하는지를 실제 리비전 번호와 함께 적은 글.",
+      "kind": "wiki",
+      "tags": "helm,kubernetes,k3s,operations,release,observability"
+    },
+    {
+      "slug": "watchdog-outside-the-cluster",
+      "parentId": "operations",
+      "sortOrder": 11,
+      "title": "알림 체계가 죽었다는 것은 그 체계 밖에서만 알 수 있다",
+      "summary": "관측과 알림이 전부 miniPC 한 대 안에 있어, 알림 전달이 죽으면 그 사실을 알릴 통로도 같이 죽는다. 방향을 뒤집어 안에서 밖으로 항상 신호를 보내고 신호가 끊기면 밖이 알리는 dead man's switch 를 세운 기록.",
+      "kind": "wiki",
+      "tags": "alerting,observability,alertmanager,prometheus,operations,monitoring"
+    },
+    {
+      "slug": "saga-kafka-outbox-order",
+      "parentId": "demo",
+      "sortOrder": 0,
+      "title": "Saga, Outbox, Kafka를 주문 시나리오로 분리한 이유",
+      "summary": "분산 시스템 패턴을 위키 도메인에 억지로 붙이지 않고 주문 예제로 분리한 설명.",
+      "kind": "wiki",
+      "tags": "saga,kafka,outbox,order"
+    },
+    {
+      "slug": "redis-random-chat-queue",
+      "parentId": "demo",
+      "sortOrder": 1,
+      "title": "랜덤채팅 대기열을 Redis ZSET으로 만든 이유",
+      "summary": "Pod 메모리 대신 Redis에 room members와 대기열을 둔 WebSocket 시연 설계.",
+      "kind": "wiki",
+      "tags": "redis,websocket,queue,chat"
+    },
+    {
+      "slug": "search-comparison-100k",
+      "parentId": "demo",
+      "sortOrder": 2,
+      "title": "10만 게시판과 검색 비교를 만든 이유",
+      "summary": "LIKE, tsvector+GIN, OpenSearch+nori를 같은 데이터에서 비교하는 검색 시연.",
+      "kind": "wiki",
+      "tags": "postgres,opensearch,search,board"
+    },
+    {
+      "slug": "open-source-license-content-governance",
+      "parentId": "content-quality",
+      "sortOrder": 0,
+      "title": "오픈소스 라이선스와 콘텐츠 출처를 관리하는 기준",
+      "summary": "폰트, 라이브러리, 컨테이너, 기술 로고와 업로드 이미지를 같은 반입 절차로 관리한 기록.",
+      "kind": "adr",
+      "tags": "license,copyright,open-source,content-governance"
+    },
+    {
+      "slug": "wiki-content-asset-retention-governance",
+      "parentId": "data",
+      "sortOrder": 1,
+      "title": "문서와 이미지 자산의 소유·보존 기준",
+      "summary": "PostgreSQL revision과 MinIO 이미지를 함께 보존하면서 출처 없는 자산과 성급한 삭제를 막는 기준.",
+      "kind": "adr",
+      "tags": "governance,revision,minio,retention,provenance"
+    },
+    {
+      "slug": "personal-service-legal-launch-boundary",
+      "parentId": "security",
+      "sortOrder": 2,
+      "title": "개인 포트폴리오 서비스를 공개하기 전 확인한 법적 경계",
+      "summary": "개인정보, 게시판, 저작권과 외부 서비스를 실제 코드와 연결해 점검한 출시 기준. 점검 결과 구글 로그인은 걷어내고 처리방침을 새로 썼다.",
+      "kind": "adr",
+      "tags": "governance,privacy,copyright,launch-checklist"
+    },
+    {
+      "slug": "minio-public-asset-governance",
+      "parentId": "data",
+      "sortOrder": 3,
+      "title": "MinIO 공개 자산을 운영하는 기준",
+      "summary": "이미지와 문서 파일을 MinIO에 보관하고 same-origin read-only 경로, checksum과 수명주기로 안전하게 공개하는 정책.",
+      "kind": "adr",
+      "tags": "governance,minio,object-storage,assets,checksum,lifecycle",
+      "lastReview": "2026-07-21"
+    },
+    {
+      "slug": "development-delivery-evidence-loop",
+      "parentId": "development-process",
+      "sortOrder": 0,
+      "title": "요청을 코드가 아니라 운영 증거까지 연결하는 개발 루프",
+      "summary": "요구 확인부터 구현·테스트·화면 검증·문서·배포·smoke까지 하나의 완료 기준으로 묶은 작업 방식.",
+      "kind": "wiki",
+      "tags": "development-process,delivery,testing,visual-qa,documentation,operations",
+      "lastReview": "2026-08-13"
+    },
+    {
+      "slug": "hypothesis-driven-debugging-loop",
+      "parentId": "development-process",
+      "sortOrder": 3,
+      "title": "증상을 바로 고치지 않고 가설과 증거로 원인을 좁힌 방법",
+      "summary": "간헐적 CSS 깨짐, Tempo 재시작과 HPA 확장을 복수 가설·측정·재현·회귀 검증으로 다룬 디버깅 절차.",
+      "kind": "wiki",
+      "tags": "development-process,debugging,hypothesis,evidence,observability,regression",
+      "lastReview": "2026-07-21"
+    },
+    {
+      "slug": "evidence-maturity-and-claim-boundary",
+      "parentId": "development-process",
+      "sortOrder": 5,
+      "title": "Mock·로컬 실측·운영 검증을 같은 성과로 쓰지 않는 기준",
+      "summary": "아이디어, 결정론적 모델, 로컬 구현, benchmark와 운영 검증의 증거 수준을 구분해 과장 없이 기록하는 방법.",
+      "kind": "adr",
+      "tags": "development-process,evidence,benchmark,mock,portfolio,verification",
+      "lastReview": "2026-07-21"
+    },
+    {
+      "slug": "ai-assisted-development-harness",
+      "parentId": "development-process",
+      "sortOrder": 1,
+      "title": "AI 에이전트와 jay-wiki를 개발한 방식",
+      "summary": "AI를 제품 기능이 아니라 조사, 구현, 검증과 기록을 연결하는 개발 하네스로 사용한 기준.",
+      "kind": "wiki",
+      "tags": "ai,codex,claude,harness,workflow,verification"
+    },
+    {
+      "slug": "wiki-writing-harness",
+      "parentId": "content-quality",
+      "sortOrder": 2,
+      "title": "위키에 글 한 편을 쓰면 실제로 무엇이 도는가",
+      "summary": "진입 사슬부터 클러스터 안 동기화 Job까지, 위키 글 한 편이 지나는 파이프라인을 순서대로 짚는다. 어디서 무엇이 돌고, 걸리면 어디서 죽는지가 이 글의 내용이다.",
+      "kind": "wiki",
+      "tags": "development-process,ai,harness,content,seed,verification",
+      "lastReview": "2026-08-13"
+    },
+    {
+      "slug": "ai-agent-keychain-production-auth-boundary",
+      "parentId": "development-process",
+      "sortOrder": 4,
+      "title": "AI 에이전트가 운영 비밀번호를 기억하지 않게 만든 방법",
+      "summary": "macOS Keychain, 일회성 TOTP와 dry-run/write 분리로 AI 운영 자동화의 인증 경계를 만든 기록.",
+      "kind": "adr",
+      "tags": "ai,keychain,totp,secrets,automation,operations"
+    },
+    {
+      "slug": "wiki-fact-check-51-articles",
+      "parentId": "content-quality",
+      "sortOrder": 2,
+      "title": "위키 사실 검증: 검증받은 적 없던 51편을 저장소에 대조했다",
+      "summary": "주장 764개를 코드·커밋·실측으로 검증해 WRONG 56건을 고치고, 검증 보고 자체가 틀린 1건까지 잡은 기록.",
+      "kind": "wiki",
+      "tags": "fact-check,verification,wiki",
+      "lastReview": "2026-08-10"
+    },
+    {
+      "slug": "wiki-information-architecture-rebuild",
+      "parentId": "frontend",
+      "sortOrder": 3,
+      "title": "위키 정보구조 재개편: 탭 19개를 12개로 줄이며 고친 것",
+      "summary": "탭이 빈 것을 글 부족으로 오진했다가 정본 없는 글 17편을 찾아낸 재개편 회고.",
+      "kind": "postmortem",
+      "tags": "postmortem,information-architecture,wiki"
+    },
+    {
+      "slug": "portfolio-retrospective-map",
+      "parentId": "content-quality",
+      "sortOrder": 4,
+      "title": "운영 회고를 포트폴리오에서 읽히게 만드는 방법",
+      "summary": "기능 목록을 운영 장면, 실패 기록, 검증 증거로 다시 묶은 이유.",
+      "kind": "wiki",
+      "tags": "portfolio,postmortem,operations"
+    },
+    {
+      "slug": "troubleshooting-log",
+      "parentId": "development-process",
+      "sortOrder": 6,
+      "title": "트러블슈팅 12건에서 상태·환경·경계의 가정을 좁힌 회고",
+      "summary": "Flyway, Cloudflare, SSH, Next dev, OpenSearch에서 실제로 막혔던 문제들의 공통 패턴.",
+      "kind": "wiki",
+      "tags": "troubleshooting,flyway,cloudflare,nextjs"
+    },
+    {
+      "slug": "roadmap-after-content",
+      "parentId": "content-quality",
+      "sortOrder": 5,
+      "title": "콘텐츠 이식 이후 로드맵",
+      "summary": "기능 추가보다 문서화, 운영 리허설, 외부 복제 백업 항목을 정리한다.",
+      "kind": "note",
+      "tags": "roadmap,content,operations"
+    },
+    {
+      "slug": "silent-500-alert-gap",
+      "parentId": "operations",
+      "sortOrder": 1,
+      "title": "오류는 났는데 알림이 울리지 않았다",
+      "summary": "관리자 블로그 수정이 500으로 죽었는데 알림 7개가 전부 침묵했다. 다섯 번 잘못 짚으며 지표와 로그 두 갈래 알림을 세우고 실제 500으로 검증했는데, 그 사고를 400으로 바로잡자 세운 체계 밖으로 나가 400까지 본체로 잡은 기록.",
+      "kind": "postmortem",
+      "tags": "prometheus,alerting,loki,observability,incident"
+    },
+    {
+      "slug": "minipc-reboot-recovery-drill",
+      "parentId": "infra",
+      "sortOrder": 2,
+      "title": "miniPC를 재부팅해 서비스 복구 시간을 재봤다",
+      "summary": "miniPC 재부팅 뒤 k3s, Tunnel, runner, 상태 저장소와 공개 사이트가 회복되는 순서와 시각을 잰 기록. 2회차에서 공개 경로 다운타임 최대 60초를 확인하고 무인 자동 재부팅을 켰다.",
+      "kind": "wiki",
+      "tags": "minipc,k3s,reboot,recovery,systemd"
+    },
+    {
+      "slug": "cloudflared-reload-cut-the-ssh-path",
+      "parentId": "infra",
+      "sortOrder": 6,
+      "title": "터널을 고치려다 터널로 들어가는 문을 닫은 날",
+      "summary": "cloudflared에 SIGHUP을 보냈더니 reload가 아니라 종료였고, SSH도 그 터널을 타고 있어 원격 복구 경로가 함께 사라졌다.",
+      "kind": "postmortem",
+      "tags": "cloudflare,tunnel,systemd,incident,infra"
+    },
+    {
+      "slug": "cloudflare-tunnel-config-postmortem",
+      "parentId": "infra",
+      "sortOrder": 3,
+      "title": "Cloudflare Tunnel 설정 위치를 잘못 짚은 날",
+      "summary": "대시보드가 아니라 miniPC의 locally configured tunnel 설정을 고쳐야 했던 원인과 복구 순서.",
+      "kind": "postmortem",
+      "tags": "cloudflare,tunnel,traefik,incident,infra"
+    },
+    {
+      "slug": "minipc-boundary-decision",
+      "parentId": "infra",
+      "sortOrder": 4,
+      "title": "miniPC 한 대를 서비스 경계로 선택한 이유",
+      "summary": "비용 절감보다 배포, 네트워크, 저장소, 재시작을 직접 운영하기 위해 단일 노드를 선택한 판단.",
+      "kind": "wiki",
+      "tags": "minipc,k3s,architecture,operations"
+    },
+    {
+      "slug": "k3s-manifest-boundaries",
+      "parentId": "infra",
+      "sortOrder": 5,
+      "title": "k3s 매니페스트를 서비스 경계로 나눈 기준",
+      "summary": "namespace, Helm values, Secret, SHA 이미지 배포를 분리해 클린 클러스터에서도 다시 만들 수 있게 한 기준.",
+      "kind": "wiki",
+      "tags": "k3s,kubernetes,manifest,helm,secret"
+    },
+    {
+      "slug": "zero-downtime-on-one-machine",
+      "parentId": "infra",
+      "sortOrder": 7,
+      "title": "기계가 한 대인데 무중단 배포를 말할 수 있나",
+      "summary": "파드가 하나여도 롤링 업데이트는 새 것을 먼저 띄운다. 되는 구간과 기계 고장처럼 못 막는 구간을 갈라 적었다.",
+      "kind": "wiki",
+      "tags": "kubernetes,deploy,rolling-update,availability,k3s",
+      "lastReview": "2026-08-17"
+    },
+    {
+      "slug": "oauth-public-origin-smoke",
+      "parentId": "backend",
+      "sortOrder": 1,
+      "title": "OAuth callback을 고친 뒤 로그인 기능 자체를 걷어낸 이유",
+      "summary": "프록시를 지나며 http로 잘리던 OAuth callback을 public origin으로 고정했고, 그 뒤 구글 로그인 자체를 제거했다. 무엇을 얻으려고 무엇을 받아 갔는지 다시 센 기록.",
+      "kind": "wiki",
+      "tags": "oauth,privacy,nextjs,spring,cloudflare,security"
+    },
+    {
+      "slug": "admin-user-role-boundary",
+      "parentId": "backend",
+      "sortOrder": 2,
+      "title": "USER 역할이 지키는 경로가 하나도 없다는 것을 나중에 알았다",
+      "summary": "ADMIN과 USER를 나눠 설계했지만, 인가 규칙을 다시 읽어 보니 USER만 통과하는 경로가 하나도 없었다. 그래서 구글 로그인을 뺐고 ADMIN 경계만 남겼다.",
+      "kind": "wiki",
+      "tags": "auth,authorization,admin,privacy"
+    },
+    {
+      "slug": "spring-fastapi-payment-contract",
+      "parentId": "backend",
+      "sortOrder": 3,
+      "title": "Spring과 FastAPI를 Saga 경계로 나눈 이유",
+      "summary": "Spring orchestration과 FastAPI 결제 참여자를 분리하고, 실패와 보상 책임을 명확히 한 계약.",
+      "kind": "wiki",
+      "tags": "saga,spring,fastapi,payment,contract"
+    },
+    {
+      "slug": "api-error-contract",
+      "parentId": "backend",
+      "sortOrder": 4,
+      "title": "장애를 HTTP 응답으로 숨기지 않는 기준",
+      "summary": "Spring의 problem response와 Next.js BFF의 502 경계를 통해 비즈니스 충돌과 인프라 장애를 구분한 기준.",
+      "kind": "wiki",
+      "tags": "api,error,rfc7807,bff,resilience"
+    },
+    {
+      "slug": "oauth-logout-session",
+      "parentId": "backend",
+      "sortOrder": 5,
+      "title": "로그아웃은 쿠키 하나가 아니라 발급한 쿠키 전부를 지워야 끝난다",
+      "summary": "JWT 쿠키만 지운 로그아웃이 OAuth 세션 쿠키를 남겨 새로고침 후 인증이 되살아날 수 있었던 구조와 고친 방법.",
+      "kind": "wiki",
+      "tags": "spring,oauth,session,cookie,security,bff"
+    },
+    {
+      "slug": "postgres-restore-drill-1",
+      "parentId": "data",
+      "sortOrder": 1,
+      "title": "백업 파일이 아니라 복원 결과를 확인하는 방법",
+      "summary": "최신 PostgreSQL dump의 sha256, 임시 DB 복원, 핵심 테이블 row count를 한 번에 확인하는 restore drill.",
+      "kind": "wiki",
+      "tags": "postgres,backup,restore,cronjob,pvc"
+    },
+    {
+      "slug": "search-comparison-results",
+      "parentId": "data",
+      "sortOrder": 2,
+      "title": "10만 건 검색 비교에서 실제로 확인한 차이",
+      "summary": "같은 게시판 10만 건에서 LIKE, PostgreSQL tsvector, OpenSearch nori의 결과 품질과 응답 시간을 실측하고, 규모가 커질 때의 비용 구조까지 적은 비교 기록.",
+      "kind": "wiki",
+      "tags": "search,postgres,opensearch,nori,benchmark"
+    },
+    {
+      "slug": "opensearch-nori-image",
+      "parentId": "data",
+      "sortOrder": 3,
+      "title": "Elasticsearch 대신 OpenSearch와 nori를 선택한 이유",
+      "summary": "Elasticsearch 계열 검색엔진의 차이, 한국어 형태소 분석, 16GB 홈서버 자원 설정과 위키 검색 운영 경계.",
+      "kind": "adr",
+      "tags": "opensearch,elasticsearch,nori,docker,search,index,hardware"
+    },
+    {
+      "slug": "minio-portfolio-assets",
+      "parentId": "data",
+      "sortOrder": 4,
+      "title": "MinIO에서 포트폴리오 자산을 제공하는 이유",
+      "summary": "기술 로고와 오브젝트 자산을 MinIO에 두고 Next.js same-origin route로 제공한 구조와 실패 대비.",
+      "kind": "wiki",
+      "tags": "minio,s3,assets,nextjs,k3s",
+      "lastReview": "2026-08-13"
+    },
+    {
+      "slug": "image-that-never-pulled",
+      "parentId": "verification",
+      "sortOrder": 0,
+      "title": "없는 이미지로 배포를 깨뜨렸지만, 옛 파드 둘은 66번의 요청을 모두 받았다",
+      "summary": "뜨지 않는 이미지로 일부러 배포해 롤백 스크립트를 운영에서 처음 태운 기록. 복구 9초, 공개 요청 실패 0건.",
+      "kind": "wiki",
+      "tags": "rollback,deployment,kubernetes,verification,drill",
+      "lastReview": "2026-08-19"
+    },
+    {
+      "slug": "session-crossed-three-pods",
+      "parentId": "verification",
+      "sortOrder": 1,
+      "title": "세션을 파드 셋에서 이어 준 것은 내 스위치가 아니라 Boot 자동설정이었다",
+      "summary": "백엔드를 상시 둘로 바꾸고 로드밸런싱과 세션을 실측한 기록. 분배는 연결 단위였고, 세션은 의존성 하나로 이미 Redis 에 가 있었다.",
+      "kind": "wiki",
+      "tags": "session,load-balancing,redis,kubernetes,verification",
+      "lastReview": "2026-08-19"
+    },
+    {
+      "slug": "release-record-one-run",
+      "parentId": "verification",
+      "sortOrder": 2,
+      "title": "배포 한 판을 run 번호부터 공개 smoke 까지 한 글에 적었다",
+      "summary": "run 32220470022 하나를 골라 커밋 SHA, 이미지 여섯, rollout 시각, 콘텐츠 시드, 공개 smoke, 배포 후 확인까지 실측으로 남긴 기록.",
+      "kind": "wiki",
+      "tags": "deploy,release,rollout,cicd,verification",
+      "lastReview": "2026-08-19"
+    },
+    {
+      "slug": "kafka-dlq-rehearsal",
+      "parentId": "verification",
+      "sortOrder": 3,
+      "title": "주문 세 건으로 DLQ를 재현하고 알림 규칙을 고친 기록",
+      "summary": "정상·한 번 실패·계속 실패 세 판을 운영에서 돌려 재시도 간격과 DLQ 도착 시각을 재고, 그 김에 DLQ 알림 규칙이 한 번 울리면 안 풀린다는 것을 찾아 고친 기록.",
+      "kind": "wiki",
+      "tags": "kafka,dlq,retry,alerting,verification,operations",
+      "lastReview": "2026-08-19"
+    },
+    {
+      "slug": "production-content-sync-and-rollout",
+      "parentId": "verification",
+      "sortOrder": 4,
+      "title": "기준 콘텐츠를 운영 DB와 rollout까지 맞춘 기록",
+      "summary": "10개 탭 28편을 backup, dry-run, upsert, SHA rollout과 public smoke 순서로 운영에 반영한 기록.",
+      "kind": "wiki",
+      "tags": "production,seed,rollout,postgresql,smoke",
+      "lastReview": "2026-08-13"
+    },
+    {
+      "slug": "postgres-backup-artifact-verification",
+      "parentId": "verification",
+      "sortOrder": 5,
+      "title": "백업 파일을 복구 가능한 운영 증거로 검증한 방법",
+      "summary": "pg_dump 성공 여부만 보지 않고 sha256, pg_restore 목록과 임시 DB restore까지 확인한 backup 검증 기준.",
+      "kind": "wiki",
+      "tags": "postgresql,backup,restore,sha256,cronjob"
+    },
+    {
+      "slug": "saga-trace-service-graph-verification",
+      "parentId": "verification",
+      "sortOrder": 6,
+      "title": "배송 실패 요청 하나를 trace와 Service Graph로 확인한 기록",
+      "summary": "공개 BFF에서 Saga 배송 실패를 실행하고 보상 상태와 Tempo·Prometheus service graph를 같은 흐름으로 확인한 기록.",
+      "kind": "wiki",
+      "tags": "saga,otel,tempo,prometheus,service-graph"
+    },
+    {
+      "slug": "production-static-asset-recovery",
+      "parentId": "verification",
+      "sortOrder": 7,
+      "title": "운영 favicon과 MinIO 기술 로고를 복구한 기록",
+      "summary": "Next standalone public 누락과 비어 있던 MinIO bucket을 HTTP 증거로 확인하고 복구한 운영 asset incident.",
+      "kind": "wiki",
+      "tags": "nextjs,minio,static-assets,production,recovery"
+    },
+    {
+      "slug": "responsive-navigation-regression-check",
+      "parentId": "verification",
+      "sortOrder": 8,
+      "title": "문서 탐색과 반응형 읽기 기준을 실제 화면에서 확인한 기록",
+      "summary": "URL 딥링크, Mermaid 내부 스크롤, 한글 줄바꿈과 화면 폭을 390·768·1280px에서 확인한 프론트 회귀 기록.",
+      "kind": "wiki",
+      "tags": "frontend,responsive,deep-link,mermaid,regression"
+    },
+    {
+      "slug": "observability-telegram",
+      "parentId": "operations",
+      "sortOrder": 5,
+      "title": "알림은 설정이 아니라 수신 채널에서 검증이 끝난다",
+      "summary": "Alertmanager는 전송 성공을 로그로 자세히 남기지 않아, 수동 테스트 알림과 실제 장애 리허설 모두 Telegram 그룹에서 직접 확인했다.",
+      "kind": "wiki",
+      "tags": "observability,alertmanager,telegram,prometheus,verification"
+    },
+    {
+      "slug": "hpa-service-control",
+      "parentId": "verification",
+      "sortOrder": 10,
+      "title": "HPA 임계값을 60%에서 80%로 올린 이유와 서비스 제어판 시연",
+      "summary": "rollout 부하로 1->2 실제 확장은 확인됐지만 평시 CPU가 낮아 60% 기준은 과민했다. 실측으로 80%로 조정하고 리허설 패널을 앱 안에 만든 기록.",
+      "kind": "wiki",
+      "tags": "kubernetes,hpa,autoscaling,rbac,verification"
+    },
+    {
+      "slug": "msa-data-ownership-split",
+      "parentId": "backend",
+      "sortOrder": 6,
+      "tocEnabled": true,
+      "title": "결제·배송 데이터 소유권을 계정과 NetworkPolicy로 강제한 이유",
+      "summary": "프로세스 분리·독립 배포·비동기 통신을 다 갖추고도 한 데이터를 둘이 쓰면 모놀리스인 이유와, 그 소유권을 계정 권한과 NetworkPolicy 두 겹으로 강제하기로 한 결정.",
+      "kind": "adr",
+      "tags": "msa,architecture,postgresql,kubernetes,networkpolicy"
+    },
+    {
+      "slug": "why-a-second-postgres-instance",
+      "parentId": "data",
+      "sortOrder": 8,
+      "tocEnabled": true,
+      "title": "postgres 인스턴스를 하나 더 세운 근거는 NetworkPolicy 하나뿐이었다",
+      "summary": "단일 DB + 스키마 분리가 실무의 정답인 이유를 먼저 인정하고, 그런데도 두 번째 postgres 인스턴스를 세운 근거가 NetworkPolicy 하나뿐임을 밝힌다. 노드가 하나인 환경에서 흔한 분리 근거가 왜 성립하지 않는지, 그 대가로 백업 대상이 셋이 된 것까지 적는다.",
+      "kind": "adr",
+      "tags": "postgresql,msa,kubernetes,networkpolicy,backup"
+    },
+    {
+      "slug": "backup-scope-drift",
+      "parentId": "operations",
+      "sortOrder": 14,
+      "tocEnabled": true,
+      "title": "DB가 셋이 되는 동안 백업 대상을 같은 커밋으로 늘렸다",
+      "summary": "DB 를 하나에서 셋으로 늘리는 동안 백업 CronJob 은 하나만 보고 있었다. Job 은 매일 성공했으므로 아무 알림도 없다 — 범위가 조용히 어긋난 자동화를 설계 단계에서 리스크로 꼽고, 실패를 알림으로 바꾼 기록이다.",
+      "kind": "wiki",
+      "tags": "backup,operations,postgresql,kubernetes,msa"
+    },
+    {
+      "slug": "why-only-five-services",
+      "parentId": "backend",
+      "sortOrder": 7,
+      "tocEnabled": true,
+      "title": "Eureka·Config Server·메시를 각각 기각하고 워크로드 다섯에서 멈췄다",
+      "summary": "워크로드가 다섯뿐인 이유를 컴포넌트별로 밝힌다. Eureka·Config Server·서비스 메시는 Kubernetes 가 이미 하는 일이고, gateway 는 추가가 아니라 대체로만 정당하다.",
+      "kind": "wiki",
+      "tags": "msa,architecture,kubernetes,gateway,tradeoff"
+    },
+    {
+      "slug": "kafka-that-never-crossed-a-process",
+      "parentId": "demo",
+      "sortOrder": 3,
+      "tocEnabled": true,
+      "title": "아웃박스 릴레이의 발행자와 소비자가 같은 프로세스 안에 있었다",
+      "summary": "잘 짜인 아웃박스 릴레이의 발행자와 소비자가 같은 프로세스 안에 있었다. 코드 품질과 아키텍처적 의미는 따로 평가해야 하는 축이고, 결제·배송을 떼어 내면서 같은 패턴이 처음으로 경계를 건넜다.",
+      "kind": "wiki",
+      "tags": "kafka,outbox,saga,msa"
+    },
+    {
+      "slug": "bff-was-already-the-gateway",
+      "parentId": "backend",
+      "sortOrder": 9,
+      "tocEnabled": true,
+      "title": "Spring Cloud Gateway를 넣을 자리에 BFF 프록시가 이미 서 있었다",
+      "summary": "Spring Cloud Gateway 를 넣을 자리를 찾다가 Next.js 의 BFF 프록시가 이미 게이트웨이의 일을 하고 있는 것을 확인했다. 그 파일이 무엇을 하는지 코드로 보이고, gateway 는 추가가 아니라 대체로만 정당하다는 결정과 전환 리스크를 적는다.",
+      "kind": "adr",
+      "tags": "spring-cloud-gateway,bff,nextjs,msa,architecture"
+    },
+    {
+      "slug": "idempotency-key-in-payment-row",
+      "parentId": "backend",
+      "sortOrder": 10,
+      "tocEnabled": true,
+      "title": "멱등성 키를 Redis 대신 결제 행의 유니크 컬럼에 뒀다",
+      "summary": "멱등성 키는 TTL 있는 키-값이라 Redis가 맞아 보이지만, 유실되면 이중 결제다. 결제 행과 같은 트랜잭션에 드는 PostgreSQL 유니크 제약을 택한 결정과, 그 전에 겪은 재시작 사고를 기록한다.",
+      "kind": "adr",
+      "tags": "postgresql,redis,idempotency,saga,transaction"
+    },
+    {
+      "slug": "scenario-badges-two-axes",
+      "parentId": "demo",
+      "sortOrder": 4,
+      "tocEnabled": true,
+      "title": "시나리오 배지를 한 축이 아니라 두 축으로 나눈 판단",
+      "summary": "스물세 편에 붙는 배지를 출처와 실행 성격 두 축으로 나눈 결정 기록. 실제로 세어 보니 두 축이 갈리는 편은 하나뿐이었고, 그 한 칸을 근거로 축을 유지한 이유와 되돌리는 법을 적는다.",
+      "kind": "adr",
+      "tags": "scenarios,information-architecture,taxonomy,frontend"
+    },
+    {
+      "slug": "participant-down-compensation",
+      "parentId": "backend",
+      "sortOrder": 11,
+      "tocEnabled": true,
+      "title": "결제 서비스를 껐더니 화면은 살았고 재고는 잡힌 채 남았다",
+      "summary": "payment-api 를 죽이고 장애 격리를 실측한 기록. 프로젝션 덕에 읽기는 살았지만 사가가 예외 한 종류만 잡아 재고가 잡힌 채 멈추는 버그가 드러났고, 「못 닿음」 보상 경로를 넣어 닫았다.",
+      "kind": "wiki",
+      "tags": "saga,fault-isolation,compensation,msa,testing"
+    }
+  ]
+}

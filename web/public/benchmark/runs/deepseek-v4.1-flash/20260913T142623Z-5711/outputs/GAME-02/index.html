@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leneu Runner — 한 스테이지 플랫폼 게임</title>
+<style>
+  :root{
+    --bg:#0e1420; --panel:#161d2c; --panel-2:#1e2739;
+    --line:#2c3648; --text:#eef2f9; --muted:#93a0b8; --accent:#5ac8fa;
+    --ok:#3ddc97; --danger:#ff6b6b; --gold:#ffcf4d;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Noto Sans KR",Arial,sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;
+  }
+  .app{width:100%;max-width:980px}
+  h1{font-size:18px;margin:0 0 10px;font-weight:700;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  h1 .badge{font-size:11.5px;font-weight:600;background:var(--panel-2);color:var(--muted);border:1px solid var(--line);padding:3px 8px;border-radius:999px}
+  .stage{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;line-height:0}
+  canvas{display:block;width:100%;height:auto;border-radius:7px}
+  .hud{
+    position:absolute;left:20px;top:20px;right:20px;display:flex;gap:10px;flex-wrap:wrap;
+    pointer-events:none;font-size:13px;font-weight:650;
+  }
+  .hud span{background:rgba(14,20,32,.72);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:5px 12px}
+  .hud .gold{color:var(--gold)}
+  .overlay{
+    position:absolute;inset:10px;background:rgba(8,12,20,.86);border-radius:8px;
+    display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:20px;
+  }
+  .overlay.show{display:flex}
+  .overlay h2{margin:0;font-size:23px;font-weight:800}
+  .overlay p{margin:0;color:var(--muted);font-size:13.5px;max-width:34ch;line-height:1.6}
+  button.btn{background:var(--accent);color:#06202c;border:0;border-radius:9px;padding:10px 16px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+  button.btn:hover{background:#7fd6ff}
+  button.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+  button.btn.ghost:hover{background:var(--panel-2)}
+  .controls{margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 15px}
+  .controls h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 8px;font-weight:700}
+  .keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:5px 16px;font-size:13.2px;color:var(--muted)}
+  .keys b{color:var(--text)}
+  .toolbar{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
+  .spec{margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 15px;font-size:12.6px;color:var(--muted)}
+  .spec h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 8px;font-weight:700}
+  .spec code{background:var(--panel-2);border-radius:4px;padding:1px 5px;color:#cfe3ff}
+  .spec table{width:100%;border-collapse:collapse;margin-top:6px}
+  .spec td{padding:2px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>Leneu Runner <span class="badge">1 스테이지 · 2400×600</span></h1>
+
+  <div class="stage">
+    <canvas id="cv" width="960" height="600" aria-label="플랫폼 게임 화면"></canvas>
+    <div class="hud">
+      <span id="hudCoins" class="gold">코인 0 / 3</span>
+      <span id="hudTime">0.0초</span>
+      <span id="hudEnemies">적 2</span>
+      <span id="hudState">진행 중</span>
+    </div>
+    <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="ovTitle">
+      <h2 id="ovTitle">클리어!</h2>
+      <p id="ovText"></p>
+      <button class="btn" id="ovBtn" type="button">다시 시작 (R)</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <h2>조작</h2>
+    <div class="keys">
+      <span><b>← →</b> 좌우 이동</span>
+      <span><b>Space / ↑</b> 점프 (지면에서만)</span>
+      <span><b>R</b> 재시작</span>
+    </div>
+    <div class="toolbar">
+      <button class="btn ghost" id="restartBtn" type="button">재시작 (R)</button>
+    </div>
+  </div>
+
+  <div class="spec">
+    <h2>이번 구현에 사용한 물리 수치 (60fps 기준, 직접 선택한 값)</h2>
+    <table>
+      <tr><td>중력</td><td><code>0.70 px/frame²</code> (2520 px/s²)</td></tr>
+      <tr><td>이동 속도</td><td><code>5.00 px/frame</code> (300 px/s)</td></tr>
+      <tr><td>점프 초기 속도</td><td><code>-15.50 px/frame</code> (-930 px/s)</td></tr>
+      <tr><td>최대 낙하 속도</td><td><code>18.00 px/frame</code></td></tr>
+      <tr><td>적 밟기 반동</td><td><code>-10.00 px/frame</code></td></tr>
+      <tr><td>적 이동 속도</td><td><code>1.40 px/frame</code></td></tr>
+      <tr><td>이론 점프 높이 / 체공 거리</td><td><code>약 171.6 px</code> / <code>약 221 px</code> (지면에서 출발, 수평 이동 시)</td></tr>
+    </table>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============================================================
+     월드 정의 (문제에서 주어진 공통 맵)
+     ============================================================ */
+  var WORLD_W = 2400, WORLD_H = 600;
+  var GROUND_TOP = 520;
+
+  var SOLIDS = [
+    // 지면 윗면 y=520 구간
+    { x: 0,    y: GROUND_TOP, w: 650, h: WORLD_H - GROUND_TOP },
+    { x: 780,  y: GROUND_TOP, w: 720, h: WORLD_H - GROUND_TOP },
+    { x: 1640, y: GROUND_TOP, w: 760, h: WORLD_H - GROUND_TOP },
+    // 사각 플랫폼
+    { x: 350,  y: 410, w: 160, h: 20 },
+    { x: 1100, y: 400, w: 180, h: 20 },
+    { x: 1800, y: 380, w: 180, h: 20 }
+  ];
+
+  var COIN_DEFS = [
+    { cx: 420,  cy: 370 },
+    { cx: 1170, cy: 360 },
+    { cx: 1860, cy: 340 }
+  ];
+  var COIN_R = 11;
+
+  var ENEMY_DEFS = [
+    { minX: 900,  maxX: 1040 },
+    { minX: 2000, maxX: 2180 }
+  ];
+
+  var GOAL = { x: 2310, y: 440, w: 18, h: 80 };
+
+  var PLAYER_W = 32, PLAYER_H = 44;
+  var START = { x: 80, y: 476 };
+
+  /* 물리 상수 (60fps 기준 프레임 단위) */
+  var GRAVITY = 0.70;
+  var MOVE_SPEED = 5.00;
+  var JUMP_V = -15.50;
+  var MAX_FALL = 18.00;
+  var STOMP_BOUNCE = -10.00;
+  var ENEMY_SPEED = 1.40;
+  var ENEMY_W = 30, ENEMY_H = 28;
+  var FALL_LIMIT = WORLD_H + 40;
+
+  var VIEW_W = 960, VIEW_H = 600;
+  var FIXED_DT = 1000 / 60;
+
+  /* ============================================================
+     상태
+     ============================================================ */
+  var state;
+
+  function createState() {
+    var s = {
+      player: { x: START.x, y: START.y, w: PLAYER_W, h: PLAYER_H, vx: 0, vy: 0, onGround: false, face: 1 },
+      coins: COIN_DEFS.map(function (c, i) { return { id: i, x: c.cx, y: c.cy, r: COIN_R, taken: false }; }),
+      enemies: ENEMY_DEFS.map(function (e, i) {
+        return { id: i, x: e.minX, y: GROUND_TOP - ENEMY_H, w: ENEMY_W, h: ENEMY_H, dir: 1, minX: e.minX, maxX: e.maxX, alive: true };
+      }),
+      camX: 0,
+      elapsedMs: 0,
+      coinsTaken: 0,
+      status: "playing",      // playing | cleared | failed
+      failReason: null,
+      freeze: false,
+      input: { left: false, right: false },
+      clearTimeMs: null,
+      fixedAcc: 0
+    };
+    return s;
+  }
+
+  /* ============================================================
+     충돌
+     ============================================================ */
+  function overlaps(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function moveAxis(p, dx, dy) {
+    p.x += dx;
+    for (var i = 0; i < SOLIDS.length; i++) {
+      var s = SOLIDS[i];
+      if (overlaps(p, s)) {
+        if (dx > 0) p.x = s.x - p.w;
+        else if (dx < 0) p.x = s.x + s.w;
+      }
+    }
+    p.y += dy;
+    var landed = false;
+    for (var j = 0; j < SOLIDS.length; j++) {
+      var t = SOLIDS[j];
+      if (overlaps(p, t)) {
+        if (dy > 0) { p.y = t.y - p.h; p.vy = 0; landed = true; }      // 플랫폼 위에 착지
+        else if (dy < 0) { p.y = t.y + t.h; p.vy = 0; }                // 플랫폼 아래에 머리 충돌
+      }
+    }
+    return landed;
+  }
+
+  /* ============================================================
+     게임 진행
+     ============================================================ */
+  function update(dtMs) {
+    if (state.status !== "playing") return;
+    state.elapsedMs += dtMs;
+
+    var p = state.player;
+
+    // 좌우 이동
+    var dir = (state.input.right ? 1 : 0) - (state.input.left ? 1 : 0);
+    p.vx = dir * MOVE_SPEED;
+    if (dir !== 0) p.face = dir;
+
+    // 지면에서만 점프
+    if (state.input.jump) {
+      state.input.jump = false;
+      if (p.onGround) { p.vy = JUMP_V; p.onGround = false; }
+    }
+
+    // 중력
+    p.vy += GRAVITY;
+    if (p.vy > MAX_FALL) p.vy = MAX_FALL;
+
+    // x축 → y축 순서로 이동·충돌 해결
+    moveAxis(p, p.vx, 0);
+    var landed = moveAxis(p, 0, p.vy);
+    p.onGround = landed;
+
+    // 카메라 (월드 경계로 제한)
+    var target = p.x + p.w / 2 - VIEW_W / 2;
+    if (target < 0) target = 0;
+    if (target > WORLD_W - VIEW_W) target = WORLD_W - VIEW_W;
+    state.camX = target;
+
+    // 낭떠러지 추락
+    if (p.y > FALL_LIMIT) { fail("낭떠러지로 추락했습니다"); return; }
+
+    // 코인 (획득한 코인은 taken 처리 → 중복 획득 불가)
+    for (var i = 0; i < state.coins.length; i++) {
+      var c = state.coins[i];
+      if (c.taken) continue;
+      var dx = (p.x + p.w / 2) - c.x, dy = (p.y + p.h / 2) - c.y;
+      if (dx * dx + dy * dy <= (c.r + 16) * (c.r + 16)) { c.taken = true; state.coinsTaken++; }
+    }
+
+    // 적
+    for (var k = 0; k < state.enemies.length; k++) {
+      var e = state.enemies[k];
+      if (!e.alive) continue;
+      e.x += e.dir * ENEMY_SPEED;
+      if (e.x <= e.minX) { e.x = e.minX; e.dir = 1; }
+      if (e.x + e.w >= e.maxX) { e.x = e.maxX - e.w; e.dir = -1; }
+
+      if (!overlaps(p, e)) continue;
+      var pBottom = p.y + p.h;
+      var stomping = p.vy > 0 && pBottom - e.y <= 18;   // 위에서 내려오며 접촉
+      if (stomping) {
+        e.alive = false;
+        p.vy = STOMP_BOUNCE;
+      } else {
+        fail("적과 옆에서 충돌했습니다");
+        return;
+      }
+    }
+
+    // 골인
+    if (overlaps(p, GOAL)) {
+      state.status = "cleared";
+      state.clearTimeMs = state.elapsedMs;
+      showOverlay("클리어!", "코인 " + state.coinsTaken + " / 3 · 기록 " + (state.clearTimeMs / 1000).toFixed(2) + "초 (타이머 정지)", "다시 시작 (R)");
+      render();
+      return;
+    }
+
+    render();
+  }
+
+  function fail(reason) {
+    state.status = "failed";
+    state.failReason = reason;
+    showOverlay("실패", reason + " · R 또는 아래 버튼으로 다시 시작합니다.", "다시 시작 (R)");
+    render();
+  }
+
+  /* ============================================================
+     렌더링
+     ============================================================ */
+  var cv = document.getElementById("cv");
+  var ctx = cv.getContext("2d");
+
+  function render() {
+    var camX = state.camX;
+    // 배경
+    var sky = ctx.createLinearGradient(0, 0, 0, VIEW_H);
+    sky.addColorStop(0, "#152036");
+    sky.addColorStop(1, "#0d1626");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+
+    // 먼 배경 산
+    ctx.fillStyle = "#1b2740";
+    for (var m = 0; m < 6; m++) {
+      var mx = m * 460 - (camX * 0.25) % 460;
+      ctx.beginPath();
+      ctx.moveTo(mx - 60, 520);
+      ctx.lineTo(mx + 120, 300);
+      ctx.lineTo(mx + 300, 520);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.save();
+    ctx.translate(-camX, 0);
+
+    // 지형
+    for (var i = 0; i < SOLIDS.length; i++) {
+      var s = SOLIDS[i];
+      ctx.fillStyle = "#2b3a55";
+      ctx.fillRect(s.x, s.y, s.w, s.h);
+      ctx.fillStyle = "#3ddc97";
+      ctx.fillRect(s.x, s.y, s.w, 5);
+      ctx.fillStyle = "rgba(255,255,255,.05)";
+      ctx.fillRect(s.x, s.y + 5, s.w, 3);
+    }
+
+    // 골인 깃발
+    ctx.fillStyle = "#c9d3e6";
+    ctx.fillRect(GOAL.x, GOAL.y, 5, GOAL.h);
+    ctx.fillStyle = "#3ddc97";
+    ctx.beginPath();
+    ctx.moveTo(GOAL.x + 5, GOAL.y + 4);
+    ctx.lineTo(GOAL.x + 62, GOAL.y + 20);
+    ctx.lineTo(GOAL.x + 5, GOAL.y + 36);
+    ctx.closePath();
+    ctx.fill();
+
+    // 코인
+    for (var c = 0; c < state.coins.length; c++) {
+      var coin = state.coins[c];
+      if (coin.taken) continue;
+      ctx.beginPath();
+      ctx.arc(coin.x, coin.y, coin.r, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffcf4d";
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = "#b98a12";
+      ctx.stroke();
+      ctx.fillStyle = "#fff4cf";
+      ctx.fillRect(coin.x - 2, coin.y - 5, 4, 10);
+    }
+
+    // 적
+    for (var e = 0; e < state.enemies.length; e++) {
+      var en = state.enemies[e];
+      if (!en.alive) continue;
+      ctx.fillStyle = "#ff6b6b";
+      ctx.fillRect(en.x, en.y, en.w, en.h);
+      ctx.fillStyle = "#2a0d0d";
+      ctx.fillRect(en.x + 6, en.y + 8, 5, 5);
+      ctx.fillRect(en.x + en.w - 11, en.y + 8, 5, 5);
+      ctx.fillStyle = "#8f2f2f";
+      ctx.fillRect(en.x + 4, en.y + en.h - 5, en.w - 8, 5);
+    }
+
+    // 플레이어
+    var p = state.player;
+    ctx.fillStyle = "#5ac8fa";
+    ctx.fillRect(p.x, p.y, p.w, p.h);
+    ctx.fillStyle = "#0b2a3a";
+    ctx.fillRect(p.x + (p.face > 0 ? 17 : 8), p.y + 11, 7, 7);
+    ctx.fillStyle = "#2a7fa8";
+    ctx.fillRect(p.x + 4, p.y + p.h - 9, p.w - 8, 9);
+
+    ctx.restore();
+
+    // HUD
+    document.getElementById("hudCoins").textContent = "코인 " + state.coinsTaken + " / 3";
+    document.getElementById("hudTime").textContent = ((state.status === "cleared" ? state.clearTimeMs : state.elapsedMs) / 1000).toFixed(1) + "초";
+    document.getElementById("hudEnemies").textContent = "적 " + state.enemies.filter(function (x) { return x.alive; }).length;
+    document.getElementById("hudState").textContent =
+      state.status === "playing" ? "진행 중" : (state.status === "cleared" ? "클리어" : "실패");
+  }
+
+  /* ============================================================
+     오버레이
+     ============================================================ */
+  var overlay = document.getElementById("overlay");
+  var ovTitle = document.getElementById("ovTitle");
+  var ovText = document.getElementById("ovText");
+  function showOverlay(t, txt, btn) {
+    ovTitle.textContent = t; ovText.textContent = txt;
+    document.getElementById("ovBtn").textContent = btn;
+    overlay.classList.add("show");
+  }
+  function hideOverlay() { overlay.classList.remove("show"); }
+
+  function restart() {
+    state = createState();
+    hideOverlay();
+    lastTs = 0;
+    render();
+  }
+  document.getElementById("ovBtn").addEventListener("click", restart);
+  document.getElementById("restartBtn").addEventListener("click", restart);
+
+  /* ============================================================
+     입력
+     ============================================================ */
+  document.addEventListener("keydown", function (e) {
+    var k = e.key;
+    if (k === "r" || k === "R") { restart(); e.preventDefault(); return; }
+    if (k === "ArrowLeft" || k === "a" || k === "A") { state.input.left = true; e.preventDefault(); return; }
+    if (k === "ArrowRight" || k === "d" || k === "D") { state.input.right = true; e.preventDefault(); return; }
+    if (k === " " || k === "ArrowUp" || k === "w" || k === "W") {
+      if (!e.repeat) state.input.jump = true;
+      e.preventDefault();
+    }
+  });
+  document.addEventListener("keyup", function (e) {
+    var k = e.key;
+    if (k === "ArrowLeft" || k === "a" || k === "A") state.input.left = false;
+    if (k === "ArrowRight" || k === "d" || k === "D") state.input.right = false;
+  });
+
+  /* ============================================================
+     루프 (고정 시간 간격, 단 하나만 생성)
+     ============================================================ */
+  var lastTs = 0;
+  var loopStarts = 0;
+
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    var dt = ts - lastTs;
+    lastTs = ts;
+    if (dt > 200) dt = 200;
+    if (!state.freeze) {
+      state.fixedAcc += dt;
+      var guard = 0;
+      while (state.fixedAcc >= FIXED_DT && guard < 40) {
+        state.fixedAcc -= FIXED_DT;
+        update(FIXED_DT);
+        guard++;
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  state = createState();
+  loopStarts++;
+  requestAnimationFrame(frame);
+  render();
+
+  /* ============================================================
+     테스트 전용 API — 일반 플레이와 분리. 게임 규칙을 우회하지 않는다.
+     ============================================================ */
+  window.__platTest = {
+    apiVersion: "1.0",
+    constants: {
+      GRAVITY: GRAVITY, MOVE_SPEED: MOVE_SPEED, JUMP_V: JUMP_V, MAX_FALL: MAX_FALL,
+      STOMP_BOUNCE: STOMP_BOUNCE, ENEMY_SPEED: ENEMY_SPEED,
+      WORLD_W: WORLD_W, WORLD_H: WORLD_H, GROUND_TOP: GROUND_TOP, START: START
+    },
+    snapshot: function () {
+      return {
+        status: state.status,
+        failReason: state.failReason,
+        elapsedMs: Math.round(state.elapsedMs),
+        clearTimeMs: state.clearTimeMs === null ? null : Math.round(state.clearTimeMs),
+        coinsTaken: state.coinsTaken,
+        coins: state.coins.map(function (c) { return { id: c.id, taken: c.taken, x: c.x, y: c.y }; }),
+        enemies: state.enemies.map(function (e) { return { id: e.id, x: Math.round(e.x), alive: e.alive, dir: e.dir }; }),
+        player: {
+          x: Math.round(state.player.x), y: Math.round(state.player.y),
+          vx: state.player.vx, vy: Math.round(state.player.vy),
+          onGround: state.player.onGround
+        },
+        camX: Math.round(state.camX),
+        loopStarts: loopStarts
+      };
+    },
+    freeze: function (on) { state.freeze = !!on; },
+    step: function (ms) {
+      var n = Math.round(ms / FIXED_DT);
+      for (var i = 0; i < n; i++) update(FIXED_DT);
+      render();
+      return this.snapshot();
+    },
+    setPlayer: function (x, y, vx, vy) {
+      state.player.x = x; state.player.y = y;
+      if (typeof vx === "number") state.player.vx = vx;
+      if (typeof vy === "number") state.player.vy = vy;
+      state.player.onGround = false;
+      render();
+      return this.snapshot().player;
+    },
+    setInput: function (o) {
+      if (typeof o.left === "boolean") state.input.left = o.left;
+      if (typeof o.right === "boolean") state.input.right = o.right;
+      if (o.jump) state.input.jump = true;
+      return { left: state.input.left, right: state.input.right };
+    },
+    setEnemy: function (id, x, alive) {
+      var e = state.enemies[id];
+      if (typeof x === "number") e.x = x;
+      if (typeof alive === "boolean") e.alive = alive;
+      render();
+      return { id: e.id, x: e.x, alive: e.alive };
+    },
+    setCam: function (x) { state.camX = x; render(); return state.camX; },
+    setStatus: function (s) { state.status = s; return state.status; },
+    collectCoin: function (id) {
+      var c = state.coins[id];
+      if (!c.taken) { c.taken = true; state.coinsTaken++; }
+      return state.coinsTaken;
+    }
+  };
+})();
+</script>
+</body>
+</html>
