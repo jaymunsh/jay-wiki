@@ -4,7 +4,7 @@ category: 개발 노트
 tags: github-actions,security,cve,trivy,pip-audit,bouncycastle,anyio,supply-chain,dependency-management,devlog
 summary: 요청하지 않은 GitHub Security 실패 메일의 실행 주체와 로그를 추적했다. 예약 검사가 Spring과 payment-api의 실제 런타임에서 새 취약점을 어떻게 중복 탐지했는지, 실제 침해와 구분한 근거, 최소 수정과 회귀 검증 과정을 정리한다.
 toc: true
-syncHash: 4370b7547191f117d8dec1ff7f0711024316cdc81a8030989b9226400d844cd7
+syncHash: 2c6f33a99ecf95b29df64656f0c29c16a2656907f99edfaa091fbc4ada4efcb1
 publishedAt: 2026-09-21T01:12:43.644368Z
 
 ---
