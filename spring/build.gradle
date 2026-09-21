@@ -33,6 +33,9 @@ dependencies {
         implementation('at.yawk.lz4:lz4-java:1.11.1') {
             because 'CVE-2026-59949 decompression bounds fix'
         }
+        implementation('org.bouncycastle:bcprov-jdk18on:1.85.2') {
+            because 'CVE-2026-8763 and CVE-2026-13506 fixes; MinIO 9.0.1 requests 1.84'
+        }
     }
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
