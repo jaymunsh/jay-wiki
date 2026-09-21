@@ -4,12 +4,14 @@ category: 개발 노트
 tags: github-actions,security,cve,trivy,pip-audit,bouncycastle,anyio,supply-chain,dependency-management,devlog
 summary: 요청하지 않은 GitHub Security 실패 메일의 실행 주체와 로그를 추적했다. 예약 검사가 Spring과 payment-api의 실제 런타임에서 새 취약점을 어떻게 중복 탐지했는지, 실제 침해와 구분한 근거, 최소 수정과 회귀 검증 과정을 정리한다.
 toc: true
+syncHash: 4370b7547191f117d8dec1ff7f0711024316cdc81a8030989b9226400d844cd7
+publishedAt: 2026-09-21T01:12:43.644368Z
 
 ---
 
 9월 21일 오전 8시 20분 무렵 GitHub에서 메일이 왔다. 제목은 `[jaymunsh/jay-wiki] Security workflow run`이었고, 본문에는 `Some jobs were not successful`이라고 적혀 있었다. 그 시간에 workflow를 실행한 기억은 없었다. 누군가 저장소에서 작업을 시작했는지, 토큰이나 비밀 값이 새어 자동화가 호출된 것인지부터 확인해야 했다.
 
-![GitHub Security workflow에서 java와 payment-api 검사가 실패한 메일 화면](/assets/projects/scheduled-security-scan-remediation/security-workflow-failure.png "width=680 align=center")
+![GitHub Security workflow에서 java와 payment-api 검사가 실패한 메일 화면](/api/wiki-assets/24083db1-a9fb-4c74-828d-1b9ad7ae5061 "width=680 align=center")
 
 먼저 결론부터 말하면 **침입이나 수동 실행 흔적은 아니었다.** 저장소에 설정해 둔 주간 예약 검사가 실행됐고, 며칠 사이 보안 데이터베이스에 반영된 취약점을 기존 운영 배포판에서 찾아낸 것이었다. 비밀 유출 검사와 공개 HTTP 경계 검사는 통과했다. 다만 실제 운영 이미지에도 문제가 된 라이브러리가 포함돼 있었으므로 실패 메일을 단순 오탐으로 닫을 수도 없었다.
 
