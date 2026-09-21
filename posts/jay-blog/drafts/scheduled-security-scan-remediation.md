@@ -156,6 +156,8 @@ Spring은 전체 테스트와 JAR 생성을 함께 수행했다. payment-api는 
 
 이 검증은 패키지 이름만 바뀌었다는 확인보다 강하다. 실제 Docker build가 새 lock과 Gradle resolution을 사용했고, 최종 이미지 안에서도 기존 CVE가 사라졌는지를 확인하기 때문이다.
 
+[수정 PR의 Security 재검사](https://github.com/jaymunsh/jay-wiki/actions/runs/35549985750)에서도 처음 실패했던 Java·payment-api 의존성 검사와 두 런타임 이미지 검사가 모두 통과했다. 로컬에서 만든 이미지와 GitHub runner가 만든 산출물이 같은 결론을 냈다.
+
 ## 실패 알림은 사고와 유지보수 사이에서 읽어야 했다
 
 이번 메일을 받고 바로 “해킹당했다”고 판단했다면 비밀 교체와 서비스 차단부터 시작했을 것이다. 반대로 “예약 검사니까 무시해도 된다”고 판단했다면 운영 이미지에 남은 수정 가능한 취약점을 놓쳤을 것이다.
@@ -177,6 +179,7 @@ Spring은 전체 테스트와 JAR 생성을 함께 수행했다. payment-api는 
 ## 참고한 자료
 
 - [실패한 GitHub Security 실행](https://github.com/jaymunsh/jay-wiki/actions/runs/35544304175)
+- [수정 뒤 통과한 GitHub Security 실행](https://github.com/jaymunsh/jay-wiki/actions/runs/35549985750)
 - [GitHub Actions schedule 이벤트](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)
 - [GHSA-9pwp-9qqc-pr26 · Bouncy Castle Name Constraints 우회](https://github.com/advisories/GHSA-9pwp-9qqc-pr26)
 - [GHSA-qp49-qgx5-5m26 · Bouncy Castle ASN.1 처리 서비스 거부](https://github.com/advisories/GHSA-qp49-qgx5-5m26)
