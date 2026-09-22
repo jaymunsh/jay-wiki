@@ -1,17 +1,13 @@
-title: 시나리오: 이커머스 12 — CX·CS가 구매 전 문의부터 교환·환불·반복 문제까지 책임진다
+---
+title: "시나리오: 이커머스 12 — CX·CS가 구매 전 문의부터 교환·환불·반복 문제까지 책임진다"
 slug: scenario-modeline-12-customer-support-returns
 category: 시나리오
-tags: modeline,customer-support,returns,refunds,harness-engineering
 summary: 구매 전 상담·주문 변경·배송·교환·반품·환불과 불만·분쟁 연계를 설명한다. 일간부터 연간 운영, 상담 품질·교육·VOC, 고객 A/B의 후속 기록과 KPI로 CX·CS의 전체 업무를 정리한다.
+tags: customer-support,harness-engineering,modeline,refunds,returns
 toc: true
-nextSlug: scenario-modeline-13-financial-close
-prevSlug: scenario-modeline-11-fulfillment-logistics
-publishedAt: 2026-09-12T14:32:04.115329+09:00
-syncHash: 8d16265cdfbd5b56854e1951fca99123291ad27a1e9c0824c1bb86bae6161efa
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/97 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
 
 > 두 고객과 거래는 가상이다. 배송료 지원은 이 예시에 대한 회사의 승인 설정이다. 반품 사유별 권리·비용·기한은 실제 법과 계약을 검토해야 하며 이 이야기의 처리 순서가 이를 대신하지 않는다.
 

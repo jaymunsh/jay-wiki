@@ -1,17 +1,13 @@
-title: 시나리오: 이커머스 14 — 재무가 예산·현금·구매·계약을 함께 운영한다
+---
+title: "시나리오: 이커머스 14 — 재무가 예산·현금·구매·계약을 함께 운영한다"
 slug: scenario-modeline-14-budget-cash
 category: 시나리오
-tags: modeline,budgeting,cash-flow,procurement,harness-engineering
 summary: 연간 예산과 월별 전망을 일일 자금·지출 품의·구매·계약·지급에 연결한다. 같은 재무 4명이 계획 대비 차이와 갱신을 관리하고 1,800·800·1,000만 원의 현금 시나리오를 검토한다.
+tags: budgeting,cash-flow,harness-engineering,modeline,procurement
 toc: true
-nextSlug: scenario-modeline-15-people-administration
-prevSlug: scenario-modeline-13-financial-close
-publishedAt: 2026-09-12T14:32:04.942316+09:00
-syncHash: 325037df08873f0844d7dc21f59c2340a5e87a536c79aba218a0e969add8f5fb
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/99 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
 
 > 모드라인은 이 시리즈를 위해 만든 가상 회사다. 인물·거래·회의·금액은 창작이며 실제 회사의 실적이나 AI 도입 성공 사례가 아니다. 업무 절차와 지표는 이 회사의 운영 설정이며 실제 적용에는 조직의 정책과 전문 검토가 필요하다.
 

@@ -1,17 +1,13 @@
-title: 시나리오: 이커머스 10 — CRM이 회원·구매·재구매 여정을 관리한다
+---
+title: "시나리오: 이커머스 10 — CRM이 회원·구매·재구매 여정을 관리한다"
 slug: scenario-modeline-10-crm-lifecycle
 category: 시나리오
-tags: modeline,crm,customer-lifecycle,privacy,harness-engineering
 summary: 회원·선호와 생애주기, 세그먼트·혜택·접촉 빈도, 구매 후·휴면·재구매 여정의 운영을 설명한다. 일간부터 연간 계획, 1,200명 후보의 발송 대사, 코호트·실험 KPI와 부서 인계를 정리한다.
+tags: crm,customer-lifecycle,harness-engineering,modeline,privacy
 toc: true
-nextSlug: scenario-modeline-11-fulfillment-logistics
-prevSlug: scenario-modeline-09-growth-marketing
-publishedAt: 2026-09-12T14:32:03.271848+09:00
-syncHash: 2e5d4e540fb8bec07d2909c7d0990519fa67057291e28495da6250ab3c554ed7
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/95 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
 
 > 가상의 고객 관계 운영 설계다. 발송 시점·횟수는 예시이며 실제 광고 발송의 적법성 판단이나 개인정보 처리 자문이 아니다.
 

@@ -1,17 +1,13 @@
-title: 시나리오: 이커머스 16 — 경영이 연간 전략·예산·조직과 실행을 연결한다
+---
+title: "시나리오: 이커머스 16 — 경영이 연간 전략·예산·조직과 실행을 연결한다"
 slug: scenario-modeline-16-management-decisions
 category: 시나리오
-tags: modeline,management,engineering-leadership,decision-making,harness-engineering
 summary: 경영·사업 3명이 고객·경쟁 가정에서 연간 목표·예산·조직을 정하고 분기·월간·주간 실행을 검토한다. 시즌 결정 기록, 위험 관리와 의사결정 KPI를 통해 부서 간 자원 조정을 설명한다.
+tags: decision-making,engineering-leadership,harness-engineering,management,modeline
 toc: true
-nextSlug: scenario-modeline-17-company-overview
-prevSlug: scenario-modeline-15-people-administration
-publishedAt: 2026-09-12T14:32:05.771644+09:00
-syncHash: f3d265deb3f193fe14c764dc7ccdacd2c9895ef2daed0a65c112a6cb9114f836
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/101 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
 
 > 모드라인은 이 시리즈를 위해 만든 가상 회사다. 인물·거래·회의·금액은 창작이며 실제 회사의 실적이나 AI 도입 성공 사례가 아니다. 업무 절차와 지표는 이 회사의 운영 설정이며 실제 적용에는 조직의 정책과 전문 검토가 필요하다.
 

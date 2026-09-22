@@ -1,17 +1,13 @@
-title: 시나리오: 이커머스 13 — 재무·회계가 거래와 비용을 기록하고 결산한다
+---
+title: "시나리오: 이커머스 13 — 재무·회계가 거래와 비용을 기록하고 결산한다"
 slug: scenario-modeline-13-financial-close
 category: 시나리오
-tags: modeline,finance,reconciliation,accounting,harness-engineering
 summary: 재무·회계 4명이 매출·매입, 채권·채무, 비용 증빙과 PG·은행 대사를 관리한다. 일일 수금 확인부터 월말·연간 결산, 부서 인계와 지표까지 따라간다.
+tags: accounting,finance,harness-engineering,modeline,reconciliation
 toc: true
-nextSlug: scenario-modeline-14-budget-cash
-prevSlug: scenario-modeline-12-customer-support-returns
-publishedAt: 2026-09-12T14:32:04.534466+09:00
-syncHash: 7b2823c4739f58ef90a753cbc08aca551731faef7eabe61dde60e031e113a57a
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/98 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
 
 > 모드라인은 이 시리즈를 위해 만든 가상 회사다. 인물·거래·회의·금액은 창작이며 실제 회사의 실적이나 AI 도입 성공 사례가 아니다. 업무 절차와 지표는 이 회사의 운영 설정이며 실제 적용에는 조직의 정책과 전문 검토가 필요하다.
 
