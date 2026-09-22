@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAME-02 — 한 스테이지 플랫폼</title>
+<style>
+  html,body{margin:0;height:100%;background:#0e1116;color:#e6edf3;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  #wrap{display:flex;flex-direction:column;align-items:center;padding:16px;gap:8px;}
+  canvas{background:#161b22;border:1px solid #30363d;border-radius:8px;image-rendering:pixelated;}
+  #hint{font-size:13px;color:#8b949e;line-height:1.5;text-align:center;}
+  kbd{background:#21262d;border:1px solid #30363d;border-radius:4px;padding:1px 6px;font-size:12px;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game" width="960" height="600"></canvas>
+  <div id="hint">
+    이동 <kbd>←</kbd><kbd>→</kbd> 또는 <kbd>A</kbd><kbd>D</kbd> · 점프 <kbd>↑</kbd>/<kbd>W</kbd>/<kbd>Space</kbd> ·
+    재시작 <kbd>R</kbd> · 코인 3개 · 적 2마리 밟기 · x=2310 골인
+  </div>
+</div>
+<script>
+"use strict";
+/* ============================================================
+   GAME-02 — 한 스테이지를 완주할 수 있는 플랫폼 게임
+   외부 의존성 없음. 캐릭터·지형은 자체 도형.
+   ============================================================ */
+
+/* ---- 물리 수치 (맵 완주용, 사용 값 기록) ---- */
+const GRAVITY       = 2200;   // px/s^2
+const MOVE_SPEED    = 300;    // px/s (좌우 속도)
+const JUMP_VELOCITY = -720;   // px/s (최고점 h = v^2/2g ≈ 118px)
+/* 겹침 방지 마진 */
+const EPS = 2;
+
+/* ---- 맵 (모든 응시자에게 공통) ---- */
+const WORLD = { w: 2400, h: 600 };
+const PLAYER = { w: 32, h: 44 };
+const VIEW = { w: 960, h: 600 };
+
+// 지면 윗면 y=520, x 구간 [0,650]/[780,1500]/[1640,2400]
+const GROUND = [
+  { x: 0,   y: 520, w: 650, h: 80 },
+  { x: 780, y: 520, w: 720, h: 80 },
+  { x: 1640,y: 520, w: 760, h: 80 },
+];
+// 사각 플랫폼 (x,y,w,h)
+const PLATFORMS = [
+  { x: 350,  y: 410, w: 160, h: 20 },
+  { x: 1100, y: 400, w: 180, h: 20 },
+  { x: 1800, y: 380, w: 180, h: 20 },
+];
+const SOLID = [...GROUND, ...PLATFORMS];
+
+// 코인 중심
+const COIN_DEF = [
+  { x: 420, y: 370 },
+  { x: 1170,y: 360 },
+  { x: 1860,y: 340 },
+];
+// 적 왕복 구간 (지면)
+const ENEMY_DEF = [
+  { x: 900, minX: 900, maxX: 1040, speed: 90 },
+  { x: 2000,minX: 2000,maxX: 2180, speed: 110 },
+];
+const GOAL_X = 2310;
+
+/* ---- 상태 ---- */
+let state;
+function resetState() {
+  state = {
+    px: 80, py: 476, pvx: 0, pvy: 0,
+    grounded: false,
+    coins: COIN_DEF.map(c => ({ x: c.x, y: c.y, taken: false })),
+    enemies: ENEMY_DEF.map(e => ({ x: e.x, minX: e.minX, maxX: e.maxX, speed: e.speed, alive: true })),
+    goal: { x: GOAL_X, y: 440, w: 40, h: 160 },
+    time: 0,
+    running: true,   // true=진행중, false=클리어/실패(정지)
+    result: null,    // null|"clear"|"fail"
+    camX: 0,
+  };
+}
+resetState();
+
+/* ---- 입력 ---- */
+const keys = {};
+const KEYMAP = {
+  ArrowLeft:"left", KeyA:"left",
+  ArrowRight:"right", KeyD:"right",
+  ArrowUp:"jump", KeyW:"jump", Space:"jump",
+  KeyR:"restart",
+};
+addEventListener("keydown", (e) => {
+  const a = KEYMAP[e.code];
+  if (a) { e.preventDefault(); if (a==="restart"){ resetState(); } else { keys[a]=true; } }
+});
+addEventListener("keyup", (e) => {
+  const a = KEYMAP[e.code];
+  if (a) keys[a] = false;
+});
+
+/* ---- 물리 헬퍼 ---- */
+function playerRect(){ return { x: state.px, y: state.py, w: PLAYER.w, h: PLAYER.h }; }
+function overlap(a,b){ return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y; }
+
+function update(dt) {
+  if (!state.running) return;
+  state.time += dt;
+
+  /* 수평 이동 */
+  const dir = (keys.right?1:0) - (keys.left?1:0);
+  state.pvx = dir * MOVE_SPEED;
+  state.px += state.pvx * dt;
+  if (state.px < 0) state.px = 0;
+  if (state.px + PLAYER.w > WORLD.w) state.px = WORLD.w - PLAYER.w;
+
+  /* 수직 (중력) */
+  state.pvy += GRAVITY * dt;
+  const prevBottom = state.py + PLAYER.h;
+  state.py += state.pvy * dt;
+  state.grounded = false;
+
+  /* 지형 충돌 (수직) */
+  for (const s of SOLID) {
+    const pr = playerRect();
+    if (!overlap(pr, s)) continue;
+    if (state.pvy >= 0 && prevBottom <= s.y + EPS) {
+      // 위에서 착지
+      state.py = s.y - PLAYER.h;
+      state.pvy = 0;
+      state.grounded = true;
+    } else if (state.pvy < 0) {
+      // 아래로 머리 충돌
+      state.py = s.y + s.h;
+      state.pvy = 0;
+    }
+  }
+
+  /* 점프 (지면에서만) */
+  if (keys.jump && state.grounded) {
+    state.pvy = JUMP_VELOCITY;
+    keys.jump = false;
+  }
+
+  /* 적 이동 + 충돌 */
+  for (const en of state.enemies) {
+    if (!en.alive) continue;
+    en.x += en.speed * dt;
+    if (en.x < en.minX) { en.x = en.minX; en.speed = Math.abs(en.speed); }
+    if (en.x > en.maxX) { en.x = en.maxX; en.speed = -Math.abs(en.speed); }
+    const er = { x: en.x, y: 480, w: 40, h: 40 }; // 지면 위, 높이 40
+    const pr = playerRect();
+    if (overlap(pr, er)) {
+      const stomping = state.pvy > 0 && prevBottom <= er.y + EPS;
+      if (stomping) {
+        en.alive = false;
+        state.pvy = JUMP_VELOCITY * 0.65; // 튀어 오름
+      } else {
+        return fail("적과 옆 충돌");
+      }
+    }
+  }
+
+  /* 낭떠러지 낙하 실패 */
+  if (state.py > WORLD.h + 4) return fail("낭떠러지 추락");
+
+  /* 코인 획득 (중심 거리 기준, 중복 불가) */
+  for (const c of state.coins) {
+    if (c.taken) continue;
+    const pr = playerRect();
+    const cx = c.x, cy = c.y, r = 22;
+    const nx = Math.max(pr.x, Math.min(cx, pr.x+pr.w));
+    const ny = Math.max(pr.y, Math.min(cy, pr.y+pr.h));
+    const dx = cx-nx, dy = cy-ny;
+    if (dx*dx+dy*dy <= r*r) c.taken = true;
+  }
+
+  /* 골인 */
+  const pr = playerRect();
+  if (pr.x + pr.w > state.goal.x) return clear();
+
+  /* 카메라 추적 + 경계 */
+  const target = state.px + PLAYER.w/2 - VIEW.w/2;
+  state.camX = Math.max(0, Math.min(target, WORLD.w - VIEW.w));
+}
+
+function clear(){ state.running=false; state.result="clear"; }
+function fail(msg){ state.running=false; state.result="fail"; state.failReason=msg; }
+
+/* ---- 렌더링 ---- */
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+function draw() {
+  ctx.clearRect(0,0,VIEW.w,VIEW.h);
+  // 배경
+  ctx.fillStyle = "#0b0f14"; ctx.fillRect(0,0,VIEW.w,VIEW.h);
+
+  ctx.save();
+  ctx.translate(-state.camX, 0);
+
+  // 지면
+  ctx.fillStyle = "#3d5a3a";
+  for (const g of GROUND) ctx.fillRect(g.x,g.y,g.w,g.h);
+  ctx.fillStyle = "#4d7a4a";
+  for (const g of GROUND) ctx.fillRect(g.x,g.y,g.w,3);
+
+  // 플랫폼
+  ctx.fillStyle = "#6e7f84";
+  for (const p of PLATFORMS) ctx.fillRect(p.x,p.y,p.w,p.h);
+
+  // 코인
+  for (const c of state.coins) {
+    if (c.taken) continue;
+    ctx.fillStyle = "#f0c419";
+    ctx.beginPath(); ctx.arc(c.x,c.y,10,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle = "#a88b10"; ctx.lineWidth=2; ctx.stroke();
+  }
+
+  // 적
+  for (const en of state.enemies) {
+    if (!en.alive) continue;
+    ctx.fillStyle = "#c0392b";
+    ctx.fillRect(en.x, 480, 40, 40);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(en.x+9, 492, 6, 6); ctx.fillRect(en.x+25, 492, 6, 6);
+  }
+
+  // 골인 깃발
+  const g = state.goal;
+  ctx.fillStyle = "#2ecc71"; ctx.fillRect(g.x, g.y, 8, g.h);
+  ctx.fillStyle = "#27ae60";
+  ctx.fillRect(g.x+8, g.y, 26, 18);
+
+  // 플레이어
+  ctx.fillStyle = "#4cc9f0";
+  ctx.fillRect(state.px, state.py, PLAYER.w, PLAYER.h);
+  ctx.fillStyle = "#0b0f14";
+  ctx.fillRect(state.px+8, state.py+10, 6, 6);
+  ctx.fillRect(state.px+20, state.py+10, 6, 6);
+
+  ctx.restore();
+
+  // HUD
+  ctx.fillStyle = "#e6edf3";
+  ctx.font = "16px ui-monospace, monospace";
+  ctx.fillText("시간 " + state.time.toFixed(1) + "s", 16, 26);
+  const got = state.coins.filter(c=>c.taken).length;
+  ctx.fillText("코인 " + got + " / " + state.coins.length, 16, 48);
+  ctx.fillText("적 " + state.enemies.filter(e=>e.alive).length + " 남음", 16, 70);
+
+  // 결과 오버레이
+  if (!state.running) {
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillRect(0,0,VIEW.w,VIEW.h);
+    ctx.fillStyle = state.result==="clear" ? "#2ecc71" : "#e74c3c";
+    ctx.font = "bold 40px ui-monospace, monospace";
+    ctx.textAlign = "center";
+    const title = state.result==="clear" ? "클리어!" : "실패";
+    ctx.fillText(title, VIEW.w/2, VIEW.h/2 - 10);
+    ctx.fillStyle = "#e6edf3";
+    ctx.font = "18px ui-monospace, monospace";
+    if (state.result==="fail") ctx.fillText(state.failReason||"", VIEW.w/2, VIEW.h/2 + 24);
+    ctx.fillText("R를 눌러 다시 시작 — 시간 " + state.time.toFixed(1) + "s", VIEW.w/2, VIEW.h/2 + 56);
+    ctx.textAlign = "left";
+  }
+}
+
+/* ---- 메인 루프 (고정 틱) ---- */
+let last = performance.now();
+const STEP = 1/120;
+let acc = 0;
+function frame(now) {
+  let elapsed = (now - last) / 1000; last = now;
+  if (elapsed > 0.25) elapsed = 0.25; // 지연 보상 방지
+  acc += elapsed;
+  while (acc >= STEP) { update(STEP); acc -= STEP; }
+  draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

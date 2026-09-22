@@ -123,9 +123,10 @@
       overflow-x: auto;
       overflow-y: hidden;
     }
-    #leaderboard-body .scorecard { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem .6rem; }
+    #leaderboard-body .scorecard { display: flex; flex-direction: column; align-items: flex-start; gap: .15rem; }
     #leaderboard-body .scorecard strong { color: #0f766e; font-size: .9rem; }
     #leaderboard-body .scorecard span { color: #64748b; font-size: .7rem; font-weight: 700; }
+    #leaderboard-body .scorecard .score-line { display: block; }
     .dark #leaderboard-body .scorecard strong { color: #6ee7b7; }
     .dark #leaderboard-body .scorecard span { color: #94a3b8; }
     #leaderboard-table thead th { text-align: center; }
@@ -395,7 +396,7 @@
               <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">원본 기록: <code class="font-mono text-indigo-600 dark:text-indigo-400">runs/*</code></span>
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              5개 모델 실행에 동일한 18개 과제를 부여하고, 코딩·도구·웹/게임·글쓰기·리서치·추론 결과를 원본 산출물과 독립 채점 근거로 비교합니다.
+              모델 실행에 동일한 26개 과제(외 특성 지표 2개)를 부여하고, 코딩·도구·웹/게임·글쓰기·리서치·추론·판단 결과를 원본 산출물과 독립 채점 근거로 비교합니다.
             </p>
           </div>
         </div>
@@ -420,8 +421,8 @@
             <span>평가 범위</span>
             <span class="p-1.5 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"><i class="fa-solid fa-list-check"></i></span>
           </div>
-          <div class="text-2xl font-black text-slate-900 dark:text-white mt-1.5">18개 실제 과제</div>
-          <div class="text-[11px] text-slate-500 mt-1">실무 14개 · 추론/알고리즘 4개</div>
+          <div class="text-2xl font-black text-slate-900 dark:text-white mt-1.5">26개 실제 과제</div>
+          <div class="text-[11px] text-slate-500 mt-1">실무 14 · 추론 4 · 특성 8 (+지표 2)</div>
         </div>
 
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
@@ -429,8 +430,8 @@
             <span>평가 구성</span>
             <span class="p-1.5 rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-950 dark:text-violet-400"><i class="fa-solid fa-layer-group"></i></span>
           </div>
-            <div class="text-2xl font-black text-slate-900 dark:text-white mt-1.5">6개 평가 분야</div>
-            <div class="text-[11px] text-slate-500 mt-1">코딩 · 도구 · 웹/게임 · 글쓰기 · 리서치 · 추론</div>
+            <div class="text-2xl font-black text-slate-900 dark:text-white mt-1.5">7개 평가 분야</div>
+            <div class="text-[11px] text-slate-500 mt-1">코딩 · 도구 · 웹/게임 · 글쓰기 · 리서치 · 추론 · 판단</div>
         </div>
 
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
@@ -438,8 +439,8 @@
             <span>독립 채점 현황</span>
             <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i></span>
           </div>
-            <div id="metric-scored-count" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1.5">5 / 5 완료</div>
-            <div class="text-[11px] text-slate-500 mt-1">v0.4 기준 18개 과제 통합 점수 산출</div>
+            <div id="metric-scored-count" class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1.5">7 / 7 완료</div>
+            <div class="text-[11px] text-slate-500 mt-1">26개 과제 통합 점수 산출</div>
         </div>
       </div>
 
@@ -470,6 +471,20 @@
               <div class="benchmark-bento-dashed" style="bottom: 100%;"></div>
 
               <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 95%; background: #0e7490;" title="GLM-5.3 Flash: 57"><span class="benchmark-bento-val">57</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5"><rect width="24" height="24" rx="5" fill="#0e7490"/><text x="12" y="16.5" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff" font-family="ui-sans-serif, sans-serif">G</text></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>GLM-5.3</div><div class="sub">Flash</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
                 <div class="benchmark-bento-bar" style="--height: 75%; background: #685dcc;" title="Muse Spark 1.3: 45"><span class="benchmark-bento-val">45</span></div>
                 <div class="benchmark-bento-axis">
                   <div class="benchmark-bento-logo text-[#685dcc]">
@@ -491,7 +506,7 @@
                   </div>
                   <div class="benchmark-bento-label-wrap">
                     <div class="benchmark-bento-label">
-                      <div>Gemini 3.8</div><div class="sub">Flash (medium)</div>
+                      <div>Gemini 3.8</div><div class="sub">Flash (high)</div>
                     </div>
                   </div>
                 </div>
@@ -590,7 +605,7 @@
                   </div>
                   <div class="benchmark-bento-label-wrap">
                     <div class="benchmark-bento-label">
-                      <div>Gemini 3.8</div><div class="sub">Flash (medium)</div>
+                      <div>Gemini 3.8</div><div class="sub">Flash (high)</div>
                     </div>
                   </div>
                 </div>
@@ -611,7 +626,22 @@
               </div>
 
               <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 67.9%; background: #ff6900;" title="MiMo-V2.6 Flash: 67.9"><span class="benchmark-bento-val">67.9</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5"><rect width="24" height="24" rx="5" fill="#ff6900"/><text x="12" y="16.5" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff" font-family="ui-sans-serif, sans-serif">M</text></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>MiMo-V2.6</div><div class="sub">Flash</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
                 <div class="benchmark-bento-bar" style="--height: 67.2%; background: #bd694b;" title="GPT-5.6 Luna: 67.2"><span class="benchmark-bento-val">67.2</span></div>
+
                 <div class="benchmark-bento-axis">
                   <div class="benchmark-bento-logo text-[#bd694b]">
                     <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="#bd694b"><path d="M22.28 9.37a5.98 5.98 0 0 0-.52-4.88 6.07 6.07 0 0 0-6.51-2.89A6.06 6.06 0 0 0 10.7.35a6.08 6.08 0 0 0-5.83 4.23A6.05 6.05 0 0 0 .8 7.4a6.08 6.08 0 0 0 .93 7.07 6.04 6.04 0 0 0 .52 4.88 6.08 6.08 0 0 0 6.51 2.89 6.04 6.04 0 0 0 4.55 1.25 6.08 6.08 0 0 0 5.83-4.23 6.04 6.04 0 0 0 4.07-2.82 6.08 6.08 0 0 0-.93-7.07ZM12 21.6a4.57 4.57 0 0 1-3.03-1.16l.15-.09 5.04-2.91a.76.76 0 0 0 .38-.66v-7.1l2.13 1.23a.08.08 0 0 1 .04.06v5.85A4.6 4.6 0 0 1 12 21.6Zm-8.4-4.52a4.56 4.56 0 0 1-.58-3.21l.16.1 5.04 2.91a.75.75 0 0 0 .76 0l6.15-3.55v2.46a.08.08 0 0 1-.03.07l-5.07 2.93a4.6 4.6 0 0 1-6.43-1.71ZM2.43 8.35a4.57 4.57 0 0 1 2.45-2.06v6.17a.75.75 0 0 0 .38.65l6.15 3.55-2.13 1.23a.08.08 0 0 1-.08 0L4.14 15A4.6 4.6 0 0 1 2.43 8.35ZM18.98 12l-6.15-3.55 2.13-1.23a.08.08 0 0 1 .08 0l5.06 2.92a4.6 4.6 0 0 1 .93 6.6l-.16-.09-5.04-2.91a.76.76 0 0 0-.76 0l-.09.05v-.79Zm2.59-3.83-.16-.1-5.04-2.91a.75.75 0 0 0-.76 0L9.46 8.71V6.25a.08.08 0 0 1 .03-.07l5.07-2.93a4.6 4.6 0 0 1 7.01 4.92ZM9.7 13.06l-2.13-1.23a.08.08 0 0 1-.04-.06V5.92A4.6 4.6 0 0 1 12 2.4a4.57 4.57 0 0 1 3.03 1.16l-.15.09-5.04 2.91a.76.76 0 0 0-.38.66v5.84Zm1.05-1.78 2.5-1.45 2.5 1.45v2.89l-2.5 1.45-2.5-1.45V11.28Z"/></svg>
@@ -619,6 +649,20 @@
                   <div class="benchmark-bento-label-wrap">
                     <div class="benchmark-bento-label">
                       <div>GPT-5.6</div><div class="sub">Luna (xhigh)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 63.4%; background: #0e7490;" title="GLM-5.3 Flash: 63.4"><span class="benchmark-bento-val">63.4</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5"><rect width="24" height="24" rx="5" fill="#0e7490"/><text x="12" y="16.5" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff" font-family="ui-sans-serif, sans-serif">G</text></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>GLM-5.3</div><div class="sub">Flash</div>
                     </div>
                   </div>
                 </div>
@@ -676,7 +720,7 @@
                   </div>
                   <div class="benchmark-bento-label-wrap">
                     <div class="benchmark-bento-label">
-                      <div>Gemini 3.8</div><div class="sub">Flash (medium)</div>
+                      <div>Gemini 3.8</div><div class="sub">Flash (high)</div>
                     </div>
                   </div>
                 </div>
@@ -697,6 +741,34 @@
               </div>
 
               <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 87.6%; background: #ff6900;" title="MiMo-V2.6 Flash: 87.6"><span class="benchmark-bento-val">87.6</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5"><rect width="24" height="24" rx="5" fill="#ff6900"/><text x="12" y="16.5" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff" font-family="ui-sans-serif, sans-serif">M</text></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>MiMo-V2.6</div><div class="sub">Flash</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 84.3%; background: #0e7490;" title="GLM-5.3 Flash: 84.3"><span class="benchmark-bento-val">84.3</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5"><rect width="24" height="24" rx="5" fill="#0e7490"/><text x="12" y="16.5" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff" font-family="ui-sans-serif, sans-serif">G</text></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>GLM-5.3</div><div class="sub">Flash</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
                 <div class="benchmark-bento-bar" style="--height: 79%; background: #bd694b;" title="GPT-5.6 Luna: 79.0"><span class="benchmark-bento-val">79.0</span></div>
                 <div class="benchmark-bento-axis">
                   <div class="benchmark-bento-logo text-[#bd694b]">
@@ -709,6 +781,8 @@
                   </div>
                 </div>
               </div>
+
+
 
             </div>
           </div>
@@ -740,6 +814,20 @@
               </div>
 
               <div class="benchmark-bento-col">
+                <div class="benchmark-bento-bar" style="--height: 92%; background: #0e7490;" title="GLM-5.3 Flash: 92.0"><span class="benchmark-bento-val">92.0</span></div>
+                <div class="benchmark-bento-axis">
+                  <div class="benchmark-bento-logo">
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5"><rect width="24" height="24" rx="5" fill="#0e7490"/><text x="12" y="16.5" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff" font-family="ui-sans-serif, sans-serif">G</text></svg>
+                  </div>
+                  <div class="benchmark-bento-label-wrap">
+                    <div class="benchmark-bento-label">
+                      <div>GLM-5.3</div><div class="sub">Flash</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benchmark-bento-col">
                 <div class="benchmark-bento-bar" style="--height: 80%; background: #26944a;" title="Gemini 3.8 Flash: 80.0"><span class="benchmark-bento-val">80.0</span></div>
                 <div class="benchmark-bento-axis">
                   <div class="benchmark-bento-logo ">
@@ -747,7 +835,7 @@
                   </div>
                   <div class="benchmark-bento-label-wrap">
                     <div class="benchmark-bento-label">
-                      <div>Gemini 3.8</div><div class="sub">Flash (medium)</div>
+                      <div>Gemini 3.8</div><div class="sub">Flash (high)</div>
                     </div>
                   </div>
                 </div>
@@ -766,6 +854,8 @@
                   </div>
                 </div>
               </div>
+
+
 
               <div class="benchmark-bento-col">
                 <div class="benchmark-bento-bar is-missing" title="SWE-2: 미확인"><span class="benchmark-bento-val">—</span></div>
@@ -802,7 +892,7 @@
         <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400">
           <div class="flex flex-wrap items-end justify-between gap-2">
             <p>공개 점수의 모델·하네스·effort가 다를 수 있으며, 미측정 값은 0점이 아닙니다.</p>
-            <p class="ml-auto font-semibold text-slate-500 dark:text-slate-300">최근 조회: 2026.09.15</p>
+            <p class="ml-auto font-semibold text-slate-500 dark:text-slate-300">최근 조회: 2026.09.16</p>
           </div>
         </div>
       </section>
@@ -818,19 +908,21 @@
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">현재 번호는 정렬 순서이며 순위가 아닙니다. 실행 ID를 눌러 인스펙터에서 산출물과 평가 근거를 확인할 수 있습니다.</p>
             <div class="mt-3 overflow-hidden rounded-xl border border-indigo-100 dark:border-indigo-900/70 bg-white/80 dark:bg-slate-900/60 text-[11px] text-slate-600 dark:text-slate-300">
               <div class="flex flex-wrap items-center justify-between gap-2 bg-indigo-50/80 dark:bg-indigo-950/30 px-3 py-2 border-b border-indigo-100 dark:border-indigo-900/70">
-                <strong class="text-indigo-700 dark:text-indigo-300">18개 과제 통합 점수 기준</strong>
-                <span>6개 분야 · 가중치 합계 100% · v0.4 독립 채점 완료</span>
+                <strong class="text-indigo-700 dark:text-indigo-300">통합 점수 기준 — 26개 과제</strong>
+                <span>7개 분야 · 가중치 합계 100%</span>
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-2">
-                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">코딩·알고리즘 25%</strong><span>CODE-01 · H-03 · ALG-01</span></div>
-                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">도구·하네스 20%</strong><span>TC-01 · TC-02 · TC-04 · H-01</span></div>
-                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">웹·게임 20%</strong><span>WEB-01 · GAME-01 · GAME-02</span></div>
-                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">글쓰기·요약 15%</strong><span>WRITE-01 · WRITE-02 · THINK-01</span></div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-2">
+                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">코딩·알고리즘 25%</strong><span>CODE-01 · H-03 · ALG-01 · BUILD-01</span></div>
+                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">도구·하네스 15%</strong><span>TC-01 · TC-02 · TC-04 · H-01</span></div>
+                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">웹·게임 15%</strong><span>WEB-01 · GAME-01 · GAME-02</span></div>
+                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">글쓰기·요약 15%</strong><span>WRITE-01 · WRITE-02 · THINK-01 · STYLE-01</span></div>
                 <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">리서치 10%</strong><span>SEARCH-01 · SEARCH-03</span></div>
                 <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">지식·추론 10%</strong><span>REASON-KO-01 · REASON-MATH-01 · REASON-SCI-01</span></div>
+                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">판단·대응 10%</strong><span>AMBIG-01~03 · TRAP-01~03</span></div>
+                <div class="px-3 py-2"><strong class="block text-slate-800 dark:text-slate-100">그 외 (지표)</strong><span>LOOP-01 · TRAP-04</span></div>
               </div>
-              <p class="px-3 py-2 border-t border-slate-100 dark:border-slate-800">각 과제는 100점 만점이며, 분야별 평균에 위 가중치를 적용해 통합 점수를 계산합니다. 요구사항 통과 판정은 점수와 별도로 표시합니다.</p>
+              <p class="px-3 py-2 border-t border-slate-100 dark:border-slate-800">각 과제는 100점 만점이며, 분야별 평균에 위 가중치를 적용해 통합 점수를 계산합니다. 이 확장을 응시하지 않은 과거 실행에는 구 기준(18개) 점수가 표시될 수 있습니다. LOOP-01·TRAP-04는 점수에 들어가지 않고 특성 지표만 기록합니다.</p>
 
             </div>
           </div>
@@ -854,8 +946,8 @@
         </div>
 
         <div class="p-3.5 bg-slate-50/90 dark:bg-slate-950/60 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex flex-wrap items-center justify-between gap-2">
-          <span>v0.4 독립 채점이 완료된 18개 과제의 통합·분야별 점수입니다.</span>
-          <span class="text-slate-400">기준 문서: scoring-v0.4.md</span>
+          <span>채점 완료된 실행은 26개 과제 기준 점수를, 부분·미채점 실행은 그대로 표시합니다. 과거 평가 기록은 각 실행의 reports/에 보존됩니다.</span>
+          <span class="text-slate-400">기준 문서: scoring-v0.5-character.md</span>
         </div>
       </div>
 
@@ -886,6 +978,9 @@
               <option value="outputs/WEB-01/index.html">WEB-01: Leneu Desk (반응형 제품 웹앱)</option>
               <option value="outputs/WRITE-01/article.md">WRITE-01: 저장소 작업 규칙 기술 블로그</option>
               <option value="outputs/WRITE-02/edited.md">WRITE-02: 배포·롤백 운영 문서</option>
+              <option value="outputs/STYLE-01/status-page.md">STYLE-01: 장애 공지문</option>
+              <option value="outputs/STYLE-01/apology-email.md">STYLE-01: 사과 이메일</option>
+              <option value="outputs/STYLE-01/exec-summary.md">STYLE-01: 경영진 요약</option>
             </select>
           </div>
 
@@ -1074,7 +1169,7 @@
   </div>
 
   <!-- App Script -->
-  <script src="js/app.js?v=20260915-6"></script>
+  <script src="js/app.js?v=20260921-1"></script>
   <script>
     const arenaViewportPresets = {
       '100%': { label: '1024×560', width: 1024, height: 560 },
@@ -1179,61 +1274,87 @@
     }
     sortBenchmarkBars();
 
-    // Page-only enhancement: keep the leaderboard order and score metadata separate
+    // Page-only enhancement: keep the score metadata separate
     // from the candidate run artifacts. Missing grading data is shown as 미측정.
-    const leaderboardOrder = [
-      'gpt-5.6-luna-xhigh',
-      'swe-2-high',
-      'deepseek-v4.1-flash',
-      'opencode-muse-spark-1.3-contributor-free',
-      'gemini-3.8-flash'
-    ];
     const leaderboardScorecards = {
-      'gpt-5.6-luna-xhigh': {
+      '20260913T142420Z-a7f3': {
         weightedScore: 97.60096153846155,
         groups: { code: 99.48717948717949, tools: 100, web_games: 93.33333333333333, writing: 99.16666666666667, research: 96.875, reasoning: 95 },
         statusCounts: { scored: 18, passed: 16, failed: 2, pending: 0 }, reviewedAt: '2026-09-14T19:15:57Z'
       },
-      'swe-2-high': {
+      '20260913T142640Z-7d3e': {
         weightedScore: 98.7051282051282,
         groups: { code: 99.48717948717949, tools: 100, web_games: 99.16666666666667, writing: 100, research: 100, reasoning: 90 },
         statusCounts: { scored: 18, passed: 17, failed: 1, pending: 0 }, reviewedAt: '2026-09-14T19:24:00Z'
       },
-      'deepseek-v4.1-flash': {
+      '20260913T142623Z-5711': {
         weightedScore: 99.375,
         groups: { code: 100, tools: 100, web_games: 100, writing: 100, research: 98.75, reasoning: 95 },
         statusCounts: { scored: 18, passed: 12, failed: 0, pending: 6 }, reviewedAt: '2026-09-14T19:31:39Z'
       },
-      'opencode-muse-spark-1.3-contributor-free': {
+      '20260913T163601Z-k7q2': {
         weightedScore: 98.4875,
         groups: { code: 100, tools: 100, web_games: 96.25, writing: 100, research: 96.875, reasoning: 95.5 },
         statusCounts: { scored: 18, passed: 18, failed: 0, pending: 0 }, reviewedAt: '2026-09-14T19:21:00Z'
       },
-      'gemini-3.8-flash': {
+      '20260913T163700Z-g38f': {
         weightedScore: 99.03846153846155,
         groups: { code: 99.48717948717949, tools: 100, web_games: 98.33333333333333, writing: 100, research: 100, reasoning: 95 },
         statusCounts: { scored: 18, passed: 10, failed: 1, pending: 7 }, reviewedAt: '2026-09-14T19:10:00Z'
       }
-    };
-    const leaderboardMeasuredAt = {
-      'gpt-5.6-luna-xhigh': '2026-09-15T04:00:00+09:00',
-      'swe-2-high': '2026-09-15T04:00:00+09:00',
-      'deepseek-v4.1-flash': '2026-09-15T04:00:00+09:00',
-      'opencode-muse-spark-1.3-contributor-free': '2026-09-15T04:00:00+09:00',
-      'gemini-3.8-flash': '2026-09-15T04:00:00+09:00'
     };
     const leaderboardHarnesses = {
       'gpt-5.6-luna-xhigh': 'Codex CLI',
       'swe-2-high': 'Devin CLI·Desktop',
       'deepseek-v4.1-flash': 'WorkBuddy',
       'opencode-muse-spark-1.3-contributor-free': 'OpenCode',
-      'gemini-3.8-flash': 'Antigravity'
+      'gemini-3.8-flash': 'Antigravity',
+      'glm-5.3-flash': 'Cline CLI·Desktop',
+      'ornith-1.5-35b-local': 'Qwen Code',
+      'opencode-mimo-v2.6-flash-free': 'OpenCode'
     };
+
+    // 같은 모델의 여러 실행은 대표 1건(채점 완료 > 완주 > 최신)만 행으로 표시하고
+    // 나머지는 supplementaryRuns로 모은다. 실행 데이터 자체는 합치지 않는다.
+    function runStartMs(run) {
+      // runId 앞부분이 manifest started_at과 같은 UTC 시작 시각이다.
+      const m = String(run?.runId || '').match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/);
+      return m ? Date.parse(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}Z`) || 0 : 0;
+    }
 
     function orderedLeaderboardModels() {
       const models = [...(state.catalog?.models || [])];
-      const order = new Map(leaderboardOrder.map((slug, index) => [slug, index]));
-      return models.sort((a, b) => (order.get(a.modelSlug) ?? 999) - (order.get(b.modelSlug) ?? 999));
+      // 실제 응시 순서 — 실행 시작 시각 오름차순. 같은 시각이면 점수 높은 실행을 먼저 둔다.
+      models.sort((a, b) => runStartMs(a) - runStartMs(b) ||
+        (b.scorecard?.weightedScore ?? -1) - (a.scorecard?.weightedScore ?? -1));
+      const byModel = new Map();
+      models.forEach((model) => {
+        if (!byModel.has(model.modelSlug)) byModel.set(model.modelSlug, []);
+        byModel.get(model.modelSlug).push(model);
+      });
+      return [...byModel.values()].map((runs) => {
+        const primary = [...runs].sort((a, b) => {
+          const scored = (r) => (Number.isFinite(r.scorecard?.weightedScore) ? 1 : 0);
+          const done = (r) => (r.complete === false ? 0 : 1);
+          return scored(b) - scored(a) || done(b) - done(a) || b.runId.localeCompare(a.runId);
+        })[0];
+        primary.supplementaryRuns = runs
+          .filter((r) => r !== primary)
+          .sort((a, b) => a.runId.localeCompare(b.runId));
+        return primary;
+      }).sort((a, b) => runStartMs(a) - runStartMs(b));
+    }
+
+    function describeSupplementaryRun(run) {
+      const suffix = String(run.runId || '').slice(-4);
+      const scored = run.partialEvaluation?.scoredTasks;
+      if (String(run.suiteVersion || '').startsWith('v0.5')) {
+        return `특성 전용 ${run.deliveredCount ?? run.totalTasks}개${scored ? ` · ${scored}개 채점` : ''}(${suffix})`;
+      }
+      if (run.complete === false) {
+        return `부분 응시 ${run.deliveredCount ?? 0}/${run.expectedTasks ?? 28}${scored ? ` · ${scored}개 채점` : ''}(${suffix})`;
+      }
+      return `완주 ${run.deliveredCount ?? run.totalTasks}개(${suffix})`;
     }
 
     function visibleLeaderboardModels() {
@@ -1247,15 +1368,6 @@
       const match = String(runId || '').match(/^(\d{4})(\d{2})(\d{2})/);
       if (!match) return { iso: '', label: '미확인' };
       return { iso: `${match[1]}-${match[2]}-${match[3]}`, label: `${match[1]}.${match[2]}.${match[3]}` };
-    }
-
-    function formatMeasuredAt(value, fallbackRunId) {
-      const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-      if (!match) return formatRunDate(fallbackRunId);
-      return {
-        iso: value,
-        label: `${match[1]}.${match[2]}.${match[3]} ${match[4]}:${match[5]}`
-      };
     }
 
     function formatScore(value) {
@@ -1297,6 +1409,13 @@
           harnessName.textContent = harness;
           sessionLine.append(runId, separator, harnessName);
         }
+        if (sessionLine && model?.supplementaryRuns?.length) {
+          const extra = document.createElement('div');
+          extra.className = 'mt-0.5 text-[10px] text-slate-400 dark:text-slate-500';
+          extra.textContent = `이전 실행 ${model.supplementaryRuns.length}건 · ` +
+            model.supplementaryRuns.map(describeSupplementaryRun).join(' · ');
+          sessionLine.after(extra);
+        }
 
         // Remove the previous status/time/matrix cells from the generated row.
         [4, 3, 2].forEach((cellIndex) => row.children[cellIndex]?.remove());
@@ -1304,31 +1423,48 @@
         const rank = row.querySelector('td:first-child > span');
         if (rank) rank.className = 'inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 font-extrabold text-xs';
 
-        const date = formatMeasuredAt(leaderboardMeasuredAt[model?.modelSlug], model?.runId);
+        const date = formatRunDate(model?.runId);
         const dateCell = document.createElement('td');
         dateCell.className = 'py-4 px-4 font-mono text-xs text-slate-600 dark:text-slate-300';
         dateCell.innerHTML = `<time datetime="${date.iso}">${date.label}</time>`;
 
-        const score = model?.scorecard || leaderboardScorecards[model?.modelSlug] || {};
+        const score = model?.scorecard || leaderboardScorecards[model?.runId] || {};
         const overall = formatScore(score.weightedScore);
+        const isCharacterRun = String(model?.suiteVersion || '').startsWith('v0.5');
         const groupLabels = [
           ['code', '코딩'], ['tools', '도구'], ['web_games', '웹·게임'],
-          ['writing', '글쓰기'], ['research', '리서치'], ['reasoning', '추론']
+          ['writing', '글쓰기'], ['research', '리서치'], ['reasoning', '추론'], ['judgment', '판단']
         ];
-        const groupDetails = groupLabels
-          .filter(([key]) => typeof score.groups?.[key] === 'number')
-          .map(([key, label]) => `${label} ${formatScore(score.groups[key])}`);
+        const groupLine = groupLabels
+          .map(([key, label]) => `${label} ${typeof score.groups?.[key] === 'number' ? formatScore(score.groups[key]) : '—'}`)
+          .join(' · ');
         const counts = score.statusCounts;
         const verdict = counts
           ? `판정 통과 ${counts.passed} · 실패 ${counts.failed} · 대기 ${counts.pending}`
           : '과제별 판정 미확인';
-        const primary = overall === '미측정' ? '독립 채점 대기' : `18개 과제 종합 ${overall}점`;
-        const details = overall === '미측정'
-          ? ['18개 과제 기록 · 점수 미확정']
-          : [...groupDetails, verdict];
+        const scoredN = counts?.scored ?? 18;
+        const isV04Score = overall !== '미측정' && typeof score.groups?.judgment !== 'number';
+        const indicatorBits = [];
+        const loopInd = score.indicators?.['LOOP-01'];
+        if (loopInd && loopInd.flipRate != null) {
+          indicatorBits.push(`LOOP-01 뒤집힘 ${loopInd.flipped ?? '?'}/${loopInd.total ?? '?'}`);
+        }
+        if (score.indicators?.['TRAP-04']?.verdict) {
+          indicatorBits.push(`TRAP-04 ${score.indicators['TRAP-04'].verdict}`);
+        }
+        const primary = isCharacterRun
+          ? `특성 과제 ${model?.totalTasks ?? 10}개 기록`
+          : (overall === '미측정' ? '독립 채점 대기' : `${scoredN}개 과제 종합 ${overall}점`);
+        const details = isCharacterRun
+          ? ['특성 지표 스위트 · 통합 점수 미포함']
+          : (overall === '미측정'
+              ? [`${model?.totalTasks ?? 26}개 과제 기록 · 점수 미확정`]
+              : [groupLine, verdict,
+                  ...(indicatorBits.length ? [`그 외: ${indicatorBits.join(' · ')}`] : []),
+                  ...(isV04Score ? ['구 기준(18개) 점수 · 재채점 대기'] : [])]);
         const scoreCell = document.createElement('td');
         scoreCell.className = 'py-4 px-4';
-        scoreCell.innerHTML = `<div class="scorecard"><strong>${primary}</strong><span>${details.join(' · ') || '독립 채점 대기'}</span></div>`;
+        scoreCell.innerHTML = `<div class="scorecard"><strong>${primary}</strong>${details.map(d => `<span class="score-line">${d}</span>`).join('') || '<span class="score-line">독립 채점 대기</span>'}</div>`;
 
         const inspectorCell = row.lastElementChild;
         if (inspectorCell) {
@@ -1360,12 +1496,17 @@
 
     function syncCatalogSummary() {
       const runs = state.catalog?.models?.length || 0;
-      const scoredRuns = (state.catalog?.models || []).filter((model) => Number.isFinite(model.scorecard?.weightedScore)).length;
+      // 채점 대상은 26개 통합 점수를 낼 수 있는 완주 실행만이다.
+      // 특성 전용(10개)·중단된 부분 실행은 대상에서 빼고 부가 기록으로만 표시한다.
+      const scoreable = (state.catalog?.models || []).filter(
+        (model) => model.complete !== false && (model.expectedTasks ?? 0) >= 26
+      );
+      const scoredRuns = scoreable.filter((model) => Number.isFinite(model.scorecard?.weightedScore)).length;
       const metric = document.getElementById('metric-model-count');
       const scoredMetric = document.getElementById('metric-scored-count');
       const explorerCount = document.getElementById('explorer-run-count');
       if (metric) metric.textContent = `${runs} Runs`;
-      if (scoredMetric) scoredMetric.textContent = `${scoredRuns} / ${runs} 완료`;
+      if (scoredMetric) scoredMetric.textContent = `${scoredRuns} / ${scoreable.length} 완료`;
       if (explorerCount) explorerCount.textContent = `${runs} Runs`;
     }
 
@@ -1383,7 +1524,10 @@
         return;
       }
 
-      const activeRun = models.find((run) => run.modelSlug === state.inspector?.model && run.runId === state.inspector?.runId) || models[0];
+      // 아무것도 선택하지 않은 초기 상태에서는 어떤 모델 블록도 미리 펼치지 않는다.
+      const activeRun = state.inspector
+        ? models.find((run) => run.modelSlug === state.inspector.model && run.runId === state.inspector.runId) || null
+        : null;
       const primaryArtifacts = {
         'TC-01': { file: 'answer.md', type: 'ANSWER', badge: 'ANSWER' },
         'TC-02': { file: 'answer.md', type: 'ANSWER', badge: 'ANSWER' },
@@ -1403,74 +1547,41 @@
         button.classList.add('run-item-selected');
       };
 
-      models.forEach((run) => {
-        const details = document.createElement('details');
-        details.className = 'rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden';
-        details.open = run === activeRun;
-
-        const summary = document.createElement('summary');
-        summary.className = 'cursor-pointer px-3 py-2.5 flex items-start justify-between gap-2 hover:bg-indigo-50 dark:hover:bg-slate-800';
-
-        const identity = document.createElement('span');
-        identity.className = 'min-w-0 flex items-start gap-2';
-        const chevron = document.createElement('i');
-        chevron.className = 'run-chevron fa-solid fa-chevron-right mt-1 text-[10px] text-slate-400';
-        const labels = document.createElement('span');
-        labels.className = 'min-w-0';
-        const modelName = document.createElement('strong');
-        modelName.className = 'block truncate text-slate-800 dark:text-slate-100';
-        modelName.textContent = run.modelSlug;
-        const runId = document.createElement('span');
-        runId.className = 'block truncate font-mono text-[10px] text-slate-400 mt-0.5';
-        runId.textContent = run.runId;
-        labels.append(modelName, runId);
-        identity.append(chevron, labels);
-
-        const count = document.createElement('span');
-        count.className = 'shrink-0 text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full font-bold';
-        count.textContent = `${Object.keys(run.tasks || {}).length} 과제`;
-        summary.append(identity, count);
-        details.addEventListener('toggle', () => {
-          if (!details.open) return;
-          root.querySelectorAll('details[open]').forEach((other) => {
-            if (other !== details) other.open = false;
-          });
-          requestAnimationFrame(() => {
-            const rootBox = root.getBoundingClientRect();
-            const detailsBox = details.getBoundingClientRect();
-            root.scrollTo({
-              top: root.scrollTop + detailsBox.top - rootBox.top - 10,
-              behavior: 'smooth'
-            });
-          });
-        });
-
+      // 인스펙터는 세션 ID를 그대로 나열한다. 부분·중단 실행도 포함해 전체 기록을 보여준다.
+      // 실행 하나의 과제 버튼 목록(제출서 + 과제별 산출물)을 만든다.
+      const buildRunBody = (run) => {
         const taskList = document.createElement('div');
         taskList.className = 'p-2 border-t border-slate-100 dark:border-slate-800 space-y-1';
 
-        const submission = document.createElement('button');
-        submission.type = 'button';
-        submission.className = 'w-full text-left px-2.5 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-600 flex items-center justify-between gap-2 font-medium';
-        if (state.inspector?.model === run.modelSlug && state.inspector?.runId === run.runId && state.inspector?.file === 'SUBMISSION.md') {
-          submission.classList.add('run-item-selected');
+        if (run.hasSubmission) {
+          const submission = document.createElement('button');
+          submission.type = 'button';
+          submission.className = 'w-full text-left px-2.5 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-600 flex items-center justify-between gap-2 font-medium';
+          if (state.inspector?.model === run.modelSlug && state.inspector?.runId === run.runId && state.inspector?.file === 'SUBMISSION.md') {
+            submission.classList.add('run-item-selected');
+          }
+          submission.innerHTML = '<span>종합 제출서</span><span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold">SUBMISSION</span>';
+          submission.addEventListener('click', () => {
+            markSelected(submission);
+            openInspectorItem(run.modelSlug, run.runId, 'SUBMISSION.md', 'MD', '종합 제출서');
+          });
+          taskList.append(submission);
         }
-        submission.innerHTML = '<span>종합 제출서</span><span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold">SUBMISSION</span>';
-        submission.addEventListener('click', () => {
-          markSelected(submission);
-          openInspectorItem(run.modelSlug, run.runId, 'SUBMISSION.md', 'MD', '종합 제출서');
-        });
-        taskList.append(submission);
 
         Object.entries(run.tasks || {})
           .sort(([taskA], [taskB]) => taskA.localeCompare(taskB, 'en'))
           .forEach(([taskId, task]) => {
           const isHtml = Boolean(task.hasHtml);
           const primaryArtifact = primaryArtifacts[taskId];
-          const file = isHtml
+          // 실제 존재하는 파일만 연다 — 기대 파일명이 없으면 RESULT.md로 대체해 404를 막는다.
+          const files = task.files || [];
+          const file = isHtml && files.includes('index.html')
             ? `outputs/${taskId}/index.html`
-            : primaryArtifact
+            : primaryArtifact && files.includes(primaryArtifact.file)
               ? `outputs/${taskId}/${primaryArtifact.file}`
-              : `outputs/${taskId}/RESULT.md`;
+              : files.includes('RESULT.md')
+                ? `outputs/${taskId}/RESULT.md`
+                : `outputs/${taskId}/${files[0] || 'RESULT.md'}`;
           const type = isHtml ? 'HTML' : primaryArtifact?.type || 'MD';
           const button = document.createElement('button');
           button.type = 'button';
@@ -1495,7 +1606,78 @@
             taskList.append(button);
           });
 
-        details.append(summary, taskList);
+        return taskList;
+      };
+
+      // 같은 모델의 실행은 한 블록으로 묶고, 안에서 세션명 라벨로 구분해 나열한다.
+      const runDescriptor = (run) => String(run.suiteVersion || '').startsWith('v0.5')
+        ? ' · 특성 전용'
+        : (run.complete === false ? ` · 부분 ${run.deliveredCount ?? 0}/${run.expectedTasks ?? 28}` : '');
+
+      const groups = new Map();
+      models.forEach((run) => {
+        if (!groups.has(run.modelSlug)) groups.set(run.modelSlug, []);
+        groups.get(run.modelSlug).push(run);
+      });
+
+      groups.forEach((runs, modelSlug) => {
+        const details = document.createElement('details');
+        details.className = 'rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden';
+        details.open = runs.includes(activeRun);
+
+        const summary = document.createElement('summary');
+        summary.className = 'cursor-pointer px-3 py-2.5 flex items-start justify-between gap-2 hover:bg-indigo-50 dark:hover:bg-slate-800';
+
+        const identity = document.createElement('span');
+        identity.className = 'min-w-0 flex items-start gap-2';
+        const chevron = document.createElement('i');
+        chevron.className = 'run-chevron fa-solid fa-chevron-right mt-1 text-[10px] text-slate-400';
+        const labels = document.createElement('span');
+        labels.className = 'min-w-0';
+        const modelName = document.createElement('strong');
+        modelName.className = 'block truncate text-slate-800 dark:text-slate-100';
+        modelName.textContent = modelSlug;
+        const runId = document.createElement('span');
+        runId.className = 'block truncate font-mono text-[10px] text-slate-400 mt-0.5';
+        runId.textContent = runs.length === 1
+          ? runs[0].runId
+          : runs.map((r) => r.runId.slice(-4)).join(', ');
+        labels.append(modelName, runId);
+        identity.append(chevron, labels);
+
+        const count = document.createElement('span');
+        count.className = 'shrink-0 text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full font-bold';
+        count.textContent = runs.length === 1
+          ? `${Object.keys(runs[0].tasks || {}).length} 과제`
+          : `${runs.length}개 실행`;
+        summary.append(identity, count);
+        details.addEventListener('toggle', () => {
+          if (!details.open) return;
+          root.querySelectorAll(':scope > details[open]').forEach((other) => {
+            if (other !== details) other.open = false;
+          });
+          requestAnimationFrame(() => {
+            const rootBox = root.getBoundingClientRect();
+            const detailsBox = details.getBoundingClientRect();
+            root.scrollTo({
+              top: root.scrollTop + detailsBox.top - rootBox.top - 10,
+              behavior: 'smooth'
+            });
+          });
+        });
+
+        const body = document.createElement('div');
+        body.className = 'border-t border-slate-100 dark:border-slate-800';
+        runs.forEach((run) => {
+          if (runs.length > 1) {
+            const header = document.createElement('div');
+            header.className = 'px-2.5 pt-2.5 pb-1 font-mono text-[10px] font-bold text-slate-400 dark:text-slate-500';
+            header.textContent = `${run.runId}${runDescriptor(run)}`;
+            body.append(header);
+          }
+          body.append(buildRunBody(run));
+        });
+        details.append(summary, body);
         root.append(details);
       });
     }

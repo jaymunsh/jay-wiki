@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leneu Tetris — Hold 기능</title>
+<style>
+  :root {
+    --bg:#0f1117; --panel:#171a23; --line:#2a2f3e; --text:#e8eaf0; --muted:#9aa3b2;
+    --accent:#6c8cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:20px;
+  }
+  h1 { font-size:22px; margin:0 0 14px; letter-spacing:-0.01em; }
+  .stage { display:flex; gap:18px; align-items:flex-start; }
+  canvas { background:#0b0d14; border:1px solid var(--line); border-radius:8px; display:block; }
+  .side { display:flex; flex-direction:column; gap:16px; min-width:150px; }
+  .box { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px; }
+  .box h2 { font-size:13px; color:var(--muted); margin:0 0 10px; text-transform:uppercase; letter-spacing:0.08em; }
+  .stat { font-size:26px; font-weight:800; }
+  .controls { font-size:13px; color:var(--muted); line-height:1.8; }
+  .controls b { color:var(--text); font-weight:700; }
+  .buttons { display:flex; flex-direction:column; gap:8px; }
+  .buttons button {
+    background:var(--accent); color:#0b0d14; border:0; border-radius:8px; padding:10px;
+    font-size:14px; font-weight:700; cursor:pointer;
+  }
+  .buttons button.secondary { background:#262b3a; color:var(--text); }
+  .overlay {
+    position:fixed; inset:0; background:rgba(11,13,20,0.82); display:none;
+    align-items:center; justify-content:center; flex-direction:column; gap:14px; z-index:10;
+  }
+  .overlay.show { display:flex; }
+  .overlay h2 { font-size:34px; margin:0; }
+  .overlay p { color:var(--muted); margin:0; }
+  .hint { font-size:12px; color:var(--muted); margin-top:14px; max-width:360px; text-align:center; }
+</style>
+</head>
+<body>
+<h1>Leneu Tetris</h1>
+<div class="stage">
+  <canvas id="board" width="240" height="480"></canvas>
+  <div class="side">
+    <div class="box">
+      <h2>점수</h2>
+      <div class="stat" id="score">0</div>
+    </div>
+    <div class="box">
+      <h2>줄</h2>
+      <div class="stat" id="lines">0</div>
+    </div>
+    <div class="box">
+      <h2>다음</h2>
+      <canvas id="next" width="120" height="120"></canvas>
+    </div>
+    <div class="box">
+      <h2>Hold (C / Shift)</h2>
+      <canvas id="hold" width="120" height="120"></canvas>
+    </div>
+    <div class="box buttons">
+      <button id="pauseBtn">일시정지</button>
+      <button id="restartBtn" class="secondary">재시작</button>
+    </div>
+  </div>
+</div>
+<div class="controls">
+  <b>← →</b> 이동 · <b>↑</b> 회전(시계) · <b>↓</b> 소프트드로프 · <b>스페이스</b> 하드드로프 · <b>C / Shift</b> Hold · <b>P</b> 일시정지
+</div>
+<p class="hint">외부 의존성 없이 로컬에서 실행됩니다. 다음 블록을 C 또는 Shift로 보관하고, 보관한 블록은 기본 회전·생성 위치로 돌아옵니다.</p>
+
+<div class="overlay" id="overlay">
+  <h2 id="overlayTitle">게임 오버</h2>
+  <p id="overlayMsg">점수: 0</p>
+  <button id="overlayBtn" class="buttons">재시작</button>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---- Constants ----
+  var COLS = 10, ROWS = 20, CELL = 24;
+  var BOARD_H = ROWS * CELL, BOARD_W = COLS * CELL;
+
+  // Tetromino shapes (each is a rotation state, 0 = default orientation)
+  var SHAPES = {
+    I: [[[0,1],[1,1],[2,1],[3,1]],[[2,0],[2,1],[2,2],[2,3]],[[0,2],[1,2],[2,2],[3,2]],[[1,0],[1,1],[1,2],[1,3]]],
+    O: [[[1,0],[2,0],[1,1],[2,1]]],
+    T: [[[1,0],[0,1],[1,1],[2,1]],[[1,0],[1,1],[2,1],[1,2]],[[0,1],[1,1],[2,1],[1,2]],[[1,0],[0,1],[1,1],[1,2]]],
+    S: [[[1,0],[2,0],[0,1],[1,1]],[[1,0],[1,1],[2,1],[2,2]],[[1,1],[2,1],[0,2],[1,2]],[[0,0],[0,1],[1,1],[1,2]]],
+    Z: [[[0,0],[1,0],[1,1],[2,1]],[[2,0],[1,1],[2,1],[1,2]],[[0,1],[1,1],[1,2],[2,2]],[[1,0],[0,1],[1,1],[0,2]]],
+    J: [[[0,0],[0,1],[1,1],[2,1]],[[1,0],[2,0],[1,1],[1,2]],[[0,1],[1,1],[2,1],[2,2]],[[1,0],[1,1],[0,2],[1,2]]],
+    L: [[[2,0],[0,1],[1,1],[2,1]],[[1,0],[1,1],[1,2],[2,2]],[[0,1],[1,1],[2,1],[0,2]],[[0,0],[1,0],[1,1],[1,2]]]
+  };
+  var TYPES = ["I","O","T","S","Z","J","L"];
+  var COLORS = {
+    I:"#38c1ff", O:"#ffd23f", T:"#c17cff", S:"#38c172", Z:"#ff5d5d", J:"#6c8cff", L:"#ff9f43"
+  };
+  var LINE_SCORES = { 1:100, 2:300, 3:500, 4:800 };
+
+  // ---- DOM ----
+  var boardCanvas = document.getElementById("board");
+  var bctx = boardCanvas.getContext("2d");
+  var nextCanvas = document.getElementById("next");
+  var nctx = nextCanvas.getContext("2d");
+  var holdCanvas = document.getElementById("hold");
+  var hctx = holdCanvas.getContext("2d");
+  var scoreEl = document.getElementById("score");
+  var linesEl = document.getElementById("lines");
+  var overlay = document.getElementById("overlay");
+  var overlayTitle = document.getElementById("overlayTitle");
+  var overlayMsg = document.getElementById("overlayMsg");
+  var overlayBtn = document.getElementById("overlayBtn");
+  var pauseBtn = document.getElementById("pauseBtn");
+  var restartBtn = document.getElementById("restartBtn");
+
+  // ---- Game state ----
+  var board, current, nextType, holdType, canHold;
+  var score, lines, paused, gameOver, rafId, dropCounter, dropInterval, lastTime;
+
+  function newBoard() {
+    var b = [];
+    for (var r = 0; r < ROWS; r++) {
+      var row = [];
+      for (var c = 0; c < COLS; c++) row.push(null);
+      b.push(row);
+    }
+    return b;
+  }
+
+  function rng() { return Math.random(); }
+
+  // Reset everything for a fresh game. Does NOT re-arm the loop with extra speed.
+  function resetGame() {
+    board = newBoard();
+    score = 0;
+    lines = 0;
+    canHold = true;
+    paused = false;
+    gameOver = false;
+    dropCounter = 0;
+    dropInterval = 1000; // fixed base interval; never accumulates across restarts
+    lastTime = 0;
+    holdType = null;
+    nextType = nextFromBag();
+    spawnCurrent();
+    updateStats();
+    hideOverlay();
+    if (rafId) cancelAnimationFrame(rafId);
+    lastTime = performance.now();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  // 7-bag randomizer
+  function nextFromBag() {
+    var arr = TYPES.slice();
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(rng() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr[0];
+  }
+
+  function makePiece(type) {
+    return {
+      type: type,
+      rot: 0,
+      x: Math.floor(COLS / 2) - 2,
+      y: 0
+    };
+  }
+
+  function spawnCurrent() {
+    current = makePiece(nextType);
+    nextType = nextFromBag();
+    // Spawn collision => game over
+    if (collides(current, board)) {
+      triggerGameOver();
+    }
+  }
+
+  // ---- Collision: piece cells vs board bounds / filled cells ----
+  function pieceCells(piece) {
+    var states = SHAPES[piece.type];
+    var st = states[Math.min(piece.rot, states.length - 1)];
+    var cells = [];
+    for (var i = 0; i < st.length; i++) {
+      cells.push([piece.x + st[i][0], piece.y + st[i][1]]);
+    }
+    return cells;
+  }
+
+  function collides(piece, b) {
+    var cells = pieceCells(piece);
+    for (var i = 0; i < cells.length; i++) {
+      var x = cells[i][0], y = cells[i][1];
+      if (x < 0 || x >= COLS || y >= ROWS) return true;
+      if (y >= 0 && b[y][x]) return true;
+    }
+    return false;
+  }
+
+  // ---- Movement ----
+  function move(dir) {
+    var trial = { type: current.type, rot: current.rot, x: current.x + dir, y: current.y };
+    if (!collides(trial, board)) { current.x += dir; }
+  }
+
+  function rotate() {
+    var states = SHAPES[current.type];
+    var nextRot = (current.rot + 1) % states.length;
+    var trial = { type: current.type, rot: nextRot, x: current.x, y: current.y };
+    // Overlap with walls/existing blocks => rotation canceled (no wall kick)
+    if (!collides(trial, board)) {
+      current.rot = nextRot;
+    }
+  }
+
+  function softDrop() {
+    var trial = { type: current.type, rot: current.rot, x: current.x, y: current.y + 1 };
+    if (!collides(trial, board)) { current.y++; dropCounter = 0; }
+    else lockPiece();
+  }
+
+  function hardDrop() {
+    while (!collides({ type: current.type, rot: current.rot, x: current.x, y: current.y + 1 }, board)) {
+      current.y++;
+    }
+    lockPiece();
+  }
+
+  // ---- Hold ----
+  function hold() {
+    if (paused || gameOver || !canHold) return;
+    var curType = current.type;
+    if (holdType === null) {
+      holdType = curType;
+      spawnCurrent();
+    } else {
+      var tmp = holdType;
+      holdType = curType;
+      current = makePiece(tmp);
+      // Spawn collision after swap => game over
+      if (collides(current, board)) triggerGameOver();
+    }
+    canHold = false; // until locked
+  }
+
+  // ---- Lock / line clear ----
+  function lockPiece() {
+    var cells = pieceCells(current);
+    for (var i = 0; i < cells.length; i++) {
+      var x = cells[i][0], y = cells[i][1];
+      if (y >= 0) board[y][x] = current.type;
+    }
+    var cleared = clearLines();
+    if (cleared > 0) {
+      score += LINE_SCORES[cleared] || 0;
+      lines += cleared;
+      updateStats();
+    }
+    canHold = true;
+    spawnCurrent();
+  }
+
+  function clearLines() {
+    var cleared = 0;
+    var nb = [];
+    for (var r = 0; r < ROWS; r++) {
+      var full = true;
+      for (var c = 0; c < COLS; c++) { if (!board[r][c]) { full = false; break; } }
+      if (full) cleared++; else nb.push(board[r]);
+    }
+    while (nb.length < ROWS) nb.unshift(newRow());
+    board = nb;
+    return cleared;
+  }
+
+  function newRow() {
+    var row = [];
+    for (var c = 0; c < COLS; c++) row.push(null);
+    return row;
+  }
+
+  // ---- Game over / pause ----
+  function triggerGameOver() {
+    gameOver = true;
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    overlayTitle.textContent = "게임 오버";
+    overlayMsg.textContent = "점수: " + score + " · 줄: " + lines;
+    overlay.classList.add("show");
+  }
+
+  function togglePause() {
+    if (gameOver) return;
+    paused = !paused;
+    if (paused) {
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      overlayTitle.textContent = "일시정지";
+      overlayMsg.textContent = "P 또는 버튼으로 계속하기";
+      overlay.classList.add("show");
+    } else {
+      hideOverlay();
+      lastTime = performance.now();
+      rafId = requestAnimationFrame(loop);
+    }
+  }
+
+  function hideOverlay() { overlay.classList.remove("show"); }
+
+  // ---- Rendering ----
+  function updateStats() {
+    scoreEl.textContent = score;
+    linesEl.textContent = lines;
+  }
+
+  function drawCell(ctx, x, y, color, size) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x * size, y * size, size, size);
+    ctx.strokeStyle = "rgba(255,255,255,0.12)";
+    ctx.strokeRect(x * size + 0.5, y * size + 0.5, size - 1, size - 1);
+  }
+
+  function drawBoard() {
+    bctx.clearRect(0, 0, BOARD_W, BOARD_H);
+    // grid
+    bctx.strokeStyle = "rgba(255,255,255,0.04)";
+    for (var c = 1; c < COLS; c++) {
+      bctx.beginPath(); bctx.moveTo(c * CELL, 0); bctx.lineTo(c * CELL, BOARD_H); bctx.stroke();
+    }
+    for (var r = 1; r < ROWS; r++) {
+      bctx.beginPath(); bctx.moveTo(0, r * CELL); bctx.lineTo(BOARD_W, r * CELL); bctx.stroke();
+    }
+    // settled blocks
+    for (var yr = 0; yr < ROWS; yr++) {
+      for (var xc = 0; xc < COLS; xc++) {
+        if (board[yr][xc]) drawCell(bctx, xc, yr, COLORS[board[yr][xc]], CELL);
+      }
+    }
+    // active piece
+    if (current) {
+      var cells = pieceCells(current);
+      for (var i = 0; i < cells.length; i++) {
+        if (cells[i][1] >= 0) drawCell(bctx, cells[i][0], cells[i][1], COLORS[current.type], CELL);
+      }
+    }
+  }
+
+  function drawPreview(ctx, type, canvas) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!type) return;
+    var states = SHAPES[type];
+    var st = states[0];
+    // center the piece in preview
+    var xs = [], ys = [];
+    for (var i = 0; i < st.length; i++) { xs.push(st[i][0]); ys.push(st[i][1]); }
+    var minx = Math.min.apply(null, xs), maxx = Math.max.apply(null, xs);
+    var miny = Math.min.apply(null, ys), maxy = Math.max.apply(null, ys);
+    var pw = (maxx - minx + 1) * 20, ph = (maxy - miny + 1) * 20;
+    var ox = (canvas.width - pw) / 2 / 20 - minx;
+    var oy = (canvas.height - ph) / 2 / 20 - miny;
+    var color = COLORS[type];
+    for (var j = 0; j < st.length; j++) {
+      var px = ox + st[j][0], py = oy + st[j][1];
+      ctx.fillStyle = color;
+      ctx.fillRect(px * 20, py * 20, 20, 20);
+      ctx.strokeStyle = "rgba(255,255,255,0.12)";
+      ctx.strokeRect(px * 20 + 0.5, py * 20 + 0.5, 19, 19);
+    }
+  }
+
+  function render() {
+    drawBoard();
+    drawPreview(nctx, nextType, nextCanvas);
+    drawPreview(hctx, holdType, holdCanvas);
+  }
+
+  // ---- Main loop ----
+  function loop(time) {
+    if (paused || gameOver) return;
+    var delta = time - lastTime;
+    lastTime = time;
+    dropCounter += delta;
+    if (dropCounter > dropInterval) {
+      softDrop();
+      dropCounter = 0;
+    }
+    render();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  // ---- Input ----
+  document.addEventListener("keydown", function (e) {
+    if (gameOver) return;
+    if (e.key === "p" || e.key === "P") { togglePause(); return; }
+    if (paused) return;
+
+    switch (e.key) {
+      case "ArrowLeft": move(-1); break;
+      case "ArrowRight": move(1); break;
+      case "ArrowDown": softDrop(); break;
+      case " ": e.preventDefault(); hardDrop(); break;
+      case "ArrowUp": rotate(); break;
+      case "c": case "C": hold(); break;
+      case "Shift": hold(); break;
+      default: return;
+    }
+    render();
+  });
+
+  pauseBtn.addEventListener("click", togglePause);
+  restartBtn.addEventListener("click", resetGame);
+  overlayBtn.addEventListener("click", resetGame);
+
+  // ---- Public test hooks (separate from normal play) ----
+  // These expose the pure logic for verification without playing.
+  window.__tetrisTest = {
+    SHAPES: SHAPES,
+    LINE_SCORES: LINE_SCORES,
+    COLS: COLS,
+    ROWS: ROWS,
+    // Simulate clearing N full lines and return the score delta (pure function).
+    scoreForLines: function (n) { return LINE_SCORES[n] || 0; },
+    // Validate that a board row is full.
+    isRowFull: function (row) {
+      for (var c = 0; c < COLS; c++) if (!row[c]) return false;
+      return true;
+    },
+    // Validate rotation is within bounds of its shape table.
+    validRotation: function (type, rot) {
+      var states = SHAPES[type];
+      return typeof states === "object" && rot >= 0 && rot < states.length;
+    }
+  };
+
+  // ---- Start ----
+  resetGame();
+})();
+</script>
+</body>
+</html>

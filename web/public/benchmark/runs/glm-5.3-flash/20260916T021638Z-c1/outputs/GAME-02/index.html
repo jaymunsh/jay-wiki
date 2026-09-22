@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Platformer — 한 스테이지</title>
+<style>
+  body{font-family:system-ui,sans-serif;background:#0e1220;color:#e8ecf4;display:flex;flex-direction:column;align-items:center;padding:14px}
+  canvas{background:#2b3a67;border:1px solid #3a4a7a;border-radius:6px}
+  #msg{min-height:24px;font-weight:700;color:#ffd166}
+  .help{font-size:12px;color:#9aa6c0}
+</style>
+</head>
+<body>
+<canvas id="cv" width="800" height="400"></canvas>
+<div id="msg"></div>
+<p class="help">← → 이동 / ↑ 또는 Space 점프(지면에서만) / R 재시작</p>
+<script>
+"use strict";
+var W=2400,H=600,VW=800,VH=400,GROUND=520;
+var GROUNDS=[[0,650],[780,1500],[1640,2400]];
+var PLATFORMS=[[350,410,160,20],[1100,400,180,20],[1800,380,180,20]];
+var COINS=[[420,370],[1170,360],[1860,340]];
+var ENEMIES=[[900,1040],[2000,2180]];
+var GOAL_X=2310,GOAL_W=60;
+var MOVE=4,GRAV=0.55,JUMP=11.6;
+var cv=document.getElementById("cv"),ctx=cv.getContext("2d"),msg=document.getElementById("msg");
+var player,cam,coins,foes,coinsGot,elapsed,done,dead,keys,rafId,lastTs;
+function reset(){
+  player={x:80,y:476,w:32,h:44,vx:0,vy:0,onGround:false};
+  cam=0; coinsGot=[false,false,false]; elapsed=0; done=false; dead=false; keys={};
+  foes=ENEMIES.map(function(e){return {x1:e[0],x2:e[1],x:e[0],dir:1,w:30,h:30};});
+  coins=COINS.map(function(c){return {x:c[0],y:c[1],r:9,got:false};});
+  msg.textContent=""; lastTs=null;
+}
+function groundTopAt(xl,xr){
+  var best=Infinity;
+  for(var i=0;i<GROUNDS.length;i++){var g=GROUNDS[i]; if(xr>g[0]&&xl<g[1]) best=Math.min(best,GROUND);}
+  for(var j=0;j<PLATFORMS.length;j++){var p=PLATFORMS[j];
+    if(xr>p[0]&&xl<p[0]+p[2]){ var top=p[1]; if(top>=player.y+player.h-2) best=Math.min(best,top); }}
+  return best;
+}
+function hitsFromBelow(topY,xl,xr,yBottom){
+  for(var j=0;j<PLATFORMS.length;j++){var p=PLATFORMS[j];
+    if(xr>p[0]&&xl<p[0]+p[2]&&yBottom>p[1]&&yBottom<p[1]+p[3]&&topY>p[1]) return p[1]+p[3];}
+  return null;
+}
+function update(dt){
+  if(done||dead)return;
+  elapsed+=dt;
+  if(keys.left)player.vx=-MOVE; else if(keys.right)player.vx=MOVE; else player.vx=0;
+  if((keys.up)&&player.onGround){player.vy=-JUMP;player.onGround=false;}
+  player.x+=player.vx;
+  if(player.x<0)player.x=0; if(player.x+player.w>W)player.x=W-player.w;
+  player.y+=player.vy; player.vy+=GRAV;
+  // 하단 지형/플랫폼 착지
+  var top=groundTopAt(player.x,player.x+player.w);
+  if(player.vy>=0&&player.y+player.h>=top&&player.y+player.h-player.vy<=top+2){
+    player.y=top-player.h; player.vy=0; player.onGround=true;
+  } else { player.onGround=false; }
+  // 플랫폼 아래 충돌(위로 튕겨 머리 부딪힘)
+  if(player.vy<0){ var bot=hitsFromBelow(player.y+player.h-player.vy,player.x,player.x+player.w,player.y);
+    if(bot!==null){ player.y=bot; player.vy=0; } }
+  // 낭떠러지 추락
+  if(player.y>H){ die(); return; }
+  // 코인
+  for(var i=0;i<coins.length;i++){var c=coins[i];
+    if(!c.got&&Math.abs(player.x+player.w/2-c.x)<c.r+player.w/2&&Math.abs(player.y+player.h/2-c.y)<c.r+player.h/2){c.got=true;}}
+  // 적 이동/충돌
+  for(var k=0;k<foes.length;k++){var f=foes[k];
+    f.x+=f.dir*1.4; if(f.x<f.x1)f.x=f.x1; if(f.x+f.w>f.x2)f.x=f.x2-f.w; if(f.x<=f.x1||f.x+f.w>=f.x2)f.dir*=-1;
+    var fy=GROUND-f.h;
+    var overlapX=player.x<f.x+f.w&&player.x+player.w>f.x;
+    var overlapY=player.y+player.h>fy&&player.y<fy+f.h;
+    if(overlapX&&overlapY){
+      if(player.vy>0&&player.y+player.h-player.vy<=fy+6){ // 위에서 밟음
+        f.dead=true; player.vy=-7; foes.splice(k,1); k--;
+      } else { die(); return; } } }
+  // 골인
+  if(player.x+player.w>GOAL_X&&player.x<GOAL_X+GOAL_W){ done=true; msg.textContent="클리어! 진행 시간 "+(elapsed/1000).toFixed(2)+"초 / 코인 "+coins.filter(function(c){return c.got;}).length+"개"; }
+}
+function die(){ dead=true; msg.textContent="실패 — R로 재시작"; }
+function draw(){
+  cam=Math.max(0,Math.min(W-VW,player.x+player.w/2-VW/2));
+  ctx.clearRect(0,0,VW,VH);
+  ctx.save(); ctx.translate(-cam,0);
+  ctx.fillStyle="#1d2b53"; ctx.fillRect(0,0,W,GROUND);
+  ctx.fillStyle="#3f8f4f"; for(var i=0;i<GROUNDS.length;i++){var g=GROUNDS[i]; ctx.fillRect(g[0],GROUND,g[1]-g[0],H-GROUND);}
+  ctx.fillStyle="#8a6a3f"; for(var j=0;j<PLATFORMS.length;j++){var p=PLATFORMS[j]; ctx.fillRect(p[0],p[1],p[2],p[3]);}
+  for(var c=0;c<coins.length;c++){var co=coins[c]; if(co.got)continue; ctx.fillStyle="#ffd166"; ctx.beginPath(); ctx.arc(co.x,co.y,co.r,0,Math.PI*2); ctx.fill();}
+  ctx.fillStyle="#d95050"; for(var k=0;k<foes.length;k++){var f=foes[k]; ctx.fillRect(f.x,GROUND-f.h,f.w,f.h);}
+  ctx.fillStyle="#ffd166"; ctx.fillRect(GOAL_X,GROUND-90,10,90); ctx.fillRect(GOAL_X,GROUND-90,GOAL_W,34);
+  ctx.fillStyle="#4fd8eb"; ctx.fillRect(player.x,player.y,player.w,player.h);
+  ctx.restore();
+  if(!done&&!dead){ msg.textContent="시간 "+(elapsed/1000).toFixed(1)+"초 · 코인 "+coins.filter(function(x){return x.got;}).length+"/3"; }
+}
+function loop(ts){
+  if(lastTs===null)lastTs=ts;
+  update(Math.min(50,ts-lastTs)); lastTs=ts; draw();
+  rafId=requestAnimationFrame(loop);
+}
+document.addEventListener("keydown",function(e){
+  if(e.key==="ArrowLeft"||e.key==="a")keys.left=true;
+  if(e.key==="ArrowRight"||e.key==="d")keys.right=true;
+  if(e.key==="ArrowUp"||e.key===" "){e.preventDefault();keys.up=true;}
+  if(e.key==="r"||e.key==="R"){reset();}
+});
+document.addEventListener("keyup",function(e){
+  if(e.key==="ArrowLeft"||e.key==="a")keys.left=false;
+  if(e.key==="ArrowRight"||e.key==="d")keys.right=false;
+  if(e.key==="ArrowUp"||e.key===" ")keys.up=false;
+});
+reset(); rafId=requestAnimationFrame(loop);
+
+</script>
+</body>
+</html>

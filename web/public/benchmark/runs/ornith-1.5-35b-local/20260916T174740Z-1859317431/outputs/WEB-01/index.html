@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leneu Desk — 개인 AI 작업 기록 도구</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #171a23;
+      --surface-2: #1f2330;
+      --text: #e8eaf0;
+      --muted: #9aa3b2;
+      --accent: #6c8cff;
+      --accent-strong: #4f6ff2;
+      --ok: #38c172;
+      --err: #ff5d5d;
+      --radius: 14px;
+      --maxw: 1120px;
+      --focus: 0 0 0 3px rgba(108,140,255,0.55);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    a { color: var(--accent); }
+    .wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+    :focus-visible { outline: none; box-shadow: var(--focus); border-radius: 8px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      background: var(--accent); color: #0b0d14; border: 0; border-radius: 10px;
+      padding: 12px 20px; font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: none;
+      transition: background .15s ease, transform .05s ease;
+    }
+    .btn:hover { background: var(--accent-strong); }
+    .btn:active { transform: translateY(1px); }
+    .btn.secondary { background: var(--surface-2); color: var(--text); border: 1px solid #2a2f3e; }
+    .btn.secondary:hover { background: #262b3a; }
+
+    /* Header / Nav */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(15,17,23,0.9); backdrop-filter: blur(8px);
+      border-bottom: 1px solid #21252f;
+    }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; text-decoration: none; color: var(--text); }
+    .brand svg { width: 26px; height: 26px; }
+    .nav-links { display: flex; align-items: center; gap: 22px; }
+    .nav-links a { text-decoration: none; color: var(--muted); font-size: 15px; }
+    .nav-links a:hover { color: var(--text); }
+    .menu-toggle { display: none; background: transparent; border: 1px solid #2a2f3e; color: var(--text); border-radius: 10px; padding: 8px 12px; font-size: 16px; cursor: pointer; }
+
+    /* Hero */
+    .hero { padding: 80px 0 64px; }
+    .hero h1 { font-size: 44px; line-height: 1.2; margin: 0 0 16px; letter-spacing: -0.02em; }
+    .hero p { font-size: 18px; color: var(--muted); max-width: 620px; margin: 0 0 28px; }
+    .hero .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .eyebrow { color: var(--accent); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; font-size: 13px; margin-bottom: 12px; }
+
+    /* Sections */
+    section { padding: 64px 0; border-top: 1px solid #1c2029; }
+    h2 { font-size: 30px; margin: 0 0 10px; letter-spacing: -0.01em; }
+    .section-sub { color: var(--muted); margin: 0 0 34px; max-width: 640px; }
+
+    /* Features */
+    .grid { display: grid; gap: 18px; }
+    .card { background: var(--surface); border: 1px solid #232836; border-radius: var(--radius); padding: 24px; }
+    .card .icon { width: 44px; height: 44px; margin-bottom: 14px; }
+    .card h3 { margin: 0 0 8px; font-size: 19px; }
+    .card p { margin: 0; color: var(--muted); }
+    .feat-3 .grid { grid-template-columns: repeat(3, 1fr); }
+
+    /* Flow */
+    .steps { display: grid; gap: 16px; grid-template-columns: repeat(3, 1fr); }
+    .step { background: var(--surface-2); border-radius: var(--radius); padding: 22px; position: relative; }
+    .step .num { font-size: 13px; font-weight: 800; color: var(--accent); }
+    .step h3 { margin: 6px 0 8px; font-size: 17px; }
+    .step p { margin: 0; color: var(--muted); font-size: 15px; }
+
+    /* Pricing */
+    .toggle { display: inline-flex; background: var(--surface-2); border: 1px solid #2a2f3e; border-radius: 999px; padding: 4px; margin-bottom: 28px; }
+    .toggle button { background: transparent; border: 0; color: var(--muted); padding: 9px 18px; border-radius: 999px; cursor: pointer; font-size: 14px; font-weight: 700; }
+    .toggle button.active { background: var(--accent); color: #0b0d14; }
+    .price-cards { display: grid; gap: 18px; grid-template-columns: repeat(2, 1fr); }
+    .price-card { background: var(--surface); border: 1px solid #232836; border-radius: var(--radius); padding: 28px; }
+    .price-card.featured { border-color: var(--accent); }
+    .price-card h3 { margin: 0 0 6px; font-size: 20px; }
+    .price-card .desc { color: var(--muted); font-size: 14px; margin: 0 0 20px; min-height: 40px; }
+    .price-amount { font-size: 40px; font-weight: 800; }
+    .price-amount .unit { font-size: 16px; font-weight: 600; color: var(--muted); }
+    .price-amount .amount { transition: opacity .15s ease; }
+    .price-card ul { list-style: none; padding: 0; margin: 20px 0 24px; display: grid; gap: 10px; }
+    .price-card li { padding-left: 26px; position: relative; font-size: 15px; }
+    .price-card li::before { content: "✓"; position: absolute; left: 0; color: var(--ok); font-weight: 800; }
+    .price-card .btn { width: 100%; }
+
+    /* FAQ */
+    .faq-item { border: 1px solid #232836; border-radius: 12px; margin-bottom: 12px; background: var(--surface); overflow: hidden; }
+    .faq-q { width: 100%; text-align: left; background: transparent; border: 0; color: var(--text); padding: 18px 20px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .faq-q .chev { transition: transform .2s ease; flex-shrink: 0; }
+    .faq-q[aria-expanded="true"] .chev { transform: rotate(180deg); }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height .25s ease; color: var(--muted); }
+    .faq-a > div { padding: 0 20px 18px; }
+
+    /* Apply form */
+    .form-card { background: var(--surface); border: 1px solid #232836; border-radius: var(--radius); padding: 30px; max-width: 520px; margin: 0 auto; }
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 7px; }
+    .field input, .field select { width: 100%; background: var(--surface-2); border: 1px solid #2a2f3e; color: var(--text); border-radius: 10px; padding: 12px 14px; font-size: 15px; }
+    .field input:focus, .field select:focus { border-color: var(--accent); }
+    .field .msg { font-size: 13px; margin-top: 6px; min-height: 0; }
+    .field .msg.err { color: var(--err); }
+    .field .msg.ok { color: var(--ok); }
+    .form-card .btn { width: 100%; margin-top: 6px; }
+    .form-done { display: none; text-align: center; padding: 20px; }
+    .form-done.show { display: block; }
+    .form-done .check { width: 64px; height: 64px; margin: 0 auto 16px; }
+    .form-hidden { display: none; }
+
+    footer { border-top: 1px solid #1c2029; padding: 34px 0; color: var(--muted); font-size: 14px; }
+    footer .nav { height: auto; }
+
+    /* Responsive: tablet 768 */
+    @media (max-width: 820px) {
+      .feat-3 .grid { grid-template-columns: repeat(2, 1fr); }
+      .steps { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 36px; }
+    }
+    /* Responsive: mobile 390 */
+    @media (max-width: 600px) {
+      .menu-toggle { display: inline-flex; }
+      .nav-links {
+        position: absolute; top: 64px; left: 0; right: 0;
+        flex-direction: column; align-items: stretch; gap: 0;
+        background: var(--surface); border-bottom: 1px solid #21252f;
+        max-height: 0; overflow: hidden; transition: max-height .25s ease;
+      }
+      .nav-links.open { max-height: 360px; }
+      .nav-links a { padding: 16px 20px; border-bottom: 1px solid #232836; }
+      .nav-links .btn { margin: 14px 20px; }
+      .feat-3 .grid { grid-template-columns: 1fr; }
+      .price-cards { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 30px; }
+      .hero p { font-size: 16px; }
+      h2 { font-size: 25px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="#top" aria-label="Leneu Desk 홈">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="3" width="26" height="26" rx="8" fill="#6c8cff"/><path d="M10 16l4 4 8-9" stroke="#0b0d14" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Leneu Desk
+      </a>
+      <nav class="nav-links" id="navLinks" aria-label="주요 메뉴">
+        <a href="#features">기능</a>
+        <a href="#flow">사용 흐름</a>
+        <a href="#pricing">가격</a>
+        <a href="#faq">FAQ</a>
+        <a class="btn" href="#apply">신청</a>
+      </nav>
+      <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="navLinks">메뉴</button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="wrap">
+        <div class="eyebrow">개인 AI 작업 기록 도구</div>
+        <h1>여러 모델의 작업을 한곳에 기록하고 비교하세요.</h1>
+        <p>Leneu Desk는 AI 작업 기록, 결과 비교, Markdown 내보내기를 제공합니다. 여러 모델을 비교하는 개인 개발자를 위해 만들어졌습니다.</p>
+        <div class="actions">
+          <a class="btn" href="#apply">무료로 시작하기</a>
+          <a class="btn secondary" href="#features">기능 알아보기</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="feat-3">
+      <div class="wrap">
+        <h2>주요 기능</h2>
+        <p class="section-sub">작업을 기록하고, 결과를 나란히 비교하고, 필요한 곳에서 Markdown으로 꺼내세요.</p>
+        <div class="grid">
+          <div class="card">
+            <svg class="icon" viewBox="0 0 44 44" aria-hidden="true"><rect x="6" y="6" width="32" height="32" rx="8" fill="#1f2330" stroke="#6c8cff" stroke-width="2"/><path d="M14 22h16M22 14v16" stroke="#6c8cff" stroke-width="2" stroke-linecap="round"/></svg>
+            <h3>작업 기록</h3>
+            <p>모델별로 요청과 결과를 자동으로 묶어 저장합니다. 검색하고 되돌릴 수 있습니다.</p>
+          </div>
+          <div class="card">
+            <svg class="icon" viewBox="0 0 44 44" aria-hidden="true"><rect x="6" y="6" width="32" height="32" rx="8" fill="#1f2330" stroke="#6c8cff" stroke-width="2"/><path d="M13 30v-8M20 30v-12M27 30v-6M34 30v-10" stroke="#6c8cff" stroke-width="3" stroke-linecap="round"/></svg>
+            <h3>결과 비교</h3>
+            <p>여러 모델의 출력을 나란히 대조하고 차이점을 한눈에 확인합니다.</p>
+          </div>
+          <div class="card">
+            <svg class="icon" viewBox="0 0 44 44" aria-hidden="true"><rect x="6" y="6" width="32" height="32" rx="8" fill="#1f2330" stroke="#6c8cff" stroke-width="2"/><path d="M15 13h14M15 20h14M15 27h9" stroke="#6c8cff" stroke-width="2" stroke-linecap="round"/></svg>
+            <h3>Markdown 내보내기</h3>
+            <p>기록한 내용을 Markdown 파일로 내보내 문서나 노트로 바로 사용합니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="flow">
+      <div class="wrap">
+        <h2>사용 흐름</h2>
+        <p class="section-sub">세 단계로 시작합니다.</p>
+        <div class="steps">
+          <div class="step"><div class="num">STEP 01</div><h3>시작</h3><p>신청 폼을 채우고 무료 계정을 만듭니다.</p></div>
+          <div class="step"><div class="num">STEP 02</div><h3>기록·비교</h3><p>모델 작업을 기록하고 결과를 비교합니다.</p></div>
+          <div class="step"><div class="num">STEP 03</div><h3>내보내기</h3><p>Markdown으로 정리해 작업물을 공유합니다.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <div class="wrap">
+        <h2>가격</h2>
+        <p class="section-sub">무료로 시작하고 프로젝트가 늘면 Plus로 확장하세요.</p>
+        <div class="toggle" id="priceToggle" role="tablist" aria-label="결제 단위">
+          <button role="tab" aria-selected="true" id="tabMonthly" data-period="monthly">월 결제</button>
+          <button role="tab" aria-selected="false" id="tabYearly" data-period="yearly">연 결제</button>
+        </div>
+        <div class="price-cards">
+          <div class="price-card">
+            <h3>무료</h3>
+            <p class="desc">개인적으로 여러 모델을 살짝 비교할 때.</p>
+            <div class="price-amount"><span class="amount" data-price-monthly="0" data-price-yearly="0">0</span><span class="unit">원 / 월</span></div>
+            <ul><li>프로젝트 3개</li><li>작업 기록·비교</li><li>Markdown 내보내기</li></ul>
+            <a class="btn secondary" href="#apply">무료로 시작</a>
+          </div>
+          <div class="price-card featured">
+            <h3>Plus</h3>
+            <p class="desc">무제한 프로젝트가 필요한 개발자를 위해.</p>
+            <div class="price-amount"><span class="amount" data-price-monthly="9000" data-price-yearly="90000">9,000</span><span class="unit">원 / 월</span></div>
+            <ul><li>무제한 프로젝트</li><li>모든 기록 저장</li><li>우선 내보내기</li></ul>
+            <a class="btn" href="#apply">Plus 시작</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="wrap">
+        <h2>자주 묻는 질문</h2>
+        <p class="section-sub">질문을 클릭하면 답변이 열립니다.</p>
+        <div id="faqList">
+          <div class="faq-item">
+            <button class="faq-q" aria-expanded="false"><span>무료 플랜의 프로젝트 제한은 무엇인가요?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <div class="faq-a"><div>무료 플랜은 3개의 프로젝트까지 만들 수 있습니다. 그 이상은 Plus로 확장됩니다.</div></div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" aria-expanded="false"><span>Plus는 어떻게 결제하나요?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <div class="faq-a"><div>Plus는 월 결제 9,000원 또는 연 결제 90,000원으로 이용 가능합니다. 단위를 바꾸면 금액과 결제 단위 함께 변경됩니다.</div></div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" aria-expanded="false"><span>기록을 다른 형식으로 내보낼 수 있나요?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <div class="faq-a"><div>Markdown 형식으로 내보낼 수 있습니다. 문서나 노트에 바로 붙여 사용할 수 있습니다.</div></div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" aria-expanded="false"><span>신청 후 바로 사용할 수 있나요?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <div class="faq-a"><div>신청 폼을 완료하면 바로 계정을 사용할 수 있습니다. 실제 결제 처리는 별도의 절차가 아닙니다.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="apply">
+      <div class="wrap">
+        <h2>신청</h2>
+        <p class="section-sub">이메일을 남겨 신청 완료 메시지를 확인하세요. 폼은 실제 전송하지 않습니다.</p>
+        <div class="form-card">
+          <form id="applyForm" novalidate>
+            <div class="field">
+              <label for="name">이름</label>
+              <input type="text" id="name" name="name" autocomplete="name" required>
+            </div>
+            <div class="field">
+              <label for="email">이메일</label>
+              <input type="email" id="email" name="email" autocomplete="email" required aria-describedby="emailMsg">
+              <div class="msg" id="emailMsg" aria-live="polite"></div>
+            </div>
+            <div class="field">
+              <label for="plan">플랜</label>
+              <select id="plan" name="plan">
+                <option value="free">무료</option>
+                <option value="plus">Plus</option>
+              </select>
+            </div>
+            <button class="btn" type="submit">신청하기</button>
+          </form>
+          <div class="form-done" id="formDone">
+            <svg class="check" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#1f2330" stroke="#38c172" stroke-width="3"/><path d="M20 33l8 8 16-18" stroke="#38c172" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <h3>신청 완료!</h3>
+            <p id="doneMsg">입력하신 이메일로 신청 처리 결과를 보내드리겠습니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap nav">
+      <span class="brand">Leneu Desk</span>
+      <nav class="nav-links" aria-label="푸터 메뉴" style="position:static;max-height:none;background:transparent;border:0;">
+        <a href="#features">기능</a>
+        <a href="#flow">사용 흐름</a>
+        <a href="#pricing">가격</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <span>© 2026 Leneu Desk</span>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /* Mobile menu */
+      var navLinks = document.getElementById("navLinks");
+      var menuToggle = document.getElementById("menuToggle");
+      menuToggle.addEventListener("click", function () {
+        var open = navLinks.classList.toggle("open");
+        menuToggle.setAttribute("aria-expanded", String(open));
+      });
+      /* Close menu after choosing a destination on mobile */
+      navLinks.addEventListener("click", function (e) {
+        if (e.target.tagName === "A" && navLinks.classList.contains("open")) {
+          navLinks.classList.remove("open");
+          menuToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+
+      /* Pricing toggle: amount and unit change together */
+      var MONTHLY = { free: 0, plus: 9000 };
+      var YEARLY = { free: 0, plus: 90000 };
+      var MONTH_LABEL = "원 / 월";
+      var YEAR_LABEL = "원 / 년";
+      var tabMonthly = document.getElementById("tabMonthly");
+      var tabYearly = document.getElementById("tabYearly");
+
+      function formatNumber(n) {
+        return n.toLocaleString("ko-KR");
+      }
+
+      function setPeriod(period) {
+        var prices = period === "yearly" ? YEARLY : MONTHLY;
+        var label = period === "yearly" ? YEAR_LABEL : MONTH_LABEL;
+        var amounts = document.querySelectorAll(".amount");
+        for (var i = 0; i < amounts.length; i++) {
+          amounts[i].textContent = formatNumber(Number(amounts[i].getAttribute("data-price-" + period)));
+        }
+        var units = document.querySelectorAll(".price-amount .unit");
+        for (var j = 0; j < units.length; j++) {
+          units[j].textContent = label;
+        }
+        tabMonthly.classList.toggle("active", period === "monthly");
+        tabYearly.classList.toggle("active", period === "yearly");
+        tabMonthly.setAttribute("aria-selected", String(period === "monthly"));
+        tabYearly.setAttribute("aria-selected", String(period === "yearly"));
+        var planSelect = document.getElementById("plan");
+        if (planSelect) planSelect.value = period === "yearly" ? "plus" : "free";
+      }
+
+      tabMonthly.addEventListener("click", function () { setPeriod("monthly"); });
+      tabYearly.addEventListener("click", function () { setPeriod("yearly"); });
+      /* Keyboard: arrow keys move between tabs */
+      [tabMonthly, tabYearly].forEach(function (tab) {
+        tab.addEventListener("keydown", function (e) {
+          if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+            e.preventDefault();
+            (tab === tabMonthly ? tabYearly : tabMonthly).focus();
+          }
+        });
+      });
+
+      /* FAQ accordion */
+      var faqButtons = document.querySelectorAll(".faq-q");
+      for (var k = 0; k < faqButtons.length; k++) {
+        faqButtons[k].addEventListener("click", function () {
+          var btn = this;
+          var expanded = btn.getAttribute("aria-expanded") === "true";
+          var answer = btn.nextElementSibling;
+          if (expanded) {
+            btn.setAttribute("aria-expanded", "false");
+            answer.style.maxHeight = "0";
+          } else {
+            btn.setAttribute("aria-expanded", "true");
+            answer.style.maxHeight = answer.scrollHeight + "px";
+          }
+        });
+      }
+
+      /* Email validation + form submit (no real send) */
+      var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      var form = document.getElementById("applyForm");
+      var emailInput = document.getElementById("email");
+      var emailMsg = document.getElementById("emailMsg");
+      var formDone = document.getElementById("formDone");
+      var doneMsg = document.getElementById("doneMsg");
+
+      function validateEmail(value) {
+        if (!value) {
+          return { valid: false, text: "이메일을 입력해주세요." };
+        }
+        if (!EMAIL_RE.test(value)) {
+          return { valid: false, text: "올바른 이메일 형식이 아닙니다." };
+        }
+        return { valid: true, text: "올바른 이메일 형식입니다." };
+      }
+
+      emailInput.addEventListener("input", function () {
+        var res = validateEmail(emailInput.value.trim());
+        emailMsg.textContent = res.text;
+        emailMsg.className = "msg " + (res.valid ? "ok" : "err");
+      });
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var emailRes = validateEmail(emailInput.value.trim());
+        emailMsg.textContent = emailRes.text;
+        emailMsg.className = "msg " + (emailRes.valid ? "ok" : "err");
+        if (!emailRes.valid) {
+          emailInput.focus();
+          return;
+        }
+        form.classList.add("form-hidden");
+        formDone.classList.add("show");
+        doneMsg.textContent = "입력하신 " + emailInput.value.trim() + "으로 신청 처리 결과를 보내드리겠습니다.";
+      });
+    })();
+  </script>
+</body>
+</html>
