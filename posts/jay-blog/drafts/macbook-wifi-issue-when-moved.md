@@ -4,6 +4,7 @@ category: 개발 노트
 summary: 와이파이를 옮기면 인터넷이 죽던 맥의 원인을 Tailscale accept-routes 로 짚고 껐는데, 3일 뒤 재발했다. 처음 쓴 결론을 지우지 않고 어디까지가 맞았는지 표시한 기록
 tags: accept-routes,macOS,network,routing,tailscale,trouble-shooting,vpn,wi-fi
 toc: true
+nextSlug: fixnet-macos-routing-blackhole
 publishedAt: 2026-08-11T07:45:00Z
 updatedAt: 2026-08-30T03:51:06.242912Z
 syncHash: dcaec58cbbfe150b86476ee37602fd883a1b95b489e86ad3fce9a89277da2c62

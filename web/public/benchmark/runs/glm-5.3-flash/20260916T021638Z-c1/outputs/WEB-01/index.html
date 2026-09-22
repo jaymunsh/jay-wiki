@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leneu Desk — 개인 AI 작업 기록 도구</title>
+<style>
+  :root{--ink:#1c2333;--sub:#5b6478;--line:#e3e7ef;--accent:#3457d5;--bg:#f7f8fb;--soft:#eef1f8;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:#fff;line-height:1.65}
+  a{color:inherit}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  header{position:sticky;top:0;background:rgba(255,255,255,.92);border-bottom:1px solid var(--line);z-index:10}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .logo{display:flex;align-items:center;gap:8px;font-weight:700}
+  .menu{display:flex;gap:22px;font-size:14px}
+  .menu a{text-decoration:none;color:var(--sub)}
+  .menu a:focus-visible,.btn:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .btn{display:inline-block;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:14px;cursor:pointer;text-decoration:none}
+  .btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--accent)}
+  #menuToggle{display:none;background:none;border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}
+  .hero{background:var(--bg);padding:72px 0;text-align:center}
+  .hero h1{font-size:34px;line-height:1.3;margin-bottom:14px}
+  .hero p{color:var(--sub);max-width:560px;margin:0 auto 26px}
+  section{padding:56px 0}
+  h2{font-size:24px;margin-bottom:20px}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .card{border:1px solid var(--line);border-radius:12px;padding:20px;background:#fff}
+  .card h3{font-size:17px;margin:10px 0 6px}
+  .card p{font-size:14px;color:var(--sub)}
+  .icon{width:34px;height:34px}
+  ol.flow{max-width:640px;margin:0 auto;padding-left:0;list-style:none;counter-reset:s}
+  ol.flow li{counter-increment:s;position:relative;padding:12px 0 12px 52px;border-bottom:1px solid var(--line)}
+  ol.flow li::before{content:counter(s);position:absolute;left:0;top:10px;width:34px;height:34px;border-radius:50%;background:var(--soft);color:var(--accent);font-weight:700;display:flex;align-items:center;justify-content:center}
+  .billing-toggle{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-bottom:24px}
+  .billing-toggle button{border:none;background:#fff;padding:9px 22px;cursor:pointer;font-size:14px;color:var(--sub)}
+  .billing-toggle button[aria-pressed="true"]{background:var(--accent);color:#fff}
+  .price-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:720px;margin:0 auto}
+  .price-card{border:1px solid var(--line);border-radius:14px;padding:26px;text-align:center}
+  .price-card .amount{font-size:32px;font-weight:800}
+  .price-card .unit{font-size:14px;color:var(--sub)}
+  .price-card ul{list-style:none;margin:16px 0;font-size:14px;color:var(--sub)}
+  .badge{display:inline-block;font-size:12px;background:var(--soft);color:var(--accent);border-radius:999px;padding:2px 10px;margin-bottom:10px}
+  details{border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-bottom:10px}
+  summary{cursor:pointer;font-weight:600}
+  form{max-width:520px;margin:0 auto;border:1px solid var(--line);border-radius:14px;padding:26px}
+  label{display:block;font-size:14px;font-weight:600;margin:14px 0 6px}
+  input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px}
+  .err{color:#c0392b;font-size:13px;margin-top:6px;display:none}
+  #formDone{display:none;text-align:center;padding:26px;border:1px solid var(--line);border-radius:14px;background:var(--soft)}
+  footer{border-top:1px solid var(--line);padding:28px 0;font-size:13px;color:var(--sub);text-align:center}
+  @media (max-width:820px){
+    .cards{grid-template-columns:1fr}
+    .price-grid{grid-template-columns:1fr}
+    #menuToggle{display:block}
+    .menu{display:none;position:absolute;top:60px;left:0;right:0;background:#fff;border-bottom:1px solid var(--line);flex-direction:column;padding:16px 24px;gap:14px}
+    .menu.open{display:flex}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <div class="logo"><svg class="icon" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" fill="#3457d5"/><path d="M7 12l3 3 7-7" stroke="#fff" stroke-width="2" fill="none"/></svg>Leneu Desk</div>
+    <button id="menuToggle" aria-expanded="false" aria-controls="navMenu">메뉴</button>
+    <nav class="menu" id="navMenu">
+      <a href="#features">기능</a><a href="#flow">사용 흐름</a><a href="#pricing">가격</a><a href="#faq">FAQ</a><a class="btn" href="#signup">신청</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap">
+    <h1>여러 AI의 작업 기록을<br>한 곳에서 비교하세요</h1>
+    <p>Leneu Desk는 개인 개발자를 위한 AI 작업 기록 도구입니다. 여러 모델의 작업 결과를 나란히 두고, 더 나은 답을 골라 기록으로 남깁니다.</p>
+    <a class="btn" href="#signup">무료로 시작하기</a>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <h2>주요 기능</h2>
+    <div class="cards">
+      <div class="card">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2" fill="#eef1f8"/><path d="M8 8h8M8 12h8M8 16h5" stroke="#3457d5" stroke-width="2"/></svg>
+        <h3>작업 기록</h3><p>프롬프트와 결과, 사용한 모델을 프로젝트별로 기록합니다.</p>
+      </div>
+      <div class="card">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7" stroke="#3457d5" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <h3>결과 비교</h3><p>같은 작업을 여러 모델에 실행한 결과를 표와 나란히 보기로 비교합니다.</p>
+      </div>
+      <div class="card">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z" fill="#eef1f8" stroke="#3457d5" stroke-width="1.6"/><path d="M14 3v5h5" fill="none" stroke="#3457d5" stroke-width="1.6"/></svg>
+        <h3>Markdown 내보내기</h3><p>비교 결과와 메모를 Markdown 문서로 내보냅니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="flow" style="background:var(--bg)">
+  <div class="wrap">
+    <h2>사용 흐름</h2>
+    <ol class="flow">
+      <li>프로젝트를 만들고 비교할 AI 모델을 선택합니다.</li>
+      <li>같은 작업을 여러 모델에 실행해 결과를 기록합니다.</li>
+      <li>나란히 비교해 더 나은 결과를 고르고 이유를 메모합니다.</li>
+      <li>비교 기록을 Markdown으로 내보내 공유합니다.</li>
+    </ol>
+  </div>
+</section>
+<section id="pricing">
+  <div class="wrap" style="text-align:center">
+    <h2>가격</h2>
+    <div class="billing-toggle" role="group" aria-label="결제 주기 선택">
+      <button id="btnMonthly" aria-pressed="true">월 결제</button>
+      <button id="btnYearly" aria-pressed="false">연 결제</button>
+    </div>
+    <div class="price-grid">
+      <div class="price-card">
+        <span class="badge">무료</span>
+        <div class="amount">0원</div><div class="unit">월</div>
+        <ul><li>프로젝트 3개</li><li>기록·비교 기능</li><li>Markdown 내보내기</li></ul>
+        <a class="btn ghost" href="#signup">무료로 시작</a>
+      </div>
+      <div class="price-card">
+        <span class="badge">Plus</span>
+        <div class="amount" id="plusAmount">9,000원</div><div class="unit" id="plusUnit">월</div>
+        <ul><li>무제한 프로젝트</li><li>무료 요금제의 모든 기능</li></ul>
+        <a class="btn" href="#signup">Plus 신청</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" style="background:var(--bg)">
+  <div class="wrap" style="max-width:720px">
+    <h2>FAQ</h2>
+    <details><summary>무료 요금제에서 프로젝트를 4개 이상 만들 수 있나요?</summary><p>무료 요금제는 프로젝트 3개까지입니다. 그 이상이 필요하면 Plus 요금제를 이용하세요.</p></details>
+    <details><summary>연 결제는 얼마인가요?</summary><p>Plus 연 결제는 90,000원/년입니다. 월 결제는 9,000원/월입니다.</p></details>
+    <details><summary>기록을 내보내면 어떤 형식인가요?</summary><p>Markdown 문서로 내보냅니다.</p></details>
+  </div>
+</section>
+
+<section id="signup">
+  <div class="wrap">
+    <h2 style="text-align:center">신청</h2>
+    <form id="signupForm" novalidate>
+      <label for="email">이메일</label>
+      <input type="email" id="email" name="email" required placeholder="you@example.com">
+      <p class="err" id="emailErr">올바른 이메일 주소를 입력하세요.</p>
+      <label for="plan">요금제</label>
+      <select id="plan" name="plan" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px">
+        <option value="free">무료 (프로젝트 3개)</option>
+        <option value="plus">Plus (무제한 프로젝트)</option>
+      </select>
+      <p style="margin-top:20px"><button class="btn" type="submit" style="width:100%">신청하기</button></p>
+      <p style="font-size:12px;color:var(--sub);margin-top:10px">이 데모 페이지는 실제로 전송하지 않습니다.</p>
+    </form>
+    <div id="formDone">
+      <strong>신청이 접수되었습니다.</strong><br><span id="doneEmail" style="color:var(--sub);font-size:14px"></span><br>
+      <button class="btn ghost" type="button" id="resetForm" style="margin-top:14px">다시 작성</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>© 2026 Leneu Desk — 데모용 랜딩 페이지. 이 페이지의 요금은 합성 설정입니다.</footer>
+
+<script>
+(function(){
+  var mt=document.getElementById('menuToggle'),menu=document.getElementById('navMenu');
+  mt.addEventListener('click',function(){var o=menu.classList.toggle('open');mt.setAttribute('aria-expanded',o);});
+  menu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){menu.classList.remove('open');mt.setAttribute('aria-expanded','false');});});
+  var bm=document.getElementById('btnMonthly'),by=document.getElementById('btnYearly');
+  var amt=document.getElementById('plusAmount'),unit=document.getElementById('plusUnit');
+  function setBilling(m){bm.setAttribute('aria-pressed',m);by.setAttribute('aria-pressed',!m);
+    if(m){amt.textContent='9,000원';unit.textContent='월';}else{amt.textContent='90,000원';unit.textContent='년';}}
+  bm.addEventListener('click',function(){setBilling(true);});
+  by.addEventListener('click',function(){setBilling(false);});
+  var form=document.getElementById('signupForm'),done=document.getElementById('formDone');
+  var email=document.getElementById('email'),err=document.getElementById('emailErr');
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim());
+    err.style.display=ok?'none':'block';
+    if(!ok){email.focus();return;}
+    document.getElementById('doneEmail').textContent=email.value.trim()+' / '+document.getElementById('plan').value;
+    form.style.display='none';done.style.display='block';
+  });
+  document.getElementById('resetForm').addEventListener('click',function(){done.style.display='none';form.style.display='block';email.value='';email.focus();});
+})();
+</script>
+</body>
+</html>

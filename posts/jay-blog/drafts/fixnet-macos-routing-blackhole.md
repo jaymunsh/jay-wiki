@@ -5,8 +5,10 @@ category: 개발 노트
 summary: 네 개의 경로를 지우면 인터넷이 돌아왔지만, 그 경로가 Tailscale 것이라는 추정은 맞지 않았다. 9월 8일 macOS와 유니콘 Pro 로그에서 터널 우회·재설치를 확인하고, 복구된 이유와 아직 모르는 고장 원인을 나눠 적었다.
 tags: fixnet,macOS,network,routing,tailscale,unicorn-pro,utun,wi-fi,trouble-shooting
 toc: true
+prevSlug: macbook-wifi-issue-when-moved
+nextSlug: fixnet-disappeared-stash-local-llm-recovery
 publishedAt: 2026-09-03T10:17:36Z
-syncHash: f3fe64da7f0b9a049e3c47c0d2c0feb5575ab009b17a467bd67a8da47cd895c1
+syncHash: 6abbe0fadbdcbbcec73189a35d1cd4a70664bcb29a7578006394a0e9a63dfa0e
 ---
 
 카페에서 맥북 인터넷이 멈췄을 때, 와이파이 아이콘은 여전히 연결 상태였다. 브라우저와 메신저는 멈췄고 Tailscale도 화면에서는 연결돼 보였다. `fixnet`으로 네 개의 경로를 지우자 인터넷이 돌아왔다. 그래서 그 경로와 Tailscale의 오류 로그를 엮어 이 글을 썼다.

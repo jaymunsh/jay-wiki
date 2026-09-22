@@ -5,7 +5,6 @@ tags: github-actions,ci-cd,self-hosted-runner,ghcr,k3s,devops,security
 summary: GitHub Actions 사용량을 줄이려고 소스 저장소 공개를 검토하면서 miniPC 배포 권한을 어떻게 분리할지 고민했다. 실제 실행 기록으로 얼마나 줄어드는지 계산하고, public 소스와 private 운영 저장소가 코드 복사 없이 하나의 커밋을 배포하는 과정을 정리한다.
 syncHash: 87f5fc9eea649496bdb54bf8cb9202ee937a64b442a0c5d2f4ff647dd7ec22e6
 publishedAt: 2026-09-15T11:24:35.183349Z
-
 ---
 
 GitHub Actions 사용량을 줄이는 방법을 찾다가 한 가지 질문에 멈췄다. 소스 저장소를 public으로 바꾸고 운영 배포만 private 저장소로 옮기면 결국 같은 코드를 두 저장소에 모두 올리는 것 아닐까? 저장소가 둘이면 평소에도 두 곳을 함께 관리해야 할까?

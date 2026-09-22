@@ -3,7 +3,7 @@ slug: sme-local-llm-budget-30tps
 category: 리서치
 tags: local-llm,on-premise,inference,gpu,benchmark,rag
 summary: 예산별 모델·장비 후보, 완제품 견적 항목과 여섯 부서 활용 시나리오를 정리한다. 가중치 적재·30 tok/s·동시성의 차이와 구축비·운영비·지원 범위까지 구매 관점에서 살펴본다.
-syncHash: 45ca4e3a0ed63b0f1499218992559d4d72acb0400f50f1dae7228db45b2c35e8
+syncHash: ec0a3cdbdfcd5f187a92d60296f0d764e2919426a6d2fa071d58b0f578f0a120
 publishedAt: 2026-09-09T12:08:20.386563Z
 
 ---

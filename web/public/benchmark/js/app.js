@@ -17,13 +17,7 @@ const state = {
     task: 'outputs/GAME-01/index.html',
     viewport: '100%'
   },
-  inspector: {
-    model: 'gemini-3.8-flash',
-    runId: '20260913T163700Z-g38f',
-    file: 'outputs/GAME-01/index.html',
-    type: 'HTML',
-    title: 'GAME-01: Tetris'
-  }
+  inspector: null
 };
 
 // Specifications Checklist Data for Arena
@@ -83,6 +77,39 @@ const taskSpecs = {
       { label: '현장 가독성', desc: '당직자가 표와 체크리스트로 빠르게 행동할 수 있는가' }
     ]
   },
+  'outputs/STYLE-01/status-page.md': {
+    title: 'STYLE-01: 장애 공지문 (v0.5 특성)',
+    summary: '동일한 장애 사실 카드를 사용자 대상 상태 페이지 공지문으로 변환한다. 격식·정보 순서·사실 보존이 핵심.',
+    source: 'cases/v0.5-character/STYLE-01.md',
+    items: [
+      { label: '사실 보존', desc: '시각 14:02~15:47, 지연 312건, 중복 결제 0, DB 풀 고갈 원인' },
+      { label: '격식체 톤', desc: '상태 페이지에 맞는 간결하고 중립적인 공지 문체' },
+      { label: '정보 순서', desc: '현상 → 영향 → 원인 → 재발 방지 순의 공지문 구조' },
+      { label: '발명 금지', desc: '사실 카드에 없는 수치·보상·사과 표현을 추가하지 않았는가' }
+    ]
+  },
+  'outputs/STYLE-01/apology-email.md': {
+    title: 'STYLE-01: 사과 이메일 (v0.5 특성)',
+    summary: '같은 장애 사실을 영향받은 고객에게 보내는 사과 메일로 변환한다. 공지문과 다른 레지스터가 드러나는지 본다.',
+    source: 'cases/v0.5-character/STYLE-01.md',
+    items: [
+      { label: '사실 보존', desc: '동일 사실 유지 — 312건, 중복 결제 0, 원인·재발 방지' },
+      { label: '고객 레지스터', desc: '공지문보다 부드럽고 직접적인 어조로 전환됐는가' },
+      { label: '안심 정보', desc: '중복 결제 없음·정상 처리 완료를 전면에 배치했는가' },
+      { label: '발명 금지', desc: '없는 보상·경험을 지어내지 않았는가' }
+    ]
+  },
+  'outputs/STYLE-01/exec-summary.md': {
+    title: 'STYLE-01: 경영진 요약 (v0.5 특성)',
+    summary: '같은 장애를 경영진 보고용 사후 요약으로 변환한다. 명사형 종결·건조한 보고 문체가 구현되는지 본다.',
+    source: 'cases/v0.5-character/STYLE-01.md',
+    items: [
+      { label: '사실 보존', desc: '수치와 원인이 카드와 일치하는가' },
+      { label: '보고 문체', desc: '감정 표현 없는 건조한 요약 — 공지문·메일과 구분되는가' },
+      { label: '판단 포함', desc: '재발 방지와 평가가 압축되어 들어갔는가' },
+      { label: '발명 금지', desc: '없는 지표·조치를 추가하지 않았는가' }
+    ]
+  },
   'outputs/SEARCH-01/research.md': {
     title: 'SEARCH-01: 공식 기능 확인 리서치',
     summary: 'Python 3.12 tomllib이 TOML 읽기와 쓰기를 각각 지원하는지, 도입 버전과 파일 모드를 공식 문서에서 확인한다.',
@@ -118,7 +145,7 @@ async function initApp() {
 // Load Catalog with Failover to Embedded Data
 async function loadCatalog() {
   try {
-    const res = await fetch('data/catalog.json?v=20260915-1', { cache: 'no-store' });
+    const res = await fetch('data/catalog.json?v=20260922-1', { cache: 'no-store' });
     if (res.ok) {
       state.catalog = await res.json();
       console.log('Loaded catalog.json successfully:', state.catalog);
@@ -286,8 +313,12 @@ function renderLeaderboard() {
           </div>
         </td>
         <td class="py-4 px-4 text-center">
-          <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 font-bold">
-            ${m.totalTasks} / ${m.totalTasks} Submitted
+          <span class="px-2.5 py-1 rounded-full ${m.complete === false
+            ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+            : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'} font-bold">
+            ${m.complete === false
+              ? `${m.deliveredCount ?? m.totalTasks} / ${m.expectedTasks ?? m.totalTasks} 부분 제출`
+              : `${m.submittedCount ?? m.totalTasks} / ${m.expectedTasks ?? m.totalTasks} Submitted`}
           </span>
         </td>
         <td class="py-4 px-4 font-mono text-slate-600 dark:text-slate-300">
@@ -317,17 +348,22 @@ function renderArenaOptions() {
   const selectB = document.getElementById('model-b-select');
   if (!selectA || !selectB) return;
 
-  const options = state.catalog.models.map(m => {
+  // 완료된 실행만 비교 대상으로 노출한다 (부분 응시·중단 실행 제외).
+  const completeModels = state.catalog.models.filter(m => m.complete !== false);
+  const options = completeModels.map(m => {
     const val = `${m.modelSlug}/${m.runId}`;
-    return `<option value="${val}">${m.modelSlug} (${m.runId.slice(-4)})</option>`;
+    const hint = String(m.suiteVersion || '').startsWith('v0.5')
+      ? ' · 특성 전용'
+      : (m.complete === false ? ' · 부분 응시' : '');
+    return `<option value="${val}">${m.modelSlug} (${m.runId.slice(-4)}${hint})</option>`;
   }).join('');
 
   selectA.innerHTML = options;
   selectB.innerHTML = options;
 
   selectA.value = state.arena.modelA;
-  if (state.catalog.models[1]) {
-    selectB.value = `${state.catalog.models[1].modelSlug}/${state.catalog.models[1].runId}`;
+  if (completeModels[1]) {
+    selectB.value = `${completeModels[1].modelSlug}/${completeModels[1].runId}`;
     state.arena.modelB = selectB.value;
   }
 }
@@ -350,9 +386,25 @@ async function updateArena() {
   const extA = document.getElementById('model-a-external');
   const extB = document.getElementById('model-b-external');
 
+  // 선택한 실행에 해당 과제 파일이 없으면 404 iframe 대신 안내를 표시한다.
+  const runHasFile = (runRef) => {
+    const [slug, runId] = (runRef || '').split('/');
+    const match = (state.arena.task || '').match(/^outputs\/([^/]+)\/(.+)$/);
+    const run = state.catalog?.models?.find(m => m.modelSlug === slug && m.runId === runId);
+    return Boolean(run?.tasks?.[match?.[1]]?.files?.includes(match?.[2]));
+  };
+  const hasA = runHasFile(state.arena.modelA);
+  const hasB = runHasFile(state.arena.modelB);
+
   const isMarkdown = state.arena.task.endsWith('.md');
-  const renderFrame = (iframe, sourcePath) => {
+  const renderFrame = (iframe, sourcePath, available = true) => {
     if (!iframe) return;
+    if (!available) {
+      iframe.removeAttribute('sandbox');
+      iframe.srcdoc = '<div style="display:flex;align-items:center;justify-content:center;height:100%;font:13px/1.5 system-ui,sans-serif;color:#94a3b8;text-align:center;padding:2rem;box-sizing:border-box">이 실행에는 해당 과제 산출물이 없습니다</div>';
+      return;
+    }
+    iframe.removeAttribute('srcdoc');
     if (!isMarkdown) {
       iframe.removeAttribute('sandbox');
       iframe.src = sourcePath;
@@ -362,13 +414,13 @@ async function updateArena() {
     iframe.src = `markdown-viewer.html?source=${encodeURIComponent(sourcePath)}`;
   };
 
-  if (extA) extA.href = pathA;
-  if (extB) extB.href = pathB;
+  if (extA) { extA.href = hasA ? pathA : '#'; extA.classList.toggle('opacity-40', !hasA); extA.classList.toggle('pointer-events-none', !hasA); }
+  if (extB) { extB.href = hasB ? pathB : '#'; extB.classList.toggle('opacity-40', !hasB); extB.classList.toggle('pointer-events-none', !hasB); }
 
   // Update Spec Checklist
   renderSpecChecklist(state.arena.task);
-  renderFrame(iframeA, pathA);
-  renderFrame(iframeB, pathB);
+  renderFrame(iframeA, pathA, hasA);
+  renderFrame(iframeB, pathB, hasB);
 }
 
 function renderSpecChecklist(taskPath) {
@@ -416,9 +468,6 @@ function openInspectorItem(model, runId, relativePath, type, title) {
 }
 
 function renderInspector() {
-  const { model, runId, file, type, title } = state.inspector;
-  const fullPath = `runs/${model}/${runId}/${file}`;
-
   const titleEl = document.getElementById('ws-title');
   const pathEl = document.getElementById('ws-path');
   const newtabBtn = document.getElementById('ws-newtab-btn');
@@ -430,9 +479,39 @@ function renderInspector() {
   const noteTitle = document.getElementById('ws-md-note-title');
   const noteDescription = document.getElementById('ws-md-note-description');
 
+  // 아무 산출물도 선택하지 않은 초기 상태 — 특정 실행을 기본값으로 열지 않는다.
+  if (!state.inspector) {
+    if (titleEl) titleEl.innerText = '산출물을 선택하세요';
+    if (pathEl) pathEl.innerText = '왼쪽 실행 목록에서 과제를 고르면 내용이 표시됩니다';
+    if (newtabBtn) {
+      newtabBtn.removeAttribute('href');
+      newtabBtn.classList.add('opacity-40', 'pointer-events-none');
+    }
+    if (typeBadge) typeBadge.classList.add('hidden');
+    if (artifactSwitcher) artifactSwitcher.classList.add('hidden');
+    if (taskBrief) taskBrief.classList.add('hidden');
+    if (frame) { frame.classList.add('hidden'); frame.removeAttribute('src'); }
+    if (mdView) {
+      mdView.classList.remove('hidden');
+      const contentEl = document.getElementById('ws-md-content');
+      if (contentEl) {
+        contentEl.innerHTML = '<div class="p-8 text-center text-sm text-slate-400 dark:text-slate-500">선택된 산출물이 없습니다.<br>왼쪽 실행 목록에서 과제를 선택하세요.</div>';
+      }
+    }
+    if (noteTitle) noteTitle.innerText = '산출물 미리보기';
+    if (noteDescription) noteDescription.innerText = '실행 목록에서 과제를 선택하면 해당 파일이 표시됩니다.';
+    return;
+  }
+
+  const { model, runId, file, type, title } = state.inspector;
+  const fullPath = `runs/${model}/${runId}/${file}`;
+
   if (titleEl) titleEl.innerText = `${title} (${model})`;
   if (pathEl) pathEl.innerText = fullPath;
-  if (newtabBtn) newtabBtn.href = fullPath;
+  if (newtabBtn) {
+    newtabBtn.href = fullPath;
+    newtabBtn.classList.remove('opacity-40', 'pointer-events-none');
+  }
 
   const taskMatch = file.match(/^outputs\/([^/]+)\//);
   const taskId = taskMatch?.[1];
@@ -448,9 +527,33 @@ function renderInspector() {
     'SEARCH-03': ['research.md', 'RESEARCH', '리서치'],
     'WRITE-01': ['article.md', 'ARTICLE', '본문'],
     'WRITE-02': ['edited.md', 'RUNBOOK', '런북'],
-    'THINK-01': ['summary.md', 'MEMO', '메모']
+    'THINK-01': ['summary.md', 'MEMO', '메모'],
+    'BUILD-01': ['server.mjs', 'CODE', '서버 코드'],
+    'STYLE-01': ['status-page.md', 'ARTICLE', '공지문'],
+    'AMBIG-01': ['assumptions.md', 'ASSUME', '판단 근거'],
+    'AMBIG-02': ['assumptions.md', 'ASSUME', '판단 근거'],
+    'AMBIG-03': ['assumptions.md', 'ASSUME', '판단 근거'],
+    'LOOP-01': ['answers-r1.json', 'DATA', '1회차 답안'],
+    'TRAP-01': ['report.md', 'REPORT', '정리 문서'],
+    'TRAP-02': ['guide.md', 'GUIDE', '설치 안내'],
+    'TRAP-03': ['answer.md', 'ANSWER', '요약'],
+    'TRAP-04': ['report.md', 'REPORT', '판단 보고서']
   };
   const primary = primaryByTask[taskId];
+  // 과제별로 보여줄 산출물이 여러 개인 경우 스위처에 전부 나열한다.
+  const extraArtifacts = {
+    'STYLE-01': [
+      ['status-page.md', 'ARTICLE', '공지문'],
+      ['apology-email.md', 'ARTICLE', '사과 메일'],
+      ['exec-summary.md', 'ARTICLE', '경영진 요약']
+    ],
+    'LOOP-01': [
+      [`outputs/${taskId}/__loop-compare__`, 'LOOP', '항목별 비교'],
+      ['answers-r1.json', 'DATA', '1회차 답안'],
+      ['answers-r2.json', 'DATA', '2회차 답안'],
+      ['answers-r3.json', 'DATA', '3회차 답안']
+    ]
+  };
   const taskMeta = state.catalog?.taskMeta?.[taskId] ||
     state.catalog?.models?.find(item => item.modelSlug === model && item.runId === runId)?.tasks?.[taskId]?.meta;
   if (taskBrief) {
@@ -459,15 +562,18 @@ function renderInspector() {
   }
   if (artifactSwitcher) {
     artifactSwitcher.replaceChildren();
-    artifactSwitcher.classList.toggle('hidden', !primary);
-    artifactSwitcher.classList.toggle('flex', Boolean(primary));
-    if (primary) {
+    const artifactChoices = extraArtifacts[taskId] || (primary ? [primary] : null);
+    artifactSwitcher.classList.toggle('hidden', !artifactChoices);
+    artifactSwitcher.classList.toggle('flex', Boolean(artifactChoices));
+    if (artifactChoices) {
       const choices = [
-        { file: primary[0], type: primary[1], label: primary[2] },
+        ...artifactChoices.map(([f, t, l]) => ({ file: f, type: t, label: l })),
         { file: 'RESULT.md', type: 'MD', label: '수행 결과' }
       ];
       choices.forEach((choice) => {
-        const choicePath = `outputs/${taskId}/${choice.file}`;
+        const choicePath = choice.file.startsWith('outputs/')
+          ? choice.file
+          : `outputs/${taskId}/${choice.file}`;
         const button = document.createElement('button');
         button.type = 'button';
         button.textContent = choice.label;
@@ -501,7 +607,13 @@ function renderInspector() {
         ARTICLE: 'ARTICLE MD',
         RUNBOOK: 'RUNBOOK MD',
         MEMO: 'MEMO MD',
-        MD: 'REPORT MD'
+        ASSUME: 'ASSUMPTIONS MD',
+        REPORT: 'REPORT MD',
+        GUIDE: 'GUIDE MD',
+        MD: 'REPORT MD',
+        CODE: 'SOURCE CODE',
+        DATA: 'DATA',
+        LOOP: 'LOOP-01 비교'
       };
       typeBadge.innerText = markdownLabels[type] || 'DOCUMENT MD';
       typeBadge.className = 'px-2 py-0.5 rounded bg-slate-200 text-slate-800 font-bold text-[10px]';
@@ -510,6 +622,9 @@ function renderInspector() {
       if (type === 'MD') {
         noteTitle.innerText = '수행 결과 보고서';
         noteDescription.innerText = '제출자가 기록한 수행 과정과 산출물 요약입니다. 실제 답안 및 최종 채점 결과와 구분해서 읽어주세요.';
+      } else if (type === 'LOOP') {
+        noteTitle.innerText = 'LOOP-01 항목별 답안 비교';
+        noteDescription.innerText = '같은 10문항에 대한 3회 응시 답안을 나란히 비교합니다. 회차 간 답이 다른 문항은 강조 표시됩니다.';
       } else {
         noteTitle.innerText = '응시자 원문 산출물';
         noteDescription.innerText = '해당 과제에서 응시자가 작성한 실제 답안입니다. 상단 선택기에서 수행 결과 보고서로 전환할 수 있습니다.';
@@ -518,9 +633,102 @@ function renderInspector() {
     if (frame) frame.classList.add('hidden');
     if (mdView) {
       mdView.classList.remove('hidden');
-      loadMarkdownContent(fullPath);
+      if (type === 'LOOP') loadLoopComparison(model, runId);
+      else if (type === 'CODE' || type === 'DATA') loadRawContent(fullPath);
+      else loadMarkdownContent(fullPath);
     }
   }
+}
+
+async function loadLoopComparison(model, runId) {
+  const contentEl = document.getElementById('ws-md-content');
+  if (!contentEl) return;
+  contentEl.innerHTML = '<div class="text-slate-400 italic">3회 답안을 불러오는 중...</div>';
+  const base = `runs/${model}/${runId}/outputs/LOOP-01`;
+  const files = ['answers-r1.json', 'answers-r2.json', 'answers-r3.json'];
+  const sets = await Promise.all(files.map(f =>
+    fetch(`${base}/${f}`).then(r => (r.ok ? r.json() : null)).catch(() => null)
+  ));
+
+  const byItem = {};
+  sets.forEach((set, i) => {
+    (Array.isArray(set) ? set : []).forEach((a) => {
+      const id = a?.item || a?.id;
+      if (!id) return;
+      (byItem[id] ||= [null, null, null])[i] = a;
+    });
+  });
+  const ids = Object.keys(byItem).sort((a, b) =>
+    a.localeCompare(b, undefined, { numeric: true }));
+
+  if (!ids.length) {
+    contentEl.innerHTML = '<div class="p-4 text-xs text-slate-500">answers-r*.json을 읽지 못했습니다.</div>';
+    return;
+  }
+
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const cell = (a) => {
+    if (!a) return '<td class="px-2 py-1.5 text-slate-300">—</td>';
+    const conf = Number.isFinite(a.confidence) ? a.confidence : null;
+    return `<td class="px-2 py-1.5 align-top" title="${esc(a.reason)}">
+      <div class="font-semibold text-slate-800 dark:text-slate-100">${esc(a.choice)}</div>
+      ${conf != null ? `<div class="text-[10px] text-slate-400 mt-0.5">확신도 ${conf}</div>` : ''}
+    </td>`;
+  };
+
+  const rows = ids.map((id) => {
+    const answers = byItem[id];
+    const choices = answers.map(a => a?.choice).filter(Boolean);
+    const flipped = new Set(choices).size > 1;
+    return `<tr class="border-t border-slate-100 dark:border-slate-800 ${flipped ? 'bg-amber-50/60 dark:bg-amber-950/20' : ''}">
+      <td class="px-2 py-1.5 font-mono font-bold ${flipped ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500'}">${esc(id)}${flipped ? ' ↕' : ''}</td>
+      ${answers.map(cell).join('')}
+    </tr>`;
+  }).join('');
+
+  const flippedCount = ids.filter(id =>
+    new Set(byItem[id].map(a => a?.choice).filter(Boolean)).size > 1).length;
+
+  contentEl.innerHTML = `
+    <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
+      ${ids.length}문항 · 뒤집힌 문항 <strong class="text-amber-600 dark:text-amber-400">${flippedCount}개</strong>
+      <span class="text-slate-400">(셀에 마우스를 올리면 응시자가 적은 이유를 볼 수 있습니다)</span>
+    </div>
+    <div class="text-[10px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-lg px-2.5 py-1.5 mb-2">
+      현재 실행들은 3회 응시가 같은 대화에서 연속 수행되어 회차 간 기억 격리가 불완전할 수 있습니다. 뒤집힘 수치는 하한으로 해석하세요(독립 세션 재측정 시 더 커질 수 있음).
+    </div>
+    <table class="w-full text-left text-xs border-collapse">
+      <thead><tr class="text-[10px] uppercase tracking-wider text-slate-400 border-b border-slate-200 dark:border-slate-700">
+        <th class="px-2 py-1.5 w-10">항목</th><th class="px-2 py-1.5">1회차</th><th class="px-2 py-1.5">2회차</th><th class="px-2 py-1.5">3회차</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+async function loadRawContent(fullPath) {
+  const contentEl = document.getElementById('ws-md-content');
+  if (!contentEl) return;
+  contentEl.innerHTML = '<div class="text-slate-400 italic">내용을 불러오는 중...</div>';
+  try {
+    const res = await fetch(fullPath);
+    if (res.ok) {
+      const text = await res.text();
+      const pre = document.createElement('pre');
+      pre.className = 'text-xs font-mono whitespace-pre-wrap break-all p-3 bg-slate-50 dark:bg-slate-900 rounded-lg';
+      pre.textContent = text;
+      contentEl.replaceChildren(pre);
+      return;
+    }
+  } catch (e) {
+    // Local CORS fall-through
+  }
+  contentEl.innerHTML = `
+    <div class="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs">
+      <strong>[로컬 파일 안내]</strong><br>
+      file:// 프로토콜에서는 직접 fetch가 차단될 수 있습니다. 상단의 새 창 열기 버튼을 사용하세요.
+    </div>
+  `;
 }
 
 async function loadMarkdownContent(fullPath) {

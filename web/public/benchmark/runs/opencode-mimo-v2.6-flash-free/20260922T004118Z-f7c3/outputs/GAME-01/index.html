@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leneu Tetris — 보관(Hold) 기능 포함</title>
+<style>
+  :root{--bg:#12151d;--panel:#1b2030;--line:#2a3147;--ink:#e8ecf6;--muted:#9aa4bd;--accent:#5b7cfa;--ok:#39c07f;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;}
+  h1{font-size:22px;margin:22px 0 4px;}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 16px;text-align:center;}
+  .layout{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;justify-content:center;padding:0 16px 32px;}
+  canvas{background:#0c0f16;border:2px solid var(--line);border-radius:8px;display:block;}
+  .side{display:flex;flex-direction:column;gap:12px;width:190px;}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;}
+  .box h2{font-size:13px;margin:0 0 8px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;}
+  .box .value{font-size:26px;font-weight:800;}
+  .mini{display:flex;gap:12px;}
+  .mini .box{flex:1;text-align:center;}
+  .mini canvas{background:#0c0f16;border:1px solid var(--line);border-radius:6px;margin:0 auto;}
+  .holdUsed{color:var(--muted);font-size:12px;}
+  .btns{display:flex;flex-wrap:wrap;gap:8px;}
+  button{background:var(--accent);border:0;color:#fff;font-weight:700;font-size:13px;padding:9px 12px;border-radius:8px;cursor:pointer;}
+  button.secondary{background:#2a3147;}
+  button:active{filter:brightness(1.1);}
+  .keys{font-size:12.5px;color:var(--muted);line-height:1.7;}
+  .keys b{color:var(--ink);}
+  .overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(12,15,22,.86);border-radius:8px;text-align:center;}
+  .overlay.show{display:flex;}
+  .overlay h3{font-size:26px;margin:0 0 8px;}
+  .overlay p{color:var(--muted);margin:0 0 16px;font-size:14px;}
+  .stage{position:relative;}
+  .status{font-size:13px;color:var(--ok);height:18px;margin-top:6px;text-align:center;}
+</style>
+</head>
+<body>
+<h1>Leneu Tetris</h1>
+<p class="sub">10×20 · Hold(C / Shift) · 외부 의존성 없음 — 합성 설정의 데모 게임</p>
+<div class="layout">
+  <div class="stage">
+    <canvas id="board" width="300" height="600" aria-label="테트리스 보드"></canvas>
+    <div class="overlay" id="overlay"><h3 id="overlayTitle">GAME OVER</h3><p id="overlayMsg"></p><button id="overlayRestart">재시작 (R)</button></div>
+  </div>
+  <div class="side">
+    <div class="mini">
+      <div class="box"><h2>Hold</h2><canvas id="holdC" width="72" height="72"></canvas><div class="holdUsed" id="holdState">사용 가능</div></div>
+      <div class="box"><h2>Next</h2><canvas id="nextC" width="72" height="72"></canvas></div>
+    </div>
+    <div class="box"><h2>Score</h2><div class="value" id="score">0</div></div>
+    <div class="box"><h2>Lines / Level</h2><div class="value" id="lines">0 / 1</div></div>
+    <div class="btns">
+      <button id="btnPause" class="secondary">일시정지 (P)</button>
+      <button id="btnRestart" class="secondary">재시작 (R)</button>
+      <button id="btnHold">Hold (C/Shift)</button>
+    </div>
+    <div class="box keys">
+      <b>이동</b> ← → &nbsp; <b>회전</b> ↑ / X &nbsp; <b>소프트</b> ↓<br>
+      <b>하드 드롭</b> Space &nbsp; <b>Hold</b> C 또는 Shift<br>
+      <b>일시정지</b> P &nbsp; <b>재시작</b> R<br>
+      Hold는 조각이 고정될 때까지 1회만. 일시정지·게임오버 중 Hold 불가.
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var COLS = 10, ROWS = 20, CELL = 30;
+  var SHAPES = {
+    I:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+    J:[[1,0,0],[1,1,1],[0,0,0]],
+    L:[[0,0,1],[1,1,1],[0,0,0]],
+    O:[[1,1],[1,1]],
+    S:[[0,1,1],[1,1,0],[0,0,0]],
+    T:[[0,1,0],[1,1,1],[0,0,0]],
+    Z:[[1,1,0],[0,1,1],[0,0,0]]
+  };
+  var COLORS = {I:"#39c0fb",J:"#5b7cfa",L:"#f2a33c",O:"#f2d43c",S:"#39c07f",T:"#b06cf2",Z:"#f25c5c"};
+  var LINE_SCORE = [0,100,300,500,800];
+
+  var board, current, nextPiece, holdSlot, holdUsed, score, lines, paused, gameOver, dropTimer, lastTs, bag, running;
+
+  function emptyBoard(){ var b=[]; for(var y=0;y<ROWS;y++){ b.push(new Array(COLS).fill(0)); } return b; }
+  function cloneMatrix(m){ return m.map(function(r){ return r.slice(); }); }
+  function refillBag(){
+    var names = ["I","J","L","O","S","T","Z"];
+    for (var i = names.length - 1; i > 0; i--){ var j = Math.floor(Math.random()*(i+1)); var t=names[i]; names[i]=names[j]; names[j]=t; }
+    bag = bag.concat(names);
+  }
+  function takeFromBag(){ if (bag.length === 0) refillBag(); return bag.shift(); }
+  function makePiece(name){
+    var m = cloneMatrix(SHAPES[name]);
+    return { name:name, matrix:m, x: Math.floor((COLS - m.length)/2), y: 0 };
+  }
+  function collides(m, px, py){
+    for (var y=0;y<m.length;y++){
+      for (var x=0;x<m[y].length;x++){
+        if (!m[y][x]) continue;
+        var cx = px + x, cy = py + y;
+        if (cx < 0 || cx >= COLS || cy >= ROWS) return true;
+        if (cy >= 0 && board[cy][cx]) return true;
+      }
+    }
+    return false;
+  }
+  function spawnCollision(m, px, py){ return collides(m, px, py); }
+  function rotateCW(m){
+    var n = m.length, out = [];
+    for (var y=0;y<n;y++){ out.push(new Array(n).fill(0)); }
+    for (var y2=0;y2<n;y2++) for (var x2=0;x2<n;x2++) out[y2][x2] = m[n-1-x2][y2];
+    return out;
+  }
+  function intervalForLevel(){ return Math.max(120, 800 - (levelOf(lines) - 1) * 70); }
+  function levelOf(l){ return Math.floor(l/10) + 1; }
+
+  function reset(){
+    board = emptyBoard();
+    bag = [];
+    holdSlot = null;
+    holdUsed = false;
+    score = 0; lines = 0;
+    paused = false; gameOver = false;
+    dropTimer = 0; lastTs = 0;
+    nextPiece = makePiece(takeFromBag());
+    spawnNext();
+    running = true;
+    hideOverlay();
+    updateHud();
+    draw();
+  }
+  function spawnNext(){
+    current = nextPiece;
+    nextPiece = makePiece(takeFromBag());
+    holdUsed = false; // 조각이 새로 생성(고정)됐으므로 Hold 재사용 가능
+    if (spawnCollision(current.matrix, current.x, current.y)){
+      gameOver = true;
+      showOverlay("GAME OVER", "생성 위치 충돌");
+    }
+    updateHud();
+  }
+  function move(dx){
+    if (paused || gameOver) return false;
+    if (!collides(current.matrix, current.x + dx, current.y)){ current.x += dx; draw(); return true; }
+    return false;
+  }
+  function softDrop(){
+    if (paused || gameOver) return;
+    if (!collides(current.matrix, current.x, current.y + 1)){ current.y++; }
+    else lockPiece();
+    draw();
+  }
+  function hardDrop(){
+    if (paused || gameOver) return;
+    while (!collides(current.matrix, current.x, current.y + 1)) current.y++;
+    lockPiece();
+    draw();
+  }
+  function rotate(){
+    if (paused || gameOver) return;
+    var m = rotateCW(current.matrix);
+    if (!collides(m, current.x, current.y)){ current.matrix = m; draw(); }
+    // 충돌 시 회전 취소 (벽차기 없음)
+  }
+  function hold(){
+    if (paused || gameOver) return;           // 일시정지·게임오버 중 Hold 금지
+    if (holdUsed) return;                     // 고정 전 1회 제한
+    var status = document.getElementById("status");
+    if (!holdSlot){
+      holdSlot = { name: current.name };
+      current = nextPiece;
+      nextPiece = makePiece(takeFromBag());
+      status.textContent = "Hold: 빈 슬롯에 보관";
+    } else {
+      var tmp = holdSlot;
+      holdSlot = { name: current.name };
+      current = makePiece(tmp.name);           // 교환: 현재 조각↔보관 조각, 대기열(next)은 유지
+      // nextPiece 무변경
+    }
+    // 보관에서 나온 조각은 기본 회전·생성 위치
+    if (spawnCollision(current.matrix, current.x, current.y)){
+      gameOver = true;
+      showOverlay("GAME OVER", "Hold 후 생성 위치 충돌");
+    }
+    holdUsed = true;
+    status.textContent = "Hold 사용 — 조각 고정 전 재사용 불가";
+    updateHud();
+    draw();
+  }
+  function lockPiece(){
+    var m = current.matrix;
+    for (var y=0;y<m.length;y++) for (var x=0;x<m[y].length;x++){
+      if (!m[y][x]) continue;
+      var cy = current.y + y, cx = current.x + x;
+      if (cy < 0){ gameOver = true; showOverlay("GAME OVER", "블록이 보드 위로 넘어감"); return; }
+      board[cy][cx] = current.name;
+    }
+    clearLines();
+    spawnNext();
+  }
+  function clearLines(){
+    var cleared = 0;
+    for (var y = ROWS - 1; y >= 0; y--){
+      var full = true;
+      for (var x=0;x<COLS;x++){ if (!board[y][x]) { full = false; break; } }
+      if (full){
+        board.splice(y,1);
+        board.unshift(new Array(COLS).fill(0));
+        cleared++;
+        y++; // 같은 인덱스 재검사
+      }
+    }
+    if (cleared > 0){
+      lines += cleared;
+      score += LINE_SCORE[cleared]; // 낙하 점수 없음
+    }
+    updateHud();
+  }
+  function togglePause(){
+    if (gameOver) return;
+    paused = !paused;
+    document.getElementById("btnPause").textContent = paused ? "계속 (P)" : "일시정지 (P)";
+    if (paused) showOverlay("PAUSED", "P 또는 버튼으로 계속"); else hideOverlay();
+    updateHud();
+  }
+  function showOverlay(title,msg){
+    document.getElementById("overlayTitle").textContent = title;
+    document.getElementById("overlayMsg").textContent = msg;
+    document.getElementById("overlay").classList.add("show");
+  }
+  function hideOverlay(){ document.getElementById("overlay").classList.remove("show"); }
+  function updateHud(){
+    document.getElementById("score").textContent = String(score);
+    document.getElementById("lines").textContent = lines + " / " + levelOf(lines);
+    document.getElementById("holdState").textContent = holdUsed ? "사용됨 (고정 전)" : "사용 가능";
+    drawMini(document.getElementById("holdC"), holdSlot ? SHAPES[holdSlot.name] : null, holdSlot ? COLORS[holdSlot.name] : null);
+    drawMini(document.getElementById("nextC"), SHAPES[nextPiece.name], COLORS[nextPiece.name]);
+  }
+  function drawMini(cv, matrix, color){
+    var ctx = cv.getContext("2d");
+    ctx.clearRect(0,0,cv.width,cv.height);
+    if (!matrix) return;
+    var cell = 16;
+    var offX = (cv.width - matrix[0].length*cell)/2;
+    var offY = (cv.height - matrix.length*cell)/2;
+    for (var y=0;y<matrix.length;y++) for (var x=0;x<matrix[y].length;x++){
+      if (!matrix[y][x]) continue;
+      ctx.fillStyle = color;
+      ctx.fillRect(offX + x*cell + 1, offY + y*cell + 1, cell-2, cell-2);
+    }
+  }
+  function draw(){
+    var cv = document.getElementById("board");
+    var ctx = cv.getContext("2d");
+    ctx.fillStyle = "#0c0f16";
+    ctx.fillRect(0,0,cv.width,cv.height);
+    ctx.strokeStyle = "#1a1f2e";
+    for (var x=0;x<=COLS;x++){ ctx.beginPath(); ctx.moveTo(x*CELL,0); ctx.lineTo(x*CELL,ROWS*CELL); ctx.stroke(); }
+    for (var y=0;y<=ROWS;y++){ ctx.beginPath(); ctx.moveTo(0,y*CELL); ctx.lineTo(COLS*CELL,y*CELL); ctx.stroke(); }
+    for (var y2=0;y2<ROWS;y2++) for (var x2=0;x2<COLS;x2++){
+      if (board[y2][x2]){ ctx.fillStyle = COLORS[board[y2][x2]]; ctx.fillRect(x2*CELL+1,y2*CELL+1,CELL-2,CELL-2); }
+    }
+    if (current && !gameOver){
+      var m = current.matrix;
+      for (var my=0;my<m.length;my++) for (var mx=0;mx<m[my].length;mx++){
+        if (!m[my][mx]) continue;
+        var cy = current.y + my, cx = current.x + mx;
+        if (cy < 0) continue;
+        ctx.fillStyle = COLORS[current.name];
+        ctx.globalAlpha = paused ? 0.4 : 1;
+        ctx.fillRect(cx*CELL+1, cy*CELL+1, CELL-2, CELL-2);
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
+  function loop(ts){
+    if (!running) return;
+    if (!paused && !gameOver){
+      if (!lastTs) lastTs = ts;
+      dropTimer += ts - lastTs;
+      lastTs = ts;
+      if (dropTimer >= intervalForLevel()){
+        dropTimer = 0;
+        if (!collides(current.matrix, current.x, current.y + 1)) current.y++;
+        else lockPiece();
+        draw();
+      }
+    } else {
+      lastTs = ts;
+    }
+    requestAnimationFrame(loop);
+  }
+
+  // 입력
+  window.addEventListener("keydown", function(e){
+    var k = e.key;
+    if (k === "r" || k === "R"){ e.preventDefault(); reset(); return; }
+    if (gameOver) return;
+    if (k === "p" || k === "P"){ e.preventDefault(); togglePause(); return; }
+    if (paused) return;
+    // 키 연타(repeat)로 Hold/회전 우회 방지
+    if (e.repeat && (k === "c" || k === "C" || k === "Shift" || k === "ArrowUp" || k === "x" || k === "X")) return;
+    switch(k){
+      case "ArrowLeft": e.preventDefault(); move(-1); break;
+      case "ArrowRight": e.preventDefault(); move(1); break;
+      case "ArrowDown": e.preventDefault(); softDrop(); break;
+      case "ArrowUp": case "x": case "X": e.preventDefault(); rotate(); break;
+      case " ": e.preventDefault(); hardDrop(); break;
+      case "c": case "C": case "Shift": e.preventDefault(); hold(); break;
+    }
+  });
+  document.getElementById("btnPause").addEventListener("click", togglePause);
+  document.getElementById("btnRestart").addEventListener("click", reset);
+  document.getElementById("overlayRestart").addEventListener("click", reset);
+  document.getElementById("btnHold").addEventListener("click", hold);
+
+  // 검사 편의용 읽기 전용 상태 + 디버그 API (일반 플레이와 분리 / RESULT.md에 문서화)
+  window.__tetris = {
+    getState: function(){
+      return {
+        board: board.map(function(r){ return r.map(function(c){ return c === 0 ? "." : c; }).join(""); }),
+        current: { name: current.name, x: current.x, y: current.y, rotationSignature: current.matrix.map(function(r){ return r.join(""); }).join("|") },
+        next: nextPiece.name,
+        hold: holdSlot ? holdSlot.name : null,
+        holdUsed: holdUsed,
+        score: score, lines: lines, level: levelOf(lines),
+        paused: paused, gameOver: gameOver,
+        interval: intervalForLevel(),
+        queueLength: bag.length
+      };
+    },
+    debug: {
+      // 아래 함수들은 검증 편의용 상태 주입이며 게임 진행 UI와 분리된다.
+      setBoard: function(rows){ board = rows.map(function(r){ return r.split("").map(function(c){ return c === "." ? 0 : c; }); }); draw(); },
+      setPiece: function(name, x, y){ current = makePiece(name); if (x !== undefined) current.x = x; if (y !== undefined) current.y = y; draw(); },
+      setHold: function(name, used){ holdSlot = name ? {name:name} : null; holdUsed = !!used; updateHud(); },
+      clearLines: function(){ clearLines(); draw(); },
+      lock: function(){ lockPiece(); draw(); },
+      pause: function(v){ paused = !!v; if (paused) showOverlay("PAUSED","디버그 일시정지"); else hideOverlay(); updateHud(); },
+      over: function(v){ gameOver = !!v; if (v) showOverlay("GAME OVER","디버그"); else hideOverlay(); },
+      spawnPiece: function(name){ current = makePiece(name); if (spawnCollision(current.matrix,current.x,current.y)){ gameOver=true; showOverlay("GAME OVER","생성 위치 충돌"); } updateHud(); draw(); },
+      hold: hold
+    }
+  };
+
+  reset();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

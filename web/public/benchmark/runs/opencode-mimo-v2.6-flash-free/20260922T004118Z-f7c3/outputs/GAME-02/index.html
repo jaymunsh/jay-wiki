@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leneu Run — 한 스테이지 플랫포머</title>
+<style>
+  :root{--bg:#10131c;--panel:#1a1f2e;--ink:#e8ecf6;--muted:#9aa4bd;--accent:#5b7cfa;--coin:#f2c94c;--enemy:#f25c5c;--ok:#39c07f;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;}
+  h1{font-size:20px;margin:18px 0 4px;}
+  .hud{display:flex;gap:14px;margin:8px 0 12px;font-size:14px;flex-wrap:wrap;justify-content:center;}
+  .hud .chip{background:var(--panel);border:1px solid #2a3147;border-radius:999px;padding:6px 14px;}
+  .stage{position:relative;}
+  canvas{background:#16324f;border:2px solid #2a3147;border-radius:8px;display:block;max-width:100%;}
+  .overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(10,13,20,.85);border-radius:8px;text-align:center;}
+  .overlay.show{display:flex;}
+  .overlay h2{font-size:34px;margin:0 0 8px;}
+  .overlay p{margin:0 0 16px;color:var(--muted);font-size:14px;}
+  .overlay button{background:var(--accent);border:0;color:#fff;font-weight:700;font-size:15px;padding:10px 20px;border-radius:10px;cursor:pointer;}
+  .keys{font-size:13px;color:var(--muted);margin:12px 0 26px;text-align:center;line-height:1.7;}
+  .keys b{color:var(--ink);}
+</style>
+</head>
+<body>
+<h1>Leneu Run — Stage 1</h1>
+<div class="hud">
+  <span class="chip">코인 <b id="coins">0</b> / 3</span>
+  <span class="chip">시간 <b id="time">0.0</b>s</span>
+  <span class="chip" id="stateChip">진행 중</span>
+  <span class="chip">X <b id="px">80</b></span>
+</div>
+<div class="stage">
+  <canvas id="game" width="960" height="600" aria-label="플랫폼 게임 화면"></canvas>
+  <div class="overlay" id="overlay"><h2 id="ovTitle">CLEAR!</h2><p id="ovMsg"></p><button id="ovBtn">다시 시작 (R)</button></div>
+</div>
+<p class="keys"><b>← →</b> 이동 · <b>Space / ↑</b> 점프(지면에서만) · <b>R</b> 재시작<br>
+적을 위에서 밟으면 제거·튕어 오름, 옆 충돌과 낭떠러지 추락은 실패. 도착점 x=2310.</p>
+
+<script>
+(function(){
+  "use strict";
+  // ---- 월드 정의 (문제 고정값) ----
+  var WORLD_W = 2400, WORLD_H = 600, VIEW_W = 960, VIEW_H = 600;
+  var GROUND_TOP = 520;
+  var GROUNDS = [[0,650],[780,1500],[1640,2400]];
+  var PLATFORMS = [[350,410,160,20],[1100,400,180,20],[1800,380,180,20]]; // x,y,w,h
+  var COINS = [[420,370],[1170,360],[1860,340]];      // 중심 좌표
+  var COIN_R = 11;
+  var ENEMY_SPAWNS = [{x0:900,x1:1040},{x0:2000,x1:2180}]; // 지면 왕복 x 범위
+  var ENEMY_W = 30, ENEMY_H = 28;
+  var PLAYER_W = 32, PLAYER_H = 44, START_X = 80, START_Y = 476; // 좌상단
+  var GOAL_X = 2310;
+
+  // ---- 물리 상수 (완주 가능하도록 선택, RESULT.md에 기록) ----
+  var GRAVITY = 2000;      // px/s^2
+  var MOVE_VX = 260;       // px/s
+  var JUMP_VY = -750;      // px/s → 상승 한계 약 140.6px, 체공 0.75s, 수평 이동 가능거리 약 195px
+  var STOMP_BOUNCE = -500; // px/s
+  var ENEMY_VX = 60;       // px/s
+  var MAX_FALL = 1200;
+
+  var canvas = document.getElementById("game");
+  var ctx = canvas.getContext("2d");
+  var player, enemies, coins, camX, elapsed, state, lastTs, acc, keys;
+
+  function reset(){
+    player = { x:START_X, y:START_Y, vx:0, vy:0, grounded:true };
+    enemies = ENEMY_SPAWNS.map(function(s){ return { x:s.x0, dir:1, alive:true, x0:s.x0, x1:s.x1 }; });
+    coins = COINS.map(function(c){ return { x:c[0], y:c[1], got:false }; });
+    camX = 0; elapsed = 0; state = "playing"; // playing | failed | cleared
+    lastTs = 0; acc = 0; keys = {};
+    hideOverlay();
+    updateHud();
+    draw();
+  }
+
+  function solids(){
+    // 지면 세그먼트 + 플랫폼을 AABB로 취급
+    var list = [];
+    GROUNDS.forEach(function(g){ list.push({x:g[0], y:GROUND_TOP, w:g[1]-g[0], h:WORLD_H-GROUND_TOP, kind:"ground"}); });
+    PLATFORMS.forEach(function(p){ list.push({x:p[0], y:p[1], w:p[2], h:p[3], kind:"platform"}); });
+    return list;
+  }
+
+  function overlap(a,b){
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function step(dt){
+    if (state !== "playing") return;
+    elapsed += dt;
+
+    // 입력 → 수평 이동
+    player.vx = 0;
+    if (keys.left) player.vx = -MOVE_VX;
+    if (keys.right) player.vx = MOVE_VX;
+
+    // 중력
+    player.vy = Math.min(player.vy + GRAVITY * dt, MAX_FALL);
+
+    // 수평 이동 + 충돌 해소 (지면 세그먼트 측면은 막지 않음 — 낭떠러지 추락 허용)
+    player.x += player.vx * dt;
+    if (player.x < 0) player.x = 0;
+    if (player.x + PLAYER_W > WORLD_W) player.x = WORLD_W - PLAYER_W;
+    solids().forEach(function(s){
+      if (s.kind === "ground") return;
+      var box = {x:s.x, y:s.y, w:s.w, h:s.h};
+      var pbox = {x:player.x, y:player.y, w:PLAYER_W, h:PLAYER_H};
+      if (overlap(pbox, box)){
+        if (player.vx > 0) player.x = s.x - PLAYER_W;
+        else if (player.vx < 0) player.x = s.x + s.w;
+      }
+    });
+
+    // 수직 이동 + 충돌 해소 (윗면 착지 / 아랫면 헤드버그)
+    var prevBottom = player.y + PLAYER_H;
+    player.y += player.vy * dt;
+    player.grounded = false;
+    solids().forEach(function(s){
+      var box = {x:s.x, y:s.y, w:s.w, h:s.h};
+      var pbox = {x:player.x, y:player.y, w:PLAYER_W, h:PLAYER_H};
+      if (overlap(pbox, box)){
+        if (player.vy >= 0 && prevBottom <= s.y + 1){
+          player.y = s.y - PLAYER_H;      // 윗면에 착지
+          player.vy = 0;
+          player.grounded = true;
+        } else if (player.vy < 0){
+          player.y = s.y + s.h;           // 플랫폼 아래(아랫면) 충돌 — 관통 금지
+          player.vy = 0;
+        }
+      }
+    });
+
+    // 낙하 실패 (낭떠러지)
+    if (player.y > WORLD_H){ fail("낭떠러지 추락"); return; }
+
+    // 코인
+    coins.forEach(function(c){
+      if (c.got) return;
+      var nearX = Math.max(player.x, Math.min(c.x, player.x + PLAYER_W));
+      var nearY = Math.max(player.y, Math.min(c.y, player.y + PLAYER_H));
+      var dx = c.x - nearX, dy = c.y - nearY;
+      if (dx*dx + dy*dy <= COIN_R*COIN_R){ c.got = true; }
+    });
+
+    // 적
+    enemies.forEach(function(e){
+      if (!e.alive) return;
+      e.x += ENEMY_VX * e.dir * dt;
+      if (e.x <= e.x0){ e.x = e.x0; e.dir = 1; }
+      if (e.x + ENEMY_W >= e.x1){ e.x = e.x1 - ENEMY_W; e.dir = -1; }
+      var ebox = {x:e.x, y:GROUND_TOP - ENEMY_H, w:ENEMY_W, h:ENEMY_H};
+      var pbox = {x:player.x, y:player.y, w:PLAYER_W, h:PLAYER_H};
+      if (overlap(pbox, ebox)){
+        var fallingOnto = player.vy > 0 && (player.y + PLAYER_H) - ebox.y <= 18;
+        if (fallingOnto){
+          e.alive = false;                 // 밟으면 사라짐
+          player.vy = STOMP_BOUNCE;        // 튀어 오름
+          player.y = ebox.y - PLAYER_H;
+        } else {
+          fail("적과 옆 충돌"); return;
+        }
+      }
+    });
+
+    // 카메라 추적(가로), 월드 경계 클램프 — 도착/실패 판정보다 먼저 갱신해 최종 프레임 반영
+    camX = Math.max(0, Math.min(player.x + PLAYER_W/2 - VIEW_W/2, WORLD_W - VIEW_W));
+
+    if (state !== "playing"){ updateHud(); return; } // 적 충돌 실패 프레임에는 이후 판정 금지
+
+    // 도착
+    if (player.x + PLAYER_W >= GOAL_X){ clear(); return; }
+
+    updateHud();
+  }
+
+  function jump(){
+    if (state !== "playing") return;
+    if (player.grounded){ player.vy = JUMP_VY; player.grounded = false; } // 지면에서만
+  }
+  function fail(reason){
+    state = "failed";
+    showOverlay("FAIL", reason + " — R로 재시작");
+    updateHud();
+  }
+  function clear(){
+    state = "cleared"; // cleared 순간의 elapsed 고정
+    showOverlay("CLEAR!", "완주 시간 " + elapsed.toFixed(1) + "초 — R로 다시 시작");
+    updateHud();
+  }
+  function showOverlay(t,m){
+    document.getElementById("ovTitle").textContent = t;
+    document.getElementById("ovMsg").textContent = m;
+    document.getElementById("overlay").classList.add("show");
+  }
+  function hideOverlay(){ document.getElementById("overlay").classList.remove("show"); }
+  function coinCount(){ return coins.filter(function(c){ return c.got; }).length; }
+  function updateHud(){
+    document.getElementById("coins").textContent = String(coinCount());
+    document.getElementById("time").textContent = elapsed.toFixed(1);
+    document.getElementById("px").textContent = String(Math.round(player.x));
+    document.getElementById("stateChip").textContent =
+      state === "playing" ? "진행 중" : (state === "failed" ? "실패" : "클리어");
+    document.getElementById("stateChip").style.color =
+      state === "cleared" ? "var(--ok)" : (state === "failed" ? "var(--enemy)" : "var(--ink)");
+  }
+
+  function draw(){
+    ctx.fillStyle = "#16324f";
+    ctx.fillRect(0,0,VIEW_W,VIEW_H);
+    ctx.save();
+    ctx.translate(-Math.round(camX), 0);
+
+    // 구름(장식)
+    ctx.fillStyle = "rgba(255,255,255,0.08)";
+    [[150,80],[700,60],[1300,90],[1900,70],[2250,100]].forEach(function(c){
+      ctx.beginPath(); ctx.arc(c[0], c[1], 34, 0, Math.PI*2); ctx.arc(c[0]+40, c[1]+8, 26, 0, Math.PI*2); ctx.fill();
+    });
+
+    // 지면
+    GROUNDS.forEach(function(g){
+      ctx.fillStyle = "#3f8f5f";
+      ctx.fillRect(g[0], GROUND_TOP, g[1]-g[0], 12);
+      ctx.fillStyle = "#2c6b46";
+      ctx.fillRect(g[0], GROUND_TOP+12, g[1]-g[0], WORLD_H-GROUND_TOP-12);
+    });
+
+    // 플랫폼
+    PLATFORMS.forEach(function(p){
+      ctx.fillStyle = "#8b6b45";
+      ctx.fillRect(p[0], p[1], p[2], p[3]);
+      ctx.fillStyle = "#a8845a";
+      ctx.fillRect(p[0], p[1], p[2], 5);
+    });
+
+    // 코인
+    coins.forEach(function(c){
+      if (c.got) return;
+      ctx.fillStyle = "#f2c94c";
+      ctx.beginPath(); ctx.arc(c.x, c.y, COIN_R, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = "#c9a12f"; ctx.lineWidth = 2; ctx.stroke();
+    });
+
+    // 적
+    enemies.forEach(function(e){
+      if (!e.alive) return;
+      ctx.fillStyle = "#f25c5c";
+      ctx.fillRect(e.x, GROUND_TOP - ENEMY_H, ENEMY_W, ENEMY_H);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(e.x + (e.dir > 0 ? ENEMY_W-10 : 4), GROUND_TOP - ENEMY_H + 7, 6, 6);
+    });
+
+    // 도착점
+    ctx.fillStyle = "#39c07f";
+    ctx.fillRect(GOAL_X, GROUND_TOP - 120, 6, 120);
+    ctx.beginPath();
+    ctx.moveTo(GOAL_X+6, GROUND_TOP-120);
+    ctx.lineTo(GOAL_X+6+44, GROUND_TOP-120+14);
+    ctx.lineTo(GOAL_X+6, GROUND_TOP-120+28);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.75)";
+    ctx.font = "14px sans-serif";
+    ctx.fillText("GOAL x=" + GOAL_X, GOAL_X - 24, GROUND_TOP - 130);
+
+    // 플레이어
+    ctx.fillStyle = "#5b7cfa";
+    ctx.fillRect(player.x, player.y, PLAYER_W, PLAYER_H);
+    ctx.fillStyle = "#cfe0ff";
+    ctx.fillRect(player.x + (player.vx >= 0 ? 18 : 6), player.y + 8, 8, 8);
+
+    ctx.restore();
+  }
+
+  function loop(ts){
+    if (!lastTs) lastTs = ts;
+    var dt = Math.min((ts - lastTs)/1000, 0.05);
+    lastTs = ts;
+    if (state === "playing"){ step(dt); }
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener("keydown", function(e){
+    if (e.key === "r" || e.key === "R"){ reset(); return; }
+    if (e.key === "ArrowLeft"){ keys.left = true; e.preventDefault(); }
+    if (e.key === "ArrowRight"){ keys.right = true; e.preventDefault(); }
+    if (e.key === " " || e.key === "ArrowUp"){ if (!e.repeat) jump(); e.preventDefault(); }
+  });
+  window.addEventListener("keyup", function(e){
+    if (e.key === "ArrowLeft") keys.left = false;
+    if (e.key === "ArrowRight") keys.right = false;
+  });
+  document.getElementById("ovBtn").addEventListener("click", reset);
+
+  // 검사 편의 API (일반 플레이와 분리, RESULT.md에 문서화)
+  window.__game = {
+    getState: function(){
+      return {
+        player: {x:player.x, y:player.y, vx:player.vx, vy:player.vy, grounded:player.grounded},
+        coins: coins.map(function(c){ return c.got; }),
+        coinCount: coinCount(),
+        enemies: enemies.map(function(e){ return {x:e.x, alive:e.alive, dir:e.dir}; }),
+        camX: camX,
+        elapsed: elapsed,
+        state: state
+      };
+    },
+    debug: {
+      place: function(x, y, vx, vy){ player.x = x; player.y = y; player.vx = vx||0; player.vy = vy||0; if (vy === undefined) player.vy = 0; draw(); },
+      setVel: function(vx, vy){ player.vx = vx; player.vy = vy; },
+      keys: function(k, v){ keys[k] = v; },
+      reset: reset
+    }
+  };
+
+  reset();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
