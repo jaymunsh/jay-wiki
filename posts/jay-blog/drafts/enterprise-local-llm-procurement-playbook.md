@@ -3,7 +3,7 @@ slug: enterprise-local-llm-procurement-playbook
 category: 리서치
 tags: local-llm,procurement,poc,benchmark,tco,enterprise
 summary: 회사 조건을 요구사항·평가표·견적 요청서·인수 기준으로 바꾸는 실무 가이드. 부하와 업무 효과 측정, 3년 총비용, 공급사 비교, 납품 후 운영까지 작성 예시와 양식을 제공한다.
-syncHash: 3b1a17d53e157c52d917a084ca469360b830896553210a46ff2ff5a8e9e8205c
+syncHash: 596b78fc15f8c28b332ed47b0cce2e9f80771813b61cc756078974bd4052e8e0
 publishedAt: 2026-09-10T06:48:42.425397Z
 
 ---

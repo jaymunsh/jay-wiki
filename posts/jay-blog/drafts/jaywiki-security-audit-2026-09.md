@@ -6,7 +6,7 @@ summary: 터널 뒤에 둔 서비스의 접근 정책·호스트 권한·컨테�
 toc: true
 nextSlug: jaywiki-security-followup-maintenance-2026-09
 publishedAt: 2026-09-06T21:07:38.090472Z
-syncHash: cf6da0b910fd095d4dc8b7ef22acd905ec2da259083600223cc4089374047c35
+syncHash: f7e1f2a5c972f5fe6d9b4bb45702b6f6f9eabb70bf7647aca8e41f60c3e99f7a
 
 ---
 

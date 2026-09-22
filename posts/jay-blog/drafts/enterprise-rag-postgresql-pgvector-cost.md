@@ -3,7 +3,7 @@ slug: enterprise-rag-postgresql-pgvector-cost
 category: 리서치
 tags: rag,postgresql,pgvector,enterprise,search,tco
 summary: 우리 회사에 RAG가 필요한지 판단하고, 업무 활용에서 PostgreSQL·pgvector 구성, 서버 사양과 예산, 검수까지 연결하는 가이드. 사내 챗봇·작성 보조 사례와 예산별 구축 범위를 함께 살펴본다.
-syncHash: a3d97f0bc02d48ee4326d6a03d7ca37ad5c83bd0e3a64accb13c2621662d83ed
+syncHash: d018986d271d6cb7ca067e109f815717bbeb5b12d090f89b5dffbe6abaeeff2c
 publishedAt: 2026-09-10T07:16:09.020854Z
 
 ---
