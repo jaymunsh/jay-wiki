@@ -83,14 +83,14 @@ class BrowserAnalyticsTest {
     }
 
     @Test void baselineOnlyAffectsCumulativeTotals() {
-        jdbc.update("update public.tb_analytics_baseline set through_date=current_date-1, views=8100, visitors=103 where site='wiki'");
+        jdbc.update("update public.tb_analytics_baseline set through_date=date '2026-09-21', views=8100, visitors=103 where site='wiki'");
         service.record(event(id(),"view"),"Mozilla/5.0");
 
         var report=service.report("wiki",7);
         assertThat(report.current()).isEqualTo(new BrowserAnalyticsService.Metrics(1,1,1,0));
         assertThat(report.daily().stream().mapToLong(BrowserAnalyticsService.Day::views).sum()).isEqualTo(1);
         assertThat(report.baseline()).isEqualTo(new BrowserAnalyticsService.Baseline(
-                LocalDate.now(BrowserAnalyticsService.ZONE).minusDays(1),8100,103));
+                LocalDate.of(2026,9,21),8100,103));
         assertThat(report.cumulative()).isEqualTo(new BrowserAnalyticsService.Cumulative(8101,104));
         assertThat(service.publicSummary("wiki").totalViews()).isEqualTo(8101);
         assertThat(service.publicSummary("wiki").totalVisitors()).isEqualTo(104);
