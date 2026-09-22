@@ -206,6 +206,30 @@ export async function BlogRail({
               <span className="n">↗</span>
             </a>
           </li>
+          <li>
+            <a
+              className="blog-cat-row"
+              href="https://github.com/jaymunsh/hold-img"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {/* 앱의 메뉴 막대 아이콘과 같은 모양 — 라운드 프레임 안에 떠 있는 작은 조각 */}
+              <svg
+                className="blog-work-mark blog-work-mark--line"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden
+              >
+                <rect x="3.5" y="4.5" width="17" height="15" rx="3.5" />
+                <rect x="7" y="11.5" width="5.5" height="5.5" rx="1.4" />
+              </svg>
+              <span>HoldImg</span>
+              <span className="n">↗</span>
+            </a>
+          </li>
         </ul>
       </div>
 
