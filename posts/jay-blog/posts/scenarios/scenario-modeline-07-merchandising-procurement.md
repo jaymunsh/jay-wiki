@@ -1,17 +1,13 @@
-title: 시나리오: 이커머스 07 — MD의 시즌 계획이 발주와 재고가 된다
+---
+title: "시나리오: 이커머스 07 — MD의 시즌 계획이 발주와 재고가 된다"
 slug: scenario-modeline-07-merchandising-procurement
 category: 시나리오
-tags: modeline,merchandising,procurement,inventory,harness-engineering
 summary: 시즌 구색과 가격대, 수요 예측, 공급사·발주·입고 차이, 재주문과 장기재고를 하나의 운영 흐름으로 설명한다. MD의 일간부터 연간 업무, 결정 자료, 인계와 KPI를 정리한다.
+tags: harness-engineering,inventory,merchandising,modeline,procurement
 toc: true
-nextSlug: scenario-modeline-08-content-launch
-prevSlug: scenario-modeline-06-platform-operations
-publishedAt: 2026-09-12T14:32:02.083241+09:00
-syncHash: 405a06bfa310b7518d26df14c99a519d16066ea133056ee6275638577f0bff60
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/92 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
 
 > 가상 회사 모드라인의 가을 시즌 준비를 거슬러 올라간다. 수량·회의·자료는 창작이며 실제 발주나 공급 조건이 아니다.
 

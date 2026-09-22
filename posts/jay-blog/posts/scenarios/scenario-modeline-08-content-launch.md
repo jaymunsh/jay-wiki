@@ -1,17 +1,13 @@
-title: 시나리오: 이커머스 08 — 스튜디오와 운영팀이 판매할 상품을 완성한다
+---
+title: "시나리오: 이커머스 08 — 스튜디오와 운영팀이 판매할 상품을 완성한다"
 slug: scenario-modeline-08-content-launch
 category: 시나리오
-tags: modeline,product-content,catalog,harness-engineering,quality-assurance
 summary: 상품 자료·권리 확보부터 촬영·실측·카탈로그·기획전 제작, 판매 설정·승인·정정·종료까지 설명한다. 콘텐츠와 판매운영의 정기 업무, 제작 용량, 인계와 품질 지표를 정리한다.
+tags: catalog,harness-engineering,modeline,product-content,quality-assurance
 toc: true
-nextSlug: scenario-modeline-09-growth-marketing
-prevSlug: scenario-modeline-07-merchandising-procurement
-publishedAt: 2026-09-12T14:32:02.480491+09:00
-syncHash: 84b34690b24fc21be14642cefd2709d51e27a4f8f14b1a2ec9e5e0a2f1f331c2
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/93 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
 
 > 모드라인의 상품 제작·판매 준비를 설명하는 가상 기록이다. 소재·촬영·검수 예시는 실제 제품 인증이나 권리 확인 결과가 아니다.
 

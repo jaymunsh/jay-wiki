@@ -1,17 +1,13 @@
-title: 시나리오: 이커머스 06 — 플랫폼팀의 신뢰성, 보안과 복구 운영
+---
+title: "시나리오: 이커머스 06 — 플랫폼팀의 신뢰성, 보안과 복구 운영"
 slug: scenario-modeline-06-platform-operations
 category: 시나리오
-tags: modeline,platform-engineering,sre,harness-engineering,observability
 summary: 플랫폼·SRE 2명이 서비스 소유팀과 관측·온콜·배포 기반·용량·비용·권한·취약점·백업·복원을 운영하는 방법이다. 정기 달력, SLI·SLO와 운영 KPI, AI 실행 기반을 구분한다.
+tags: harness-engineering,modeline,observability,platform-engineering,sre
 toc: true
-nextSlug: scenario-modeline-07-merchandising-procurement
-prevSlug: scenario-modeline-05-orders-payments
-publishedAt: 2026-09-12T14:32:01.639805+09:00
-syncHash: cbc5421b9741ed5830259881f089e21c6185cd79aaf9c8c5f3c7144abd9fa0b0
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/91 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
 
 > 가상 의류몰 모드라인의 플랫폼 운영 모델이다. 플랫폼·SRE 2명은 개발 15명에 포함된다. 대기열·훈련·목표는 설계와 가상 자료이며 서비스 가용성이나 복구를 실제 검증한 결과가 아니다.
 

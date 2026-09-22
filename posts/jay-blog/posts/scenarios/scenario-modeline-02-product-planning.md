@@ -1,17 +1,13 @@
-title: 시나리오: 이커머스 02 — 제품·디자인팀의 조사, 로드맵과 출시 운영
+---
+title: "시나리오: 이커머스 02 — 제품·디자인팀의 조사, 로드맵과 출시 운영"
 slug: scenario-modeline-02-product-planning
 category: 시나리오
-tags: modeline,harness-engineering,product-management,requirements,ecommerce
 summary: 고객 조사와 VOC부터 요구 접수, 우선순위, UX·디자인, 개발 인계와 출시 후 효과 검토까지 제품·디자인팀의 일·주·월·분기·연간 운영과 KPI를 설명한다.
+tags: ecommerce,harness-engineering,modeline,product-management,requirements
 toc: true
-nextSlug: scenario-modeline-03-development-harness
-prevSlug: scenario-ecommerce-harness-engineering
-publishedAt: 2026-09-12T14:31:59.970559+09:00
-syncHash: 5964a88b91337c48630fa02162db55b5035a220d0e84af9a44c6ac5a7b56c285
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/87 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
 
 > 모드라인은 직원 80명, 제품·디자인 6명, 개발 15명의 가상 의류몰이다. 인물·업무 자료·일정은 창작이며 아래 지표는 이 회사의 내부 운영 정의다. 대표 상품과 요청 사례를 통해 부서의 반복 업무를 설명한다.
 

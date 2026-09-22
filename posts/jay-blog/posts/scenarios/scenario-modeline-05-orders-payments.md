@@ -1,17 +1,13 @@
-title: 시나리오: 이커머스 05 — 커머스팀의 주문·결제·취소·환불 운영
+---
+title: "시나리오: 이커머스 05 — 커머스팀의 주문·결제·취소·환불 운영"
 slug: scenario-modeline-05-orders-payments
 category: 시나리오
-tags: modeline,ecommerce,payment,inventory,idempotency
 summary: 상품·가격·프로모션 계약부터 재고 예약, 결제 확정, 창고 인계, 취소·환불과 재무 대사까지 거래 운영을 설명한다. 주문 A·B의 상태를 보존하며 일·주·월·연간 업무와 KPI를 정의한다.
+tags: ecommerce,idempotency,inventory,modeline,payment
 toc: true
-nextSlug: scenario-modeline-06-platform-operations
-prevSlug: scenario-modeline-04-search-recommendation
-publishedAt: 2026-09-12T14:32:01.258433+09:00
-syncHash: a5bbfda8fd3b73a456f6644633e8c095a6ba154a8cbcf77a661c85832391ae02
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/90 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
 
 > 모드라인의 가상 거래 운영 매뉴얼이다. 커머스 백엔드 4명은 개발 15명에 포함되며 판매운영·CX·재무와 함께 일한다. 금액·처리 장면은 창작이고 실제 PG 계약, 법정 처리 기한, 구현 완료 증거가 아니다.
 

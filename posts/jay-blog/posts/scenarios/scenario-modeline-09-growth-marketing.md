@@ -1,17 +1,13 @@
-title: 시나리오: 이커머스 09 — 마케팅팀의 시장 조사·캠페인·성과 분석
+---
+title: "시나리오: 이커머스 09 — 마케팅팀의 시장 조사·캠페인·성과 분석"
 slug: scenario-modeline-09-growth-marketing
 category: 시나리오
-tags: modeline,growth-marketing,experimentation,analytics,harness-engineering
 summary: 시장·고객·브랜드 전략, 유료·자연 유입, 연간 예산, 캠페인 제작·집행·종료·실험을 운영 매뉴얼로 설명한다. 검증된 합성 보고서와 SQL로 ROAS·CAC·반품·분석 기여를 구분하고 부서의 다음 행동으로 연결한다.
+tags: analytics,experimentation,growth-marketing,harness-engineering,modeline
 toc: true
-nextSlug: scenario-modeline-10-crm-lifecycle
-prevSlug: scenario-modeline-08-content-launch
-publishedAt: 2026-09-12T14:32:02.882828+09:00
-syncHash: a30975853d1dde1ae7a208611a3d4f7ce70ca4e9cb5ddfeb7f1a0f9a56adb8f6
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/94 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
 
 > 모드라인과 캠페인, 보고서, 금액은 가상이다. 이 글의 합성 자료는 실제 광고 단가나 회사 실적, 검증된 마케팅 성과가 아니다. 계산을 실행해 수치의 일관성을 확인한 예시이며 실제 광고 계정을 운영한 결과는 아니다.
 

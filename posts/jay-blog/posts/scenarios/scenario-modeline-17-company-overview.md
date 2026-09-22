@@ -1,15 +1,12 @@
-title: 시나리오: 이커머스 종합편 — 회사 전체의 업무·데이터·의사결정을 연결하다
+---
+title: "시나리오: 이커머스 종합편 — 회사 전체의 업무·데이터·의사결정을 연결하다"
 slug: scenario-modeline-17-company-overview
 category: 시나리오
-tags: modeline,ecommerce,harness-engineering,company-operations,architecture
 summary: 온라인 의류몰 80명의 조직과 부서별 책임, 일간·주간·월간·연간 운영, 전사 KPI와 의사결정·인계를 연결한다. 상품·주문·고객·돈·사람의 실제 같은 업무 기록을 따라 읽고, 마지막에 이를 지원하는 개발·AI와 별도 기술편의 범위를 정리한다.
+tags: architecture,company-operations,ecommerce,harness-engineering,modeline
 toc: true
-prevSlug: scenario-modeline-16-management-decisions
-publishedAt: 2026-09-12T14:32:06.202331+09:00
-syncHash: a14cc7cd2abd2a203a2ec6e3b0f960fc8d14138e6375daddbdf11841bf2a397a
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/102 (내려받음)
 ---
-
 > 모드라인은 이 시리즈를 위해 만든 가상 회사다. 인물·거래·회의·금액은 창작이며 실제 회사의 실적이나 AI 도입 성공 사례가 아니다. 이 글은 처음 읽을 때의 입문 지도이자 전체 시리즈를 읽은 뒤의 종합 정리다.
 
 모드라인에 새로 합류한 직원이 첫날 묻는다. “고객이 셔츠를 사면 우리 회사에서는 누가 무슨 일을 하나요?” 조직도를 보여 주면 부서 이름은 알 수 있지만 일이 어떻게 이어지는지는 설명되지 않는다. 기술 구성도만 보여 줘도 왜 그 시스템이 필요한지는 남는다.
@@ -337,28 +334,28 @@ flowchart TB
 
 현재 본편은 개발을 먼저 이해하고 각 부서로 넓히는 1~16편이며, 종합편을 포함한 업무 시리즈 17편과 별도 기술 01편, 총 18편을 작성했다. 완결 분량을 고정한 것은 아니다. 「시나리오: 이커머스」에 업무·구현 내용을 추가할 때 이 글의 지도와 목차도 함께 갱신한다.
 
-회사 경험이 없다면 이 글을 읽고 15편의 입사 장면, 7·8편의 판매 준비, 9~14편의 고객·물건·돈, 16편의 경영 판단 순서로 둘러봐도 좋다. 그 과정에서 나온 개선 요청이 어떻게 구현되는지 궁금해지면 2~6편과 [기술 01편의 아키텍처·AI 실행 지도](/86/scenario-ecommerce-tech-01-architecture-ai-runtime)를 읽는다. 개발 관점부터 시작하려면 기존 1~16편 순서를 따른다.
+회사 경험이 없다면 이 글을 읽고 15편의 입사 장면, 7·8편의 판매 준비, 9~14편의 고객·물건·돈, 16편의 경영 판단 순서로 둘러봐도 좋다. 그 과정에서 나온 개선 요청이 어떻게 구현되는지 궁금해지면 2~6편과 [기술 01편의 아키텍처·AI 실행 지도](/100/scenario-ecommerce-tech-01-architecture-ai-runtime)를 읽는다. 개발 관점부터 시작하려면 기존 1~16편 순서를 따른다.
 
 | 편 | 읽을 내용 |
 |---|---|
-| 01 | [회사의 업무와 시스템을 한눈에 읽는다](/85/scenario-ecommerce-harness-engineering) |
-| 02 | [제품·디자인팀의 조사, 로드맵과 출시 운영](/87/scenario-modeline-02-product-planning) |
-| 03 | [개발·QA팀의 계획, 검증과 릴리스 운영](/88/scenario-modeline-03-development-harness) |
-| 04 | [데이터팀의 분석, 검색·추천과 실험 운영](/89/scenario-modeline-04-search-recommendation) |
-| 05 | [커머스팀의 주문·결제·취소·환불 운영](/90/scenario-modeline-05-orders-payments) |
-| 06 | [플랫폼팀의 신뢰성, 보안과 복구 운영](/91/scenario-modeline-06-platform-operations) |
-| 07 | [MD의 시즌 계획이 발주와 재고가 된다](/92/scenario-modeline-07-merchandising-procurement) |
-| 08 | [스튜디오와 운영팀이 판매할 상품을 완성한다](/93/scenario-modeline-08-content-launch) |
-| 09 | [마케팅팀의 시장 조사·캠페인·성과 분석](/94/scenario-modeline-09-growth-marketing) |
-| 10 | [CRM이 회원·구매·재구매 여정을 관리한다](/95/scenario-modeline-10-crm-lifecycle) |
-| 11 | [물류팀이 주문을 실물 배송으로 바꾼다](/96/scenario-modeline-11-fulfillment-logistics) |
-| 12 | [CX·CS가 구매 전 문의부터 교환·환불·반복 문제까지 책임진다](/97/scenario-modeline-12-customer-support-returns) |
-| 13 | [재무·회계가 거래와 비용을 기록하고 결산한다](/98/scenario-modeline-13-financial-close) |
-| 14 | [재무가 예산·현금·구매·계약을 함께 운영한다](/99/scenario-modeline-14-budget-cash) |
-| 15 | [피플·총무가 채용부터 급여 자료·퇴사·시설까지 운영한다](/100/scenario-modeline-15-people-administration) |
-| 16 | [경영이 연간 전략·예산·조직과 실행을 연결한다](/101/scenario-modeline-16-management-decisions) |
+| 01 | [회사의 업무와 시스템을 한눈에 읽는다](/80/scenario-ecommerce-harness-engineering) |
+| 02 | [제품·디자인팀의 조사, 로드맵과 출시 운영](/81/scenario-modeline-02-product-planning) |
+| 03 | [개발·QA팀의 계획, 검증과 릴리스 운영](/82/scenario-modeline-03-development-harness) |
+| 04 | [데이터팀의 분석, 검색·추천과 실험 운영](/83/scenario-modeline-04-search-recommendation) |
+| 05 | [커머스팀의 주문·결제·취소·환불 운영](/84/scenario-modeline-05-orders-payments) |
+| 06 | [플랫폼팀의 신뢰성, 보안과 복구 운영](/85/scenario-modeline-06-platform-operations) |
+| 07 | [MD의 시즌 계획이 발주와 재고가 된다](/86/scenario-modeline-07-merchandising-procurement) |
+| 08 | [스튜디오와 운영팀이 판매할 상품을 완성한다](/87/scenario-modeline-08-content-launch) |
+| 09 | [마케팅팀의 시장 조사·캠페인·성과 분석](/88/scenario-modeline-09-growth-marketing) |
+| 10 | [CRM이 회원·구매·재구매 여정을 관리한다](/89/scenario-modeline-10-crm-lifecycle) |
+| 11 | [물류팀이 주문을 실물 배송으로 바꾼다](/90/scenario-modeline-11-fulfillment-logistics) |
+| 12 | [CX·CS가 구매 전 문의부터 교환·환불·반복 문제까지 책임진다](/91/scenario-modeline-12-customer-support-returns) |
+| 13 | [재무·회계가 거래와 비용을 기록하고 결산한다](/92/scenario-modeline-13-financial-close) |
+| 14 | [재무가 예산·현금·구매·계약을 함께 운영한다](/93/scenario-modeline-14-budget-cash) |
+| 15 | [피플·총무가 채용부터 급여 자료·퇴사·시설까지 운영한다](/94/scenario-modeline-15-people-administration) |
+| 16 | [경영이 연간 전략·예산·조직과 실행을 연결한다](/95/scenario-modeline-16-management-decisions) |
 | 종합편 · 이 글 | 회사 전체의 업무·데이터·의사결정을 연결하다 |
-| 별도 기술 01 | [업무를 연결하는 아키텍처와 AI 실행 기반](/86/scenario-ecommerce-tech-01-architecture-ai-runtime) |
+| 별도 기술 01 | [업무를 연결하는 아키텍처와 AI 실행 기반](/100/scenario-ecommerce-tech-01-architecture-ai-runtime) |
 
 기술 구조는 별도 기술 01편과 업무 3·4·5·6편을, 고객 경험과 운영은 7~12편을, 자금·조직·경영은 13~16편을 함께 읽는다. 특정 부서만 읽더라도 앞뒤 인계 자료를 확인하면 왜 그 업무가 필요한지 연결할 수 있다.
 
@@ -416,7 +413,7 @@ flowchart TB
 
 같은 업무를 두 번 설명하는 것은 허용한다. 업무편은 담당자가 어떤 근거로 판단하고 무엇을 인계하는지에 답하고, 기술편은 그것을 구현할 데이터 계약·API·권한·실패 처리·검증에 답한다. 독립적으로 읽는 데 필요한 배경을 반복하되 공통 ID와 지표 정의는 하나로 맞춘다.
 
-현재 읽을 수 있는 별도 글은 [기술 01 — 업무를 연결하는 아키텍처와 AI 실행 기반](/86/scenario-ecommerce-tech-01-architecture-ai-runtime)이다. 업무 01편의 기술 상세를 옮겨 공통 기반을 설명했다.
+현재 읽을 수 있는 별도 글은 [기술 01 — 업무를 연결하는 아키텍처와 AI 실행 기반](/100/scenario-ecommerce-tech-01-architecture-ai-runtime)이다. 업무 01편의 기술 상세를 옮겨 공통 기반을 설명했다.
 
 아래 여섯 주제는 그다음 확장을 위한 기획안이며 아직 작성·발행된 글이 아니다. 업무 17편의 마지막 기술 구역과 기술 01편을 출발점으로 API·스키마·실패 처리·검증을 더 깊게 다룬다.
 
