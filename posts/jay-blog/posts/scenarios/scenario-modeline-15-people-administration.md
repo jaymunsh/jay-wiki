@@ -1,17 +1,13 @@
-title: 시나리오: 이커머스 15 — 피플·총무가 채용부터 급여 자료·퇴사·시설까지 운영한다
+---
+title: "시나리오: 이커머스 15 — 피플·총무가 채용부터 급여 자료·퇴사·시설까지 운영한다"
 slug: scenario-modeline-15-people-administration
 category: 시나리오
-tags: modeline,people-operations,onboarding,access-control,knowledge-management
 summary: 피플·총무 4명의 인력 계획·채용·교육·근태·급여 입력·평가와 보상·퇴사·자산·시설 업무를 연결한다. 교체 입사 사례와 운영 달력, 담당자의 인계 조건과 지표를 자세히 살핀다.
+tags: access-control,knowledge-management,modeline,onboarding,people-operations
 toc: true
-nextSlug: scenario-modeline-16-management-decisions
-prevSlug: scenario-modeline-14-budget-cash
-publishedAt: 2026-09-12T14:32:05.360548+09:00
-syncHash: bdc2b28bc2f73f5be042002552e83ab944d346dd3bd561be50e51817dd5100b3
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/100 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
 
 > 모드라인은 이 시리즈를 위해 만든 가상 회사다. 인물·거래·회의·금액은 창작이며 실제 회사의 실적이나 AI 도입 성공 사례가 아니다. 업무 절차와 지표는 이 회사의 운영 설정이며 실제 적용에는 조직의 정책과 전문 검토가 필요하다.
 

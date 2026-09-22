@@ -1,15 +1,13 @@
-title: 시나리오: 이커머스 기술 01 — 업무를 연결하는 아키텍처와 AI 실행 기반
+---
+title: "시나리오: 이커머스 기술 01 — 업무를 연결하는 아키텍처와 AI 실행 기반"
 slug: scenario-ecommerce-tech-01-architecture-ai-runtime
 category: 시나리오
 summary: 회사 업무 지도에서 분리한 기술 설계편. 고객 웹·커머스 코어·데이터 워커에서 시작해 상품·추천·거래의 경계, AI 작업 계약·검사·복구·비용을 연결한다.
-tags: ecommerce,architecture,harness-engineering,ai,platform-engineering
+tags: ai,architecture,ecommerce,harness-engineering,platform-engineering
 toc: true
-publishedAt: 2026-09-15T10:01:59.324113Z
-syncHash: f6da54d091d2f1bedaca286a9f37968552f70eb2c69c802cd5a143014952684f
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/86 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview) · [업무 01편: 회사 지도](/85/scenario-ecommerce-harness-engineering)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview) · [업무 01편: 회사 지도](/80/scenario-ecommerce-harness-engineering)
 
 > 모드라인은 이 시리즈를 위해 만든 가상 회사다. 인물·거래·규모·설정·비용은 창작과 설계 가정이며, 실제 회사의 구조나 AI 도입 성과가 아니다. 아래는 구현 제안과 검증 방법이지 현재 블로그 저장소에 구현된 기능 목록이 아니다.
 
@@ -456,4 +454,4 @@ Anthropic의 에이전트 평가 자료도 코드·모델·사람 평가를 조�
 
 부서별 업무편이 왜 필요한 자료인지, 누가 판단하고 다음 일을 하는지를 설명한다면 기술편은 이를 코드·데이터·권한·검사로 어떻게 만들지를 설명한다. 같은 상품과 주문을 사용하므로 일부 배경은 겹쳐도 된다.
 
-후속 기술편 후보는 상품·가격·재고 계약, 주문·환불의 상태 연결, 마케팅·CRM 분석 기반, 개발·배포 실행 기반, 전사 자동화·AI 실행 관리, 운영 콘솔·결정 기록이다. 아직 별도 발행한 글은 아니며 [종합편의 확장 지도](/102/scenario-modeline-17-company-overview)에 경계를 정리했다.
+후속 기술편 후보는 상품·가격·재고 계약, 주문·환불의 상태 연결, 마케팅·CRM 분석 기반, 개발·배포 실행 기반, 전사 자동화·AI 실행 관리, 운영 콘솔·결정 기록이다. 아직 별도 발행한 글은 아니며 [종합편의 확장 지도](/96/scenario-modeline-17-company-overview)에 경계를 정리했다.

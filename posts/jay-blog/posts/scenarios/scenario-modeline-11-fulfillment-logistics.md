@@ -1,17 +1,13 @@
-title: 시나리오: 이커머스 11 — 물류팀이 주문을 실물 배송으로 바꾼다
+---
+title: "시나리오: 이커머스 11 — 물류팀이 주문을 실물 배송으로 바꾼다"
 slug: scenario-modeline-11-fulfillment-logistics
 category: 시나리오
-tags: modeline,fulfillment,logistics,wms,inventory
 summary: 입고·보관·재고 정확도부터 피킹·포장·집하·배송, 반품 실물과 취소 경합까지 운영한다. 3PL 협업, 일간부터 연간 용량·실사·복구 계획, 출고 배치와 물류 KPI를 설명한다.
+tags: fulfillment,inventory,logistics,modeline,wms
 toc: true
-nextSlug: scenario-modeline-12-customer-support-returns
-prevSlug: scenario-modeline-10-crm-lifecycle
-publishedAt: 2026-09-12T14:32:03.675019+09:00
-syncHash: 759770e33c293ded92ca74df0d7f5dc039fdb98ddfc3f6891b9da8d77adf1353
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/96 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
 
 > 모드라인은 물류관리 인력을 두고 실물 피킹·포장은 외부 3PL에 맡기는 가상 회사다. 오후 2시 마감은 이야기의 운영 가정이며 택배 서비스의 보장 시간이 아니다.
 

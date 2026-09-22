@@ -1,17 +1,13 @@
-title: 시나리오: 이커머스 04 — 데이터팀의 분석, 검색·추천과 실험 운영
+---
+title: "시나리오: 이커머스 04 — 데이터팀의 분석, 검색·추천과 실험 운영"
 slug: scenario-modeline-04-search-recommendation
 category: 시나리오
-tags: modeline,recommendation,search,data-engineering,harness-engineering
 summary: 데이터 수집·품질과 지표 계약부터 분석 요청, 신상품 검색 검수, 추천 실험, 접근 관리까지 데이터 담당자의 반복 업무를 설명한다. 운영 KPI와 시스템·AI 구현은 구분한다.
+tags: data-engineering,harness-engineering,modeline,recommendation,search
 toc: true
-nextSlug: scenario-modeline-05-orders-payments
-prevSlug: scenario-modeline-03-development-harness
-publishedAt: 2026-09-12T14:32:00.799242+09:00
-syncHash: 6460400c0669e64147bbb35c9633f269354988db19142b35be600a91dbeb25ef
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/89 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
 
 > 직원 80명인 가상 의류몰 모드라인의 데이터 업무다. 데이터·추천 담당 2명은 개발 15명에 포함된다. 상품·검수 자료와 운영 규칙은 창작이며 검색 개선이나 실험 성과를 실제로 측정한 기록이 아니다.
 

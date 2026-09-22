@@ -1,17 +1,13 @@
-title: 시나리오: 이커머스 03 — 개발·QA팀의 계획, 검증과 릴리스 운영
+---
+title: "시나리오: 이커머스 03 — 개발·QA팀의 계획, 검증과 릴리스 운영"
 slug: scenario-modeline-03-development-harness
 category: 시나리오
-tags: modeline,harness-engineering,software-development,testing,ci-cd
 summary: 개발 15명이 설계·구현·코드 리뷰·QA·배포·운영 인계를 나누고 결함과 기술 부채를 관리하는 운영 매뉴얼이다. 업무 주기와 최신 DORA 5개 지표, 개발 AI의 실행 계약을 구분한다.
+tags: ci-cd,harness-engineering,modeline,software-development,testing
 toc: true
-nextSlug: scenario-modeline-04-search-recommendation
-prevSlug: scenario-modeline-02-product-planning
-publishedAt: 2026-09-12T14:32:00.408226+09:00
-syncHash: 9452bb94c92fbaa9d2f6d7e13eca9dc83e074facccdf25ee4ad2fdcfd1aef61a
-
+source: https://portfolio.leneu.cloud/api/bff/blog/posts/88 (내려받음)
 ---
-
-[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
 
 > 가상 의류몰 모드라인의 개발 조직 운영을 설명한다. 인물·검사 기록·실행 계약은 창작이며 이 저장소 기능의 실제 테스트 결과가 아니다. 운영 지표의 집계 방식과 실행 상한은 별도로 정한 내부 가정이다.
 
