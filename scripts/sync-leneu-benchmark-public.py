@@ -40,7 +40,7 @@ PUBLIC_TASK_FILES = {
     "REASON-MATH-01": ("explanation.md", "RESULT.md"),
     "REASON-SCI-01": ("explanation.md", "RESULT.md"),
     "BUILD-01": ("server.mjs", "RESULT.md"),
-    "STYLE-01": ("status-page.md", "apology-email.md", "exec-summary.md", "RESULT.md"),
+    "STYLE-01": ("status-page.md", "apology-email.md", "exec-summary.md", "RESULT.md", "input/style01-facts.md"),
     "AMBIG-01": ("assumptions.md", "RESULT.md"),
     "AMBIG-02": ("assumptions.md", "RESULT.md"),
     "AMBIG-03": ("assumptions.md", "RESULT.md"),
