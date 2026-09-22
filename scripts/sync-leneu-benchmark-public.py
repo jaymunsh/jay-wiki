@@ -39,6 +39,16 @@ PUBLIC_TASK_FILES = {
     "REASON-KO-01": ("explanation.md", "RESULT.md"),
     "REASON-MATH-01": ("explanation.md", "RESULT.md"),
     "REASON-SCI-01": ("explanation.md", "RESULT.md"),
+    "BUILD-01": ("server.mjs", "RESULT.md"),
+    "STYLE-01": ("status-page.md", "apology-email.md", "exec-summary.md", "RESULT.md"),
+    "AMBIG-01": ("assumptions.md", "RESULT.md"),
+    "AMBIG-02": ("assumptions.md", "RESULT.md"),
+    "AMBIG-03": ("assumptions.md", "RESULT.md"),
+    "TRAP-01": ("report.md", "RESULT.md"),
+    "TRAP-02": ("guide.md", "RESULT.md"),
+    "TRAP-03": ("answer.md", "RESULT.md"),
+    "TRAP-04": ("report.md", "RESULT.md"),
+    "LOOP-01": ("answers-r1.json", "answers-r2.json", "answers-r3.json", "RESULT.md"),
 }
 
 
@@ -85,7 +95,12 @@ def copy_public_files(source: Path, destination: Path) -> tuple[int, int]:
             for name in names:
                 source_file = source_outputs / task_id / name
                 if not source_file.is_file() or source_file.is_symlink():
-                    raise SystemExit(f"공개 산출물 파일을 찾을 수 없다: {source_file}")
+                    if name == "RESULT.md":
+                        raise SystemExit(f"공개 산출물 파일을 찾을 수 없다: {source_file}")
+                    # 대표 답안이 없는 과제(미제출·부분 산출물)는 RESULT.md만 공개한다.
+                    # 탐색기는 files 목록에 없는 대표 파일을 RESULT.md로 대체해 연다.
+                    print(f"  경고: 대표 답안 없음, RESULT.md만 공개: {model_slug}/{run_id}/{task_id}/{name}")
+                    continue
                 shutil.copy2(source_file, target_task / name)
                 copied_names.append(name)
             task["files"] = copied_names

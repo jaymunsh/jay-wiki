@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tetris (Hold 지원)</title>
+<style>
+  body{font-family:system-ui,sans-serif;background:#10131a;color:#e8ecf4;display:flex;justify-content:center;padding:16px}
+  .layout{display:flex;gap:18px;align-items:flex-start}
+  .side{width:130px}
+  .box{background:#1a1f2b;border:1px solid #2b3347;border-radius:8px;padding:10px;margin-bottom:12px}
+  .box h2{font-size:12px;margin:0 0 6px;color:#9aa6c0;text-transform:uppercase}
+  canvas{display:block;background:#0c0f15}
+  #board{border:1px solid #2b3347;border-radius:4px}
+  #msg{min-height:22px;font-weight:700;color:#ffd166}
+  .help{font-size:12px;color:#9aa6c0;line-height:1.6}
+  button{background:#3457d5;color:#fff;border:none;border-radius:6px;padding:8px 0;width:100%;cursor:pointer;font-size:14px}
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="side">
+    <div class="box"><h2>Hold (C/Shift)</h2><canvas id="hold" width="110" height="80"></canvas></div>
+    <div class="box"><h2>Next</h2><canvas id="next" width="110" height="200"></canvas></div>
+    <div class="box"><h2>Score</h2><div id="score">0</div><h2 style="margin-top:8px">Lines</h2><div id="lines">0</div></div>
+    <button id="restartBtn">재시작 (R)</button>
+  </div>
+  <div>
+    <canvas id="board" width="300" height="600"></canvas>
+    <div id="msg"></div>
+    <p class="help">← → 이동 / ↑ 회전 / ↓ 빠른 낙하 / Space 즉시 낙하 / C·Shift Hold / P 일시정지 / R 재시작</p>
+  </div>
+</div>
+<script>
+"use strict";
+var COLS=10, ROWS=20, SIZE=30;
+var COLORS={I:"#4fd8eb",J:"#4f7ceb",L:"#f2a33c",O:"#f2d94e",S:"#5fd068",T:"#b06ee0",Z:"#e85f5f"};
+var SHAPES={
+  I:[[1,1,1,1]], J:[[1,0,0],[1,1,1]], L:[[0,0,1],[1,1,1]],
+  O:[[1,1],[1,1]], S:[[0,1,1],[1,1,0]], T:[[0,1,0],[1,1,1]], Z:[[1,1,0],[0,1,1]]
+};
+var SPAWN_X=3, SPAWN_Y=0; // 생성 위치: 좌상단 (col 3, row 0), 회전 상태 0
+var board, cur, nextQueue, holdType, holdUsed, score, lines, paused, gameOver, dropTimer, lastTime, loopId;
+var bag=[];
+function randType(){ if(bag.length===0){bag=Object.keys(SHAPES).slice(); for(var i=bag.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=bag[i];bag[i]=bag[j];bag[j]=t;}} return bag.pop(); }
+function makePiece(type){ return {type:type, m:SHAPES[type].map(function(r){return r.slice();}), x:SPAWN_X, y:SPAWN_Y}; }
+function rotate(m){ var n=m.length, w=m[0].length, r=[]; for(var y=0;y<w;y++){r.push([]);for(var x=0;x<n;x++)r[y][x]=m[n-1-x][y];} return r; }
+function collides(m,x,y){ for(var r=0;r<m.length;r++)for(var c=0;c<m[r].length;c++){ if(!m[r][c])continue; var bx=x+c,by=y+r; if(bx<0||bx>=COLS||by>=ROWS)return true; if(by>=0&&board[by][bx])return true; } return false; }
+function reset(){ board=[]; for(var y=0;y<ROWS;y++){board.push([]);for(var x=0;x<COLS;x++)board[y].push(null);} bag=[]; nextQueue=[randType(),randType(),randType()];
+  holdType=null; holdUsed=false; score=0; lines=0; paused=false; gameOver=false; dropTimer=0; lastTime=null;
+  spawn(); document.getElementById("msg").textContent=""; document.getElementById("score").textContent="0"; document.getElementById("lines").textContent="0"; drawAll(); }
+function spawn(){ cur=makePiece(nextQueue.shift()); nextQueue.push(randType()); holdUsed=false;
+  if(collides(cur.m,cur.x,cur.y)){ setOver(); } }
+function setOver(){ gameOver=true; document.getElementById("msg").textContent="게임 오버 — R로 재시작"; }
+function hold(){ if(gameOver||paused)return; if(holdUsed)return; // 고정 전 1회 제한
+  var t=cur.type;
+  if(holdType===null){ holdType=t; spawn(); } else { var h=holdType; holdType=t; cur=makePiece(h); if(collides(cur.m,cur.x,cur.y)){ setOver(); return; } }
+  holdUsed=true; drawAll(); }
+function lock(){ for(var r=0;r<cur.m.length;r++)for(var c=0;c<cur.m[r].length;c++){ if(cur.m[r][c]){ var by=cur.y+r; if(by<0){setOver();return;} board[by][cur.x+c]=cur.type; } }
+  var full=[]; for(var y=0;y<ROWS;y++){ var f=true; for(var x=0;x<COLS;x++) if(!board[y][x]){f=false;break;} if(f)full.push(y); }
+  for(var i=0;i<full.length;i++){ board.splice(full[i],1); board.unshift(new Array(COLS).fill(null)); }
+  if(full.length){ var pts=[0,100,300,500,800][full.length]; score+=pts; lines+=full.length;
+    document.getElementById("score").textContent=score; document.getElementById("lines").textContent=lines; }
+  spawn(); drawAll(); }
+function drawCell(ctx,x,y,type){ ctx.fillStyle=COLORS[type]; ctx.fillRect(x*SIZE+1,y*SIZE+1,SIZE-2,SIZE-2); }
+function drawAll(){
+  var bc=document.getElementById("board").getContext("2d"); bc.clearRect(0,0,300,600);
+  for(var y=0;y<ROWS;y++)for(var x=0;x<COLS;x++) if(board[y][x]) drawCell(bc,x,y,board[y][x]);
+  if(cur&&!gameOver) for(var r=0;r<cur.m.length;r++)for(var c=0;c<cur.m[r].length;c++) if(cur.m[r][c]&&cur.y+r>=0) drawCell(bc,cur.x+c,cur.y+r,cur.type);
+  var hc=document.getElementById("hold").getContext("2d"); hc.clearRect(0,0,110,80);
+  if(holdType){ var m=SHAPES[holdType], s=18, ox=(110-m[0].length*s)/2, oy=(80-m.length*s)/2;
+    for(var a=0;a<m.length;a++)for(var b=0;b<m[a].length;b++) if(m[a][b]){ hc.fillStyle=COLORS[holdType]; hc.fillRect(ox+b*s+1,oy+a*s+1,s-2,s-2); } }
+  var nc=document.getElementById("next").getContext("2d"); nc.clearRect(0,0,110,200);
+  for(var i=0;i<Math.min(3,nextQueue.length);i++){ var nm=SHAPES[nextQueue[i]], s2=16, ox2=(110-nm[0].length*s2)/2, oy2=10+i*60;
+    for(var a2=0;a2<nm.length;a2++)for(var b2=0;b2<nm[a2].length;b2++) if(nm[a2][b2]){ nc.fillStyle=COLORS[nextQueue[i]]; nc.fillRect(ox2+b2*s2+1,oy2+a2*s2+1,s2-2,s2-2); } }
+}
+function tick(ts){
+  if(gameOver){ return; }
+  if(lastTime===null) lastTime=ts;
+  var dt=ts-lastTime; lastTime=ts;
+  if(!paused){ dropTimer+=dt;
+    if(dropTimer>Math.max(120, 600-score*2)){ dropTimer=0;
+      if(!collides(cur.m,cur.x,cur.y+1)) cur.y++; else lock(); } }
+  drawAll();
+  loopId=requestAnimationFrame(tick);
+}
+function restart(){ if(loopId)cancelAnimationFrame(loopId); reset(); lastTime=null; loopId=requestAnimationFrame(tick); }
+document.addEventListener("keydown",function(e){
+  if(e.key==="r"||e.key==="R"){ e.preventDefault(); restart(); return; }
+  if(gameOver)return;
+  if(e.key==="p"||e.key==="P"){ paused=!paused; document.getElementById("msg").textContent=paused?"일시정지":""; return; }
+  if(paused)return;
+  if(e.key==="ArrowLeft"&&!collides(cur.m,cur.x-1,cur.y)) cur.x--;
+  else if(e.key==="ArrowRight"&&!collides(cur.m,cur.x+1,cur.y)) cur.x++;
+  else if(e.key==="ArrowDown"&&!collides(cur.m,cur.x,cur.y+1)) cur.y++;
+  else if(e.key==="ArrowUp"){ var rm=rotate(cur.m); if(!collides(rm,cur.x,cur.y)) cur.m=rm; } // 겹치는 회전은 취소
+  else if(e.key===" "){ e.preventDefault(); while(!collides(cur.m,cur.x,cur.y+1)) cur.y++; lock(); return; }
+  else if(e.key==="c"||e.key==="C"||e.key==="Shift"){ hold(); return; }
+  drawAll();
+});
+document.getElementById("restartBtn").addEventListener("click",restart);
+reset(); loopId=requestAnimationFrame(tick);
+
+
+</script>
+</body>
+</html>

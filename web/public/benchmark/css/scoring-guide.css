@@ -19,3 +19,9 @@
 .skip-link{position:absolute;top:-100px;background:var(--bg-card);padding:12px;z-index:10}.skip-link:focus{top:8px}
 @media(max-width:900px){.guide-layout{display:block;padding-top:24px}.guide-nav{position:static;flex-direction:row;flex-wrap:wrap;gap:2px;border-bottom:1px solid var(--border-color);padding-bottom:18px;margin-bottom:22px}.guide-nav strong{width:100%}.guide-nav a{font-size:12px}.guide-hero{padding-top:0}}
 @media(max-width:560px){.guide-header{padding:12px 16px}.guide-brand{font-size:14px;gap:8px}.guide-brand img{width:32px;height:32px}.header-actions{gap:10px}.header-actions a{font-size:11px;max-width:78px}.guide-layout{padding:20px 14px}.guide-section{padding:20px 16px;border-radius:16px}.guide-section h2{font-size:20px}.task summary{flex-wrap:wrap;gap:6px 10px;padding:12px}.task-id{min-width:0}.task summary strong{order:4;flex-basis:100%;padding-left:20px}.task-body{padding:4px 14px 14px}.guide-page th,.guide-page td{padding:9px;min-width:76px}.guide-page{font-size:14px}}
+.sources-subhead{font-size:13px;font-weight:800;margin:22px 0 8px;color:var(--text-primary)}
+.version-history{list-style:none;padding:0;margin:0 0 20px}
+.version-history li{display:flex;gap:12px;padding:10px 0;border-bottom:1px dashed var(--border-color);font-size:13px;color:var(--text-secondary);line-height:1.6}
+.version-history li:last-child{border-bottom:none}
+.version-history .ver-tag{flex:none;min-width:52px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;background:var(--bg-subtle);border:1px solid var(--border-color);font:700 11px var(--font-mono);color:var(--text-primary);margin-top:1px}
+.version-history code{font-size:11px;opacity:.75}
