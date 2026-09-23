@@ -18,7 +18,7 @@ const PASSTHROUGH_PREFIXES = ['/blog', '/api', '/admin', '/_next'] as const;
  * 확장자로 일괄 제외하지 않는 이유: /robots.txt 와 /sitemap.xml 은 블로그 전용
  * 라우트라 오히려 rewrite 되어야 한다.
  */
-const PUBLIC_FILE_PREFIXES = ['/assets', '/benchmark'] as const;
+const PUBLIC_FILE_PREFIXES = ['/assets', '/benchmark', '/game'] as const;
 const PUBLIC_FILE_NAMES = new Set([
   '/favicon.ico',
   '/favicon-16x16.png',
