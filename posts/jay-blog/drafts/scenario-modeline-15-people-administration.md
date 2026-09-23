@@ -7,8 +7,9 @@ toc: true
 nextSlug: scenario-modeline-16-management-decisions
 prevSlug: scenario-modeline-14-budget-cash
 publishedAt: 2026-09-12T14:32:05.360548+09:00
-syncHash: bdc2b28bc2f73f5be042002552e83ab944d346dd3bd561be50e51817dd5100b3
+syncHash: 70853206b162cb4d65c97997084ccb48335b8b223410ed382c49aa8ab3ac1ad7
 
+updatedAt: 2026-09-15T10:05:50.076131Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)

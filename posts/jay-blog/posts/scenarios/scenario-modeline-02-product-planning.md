@@ -7,7 +7,7 @@ tags: ecommerce,harness-engineering,modeline,product-management,requirements
 toc: true
 source: https://portfolio.leneu.cloud/api/bff/blog/posts/87 (내려받음)
 ---
-[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
 
 > 모드라인은 직원 80명, 제품·디자인 6명, 개발 15명의 가상 의류몰이다. 인물·업무 자료·일정은 창작이며 아래 지표는 이 회사의 내부 운영 정의다. 대표 상품과 요청 사례를 통해 부서의 반복 업무를 설명한다.
 

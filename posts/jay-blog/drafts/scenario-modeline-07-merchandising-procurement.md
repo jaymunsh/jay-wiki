@@ -7,8 +7,9 @@ toc: true
 nextSlug: scenario-modeline-08-content-launch
 prevSlug: scenario-modeline-06-platform-operations
 publishedAt: 2026-09-12T14:32:02.083241+09:00
-syncHash: 405a06bfa310b7518d26df14c99a519d16066ea133056ee6275638577f0bff60
+syncHash: 5de61a40c126005d1f4f01f617c3235db08f7e29431f97a6029c5296122d7bca
 
+updatedAt: 2026-09-15T10:05:44.371589Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)

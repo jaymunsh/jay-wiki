@@ -7,8 +7,9 @@ toc: true
 nextSlug: scenario-modeline-09-growth-marketing
 prevSlug: scenario-modeline-07-merchandising-procurement
 publishedAt: 2026-09-12T14:32:02.480491+09:00
-syncHash: 84b34690b24fc21be14642cefd2709d51e27a4f8f14b1a2ec9e5e0a2f1f331c2
+syncHash: 57b2a92b8138390683ba467e0563eba523f60f0f1f7be3d6f2400282a1cdca66
 
+updatedAt: 2026-09-15T10:05:45.069841Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)

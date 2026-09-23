@@ -7,8 +7,9 @@ toc: true
 nextSlug: scenario-modeline-03-development-harness
 prevSlug: scenario-ecommerce-harness-engineering
 publishedAt: 2026-09-12T14:31:59.970559+09:00
-syncHash: 5964a88b91337c48630fa02162db55b5035a220d0e84af9a44c6ac5a7b56c285
+syncHash: 88d0ed1074ae9a2b4d10247d58622fafe80dd9d19ca0dcf26a84c33be3a2aeef
 
+updatedAt: 2026-09-15T10:05:40.807059Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)

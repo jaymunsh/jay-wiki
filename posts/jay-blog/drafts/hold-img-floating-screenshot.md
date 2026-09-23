@@ -4,10 +4,12 @@ category: 개인 프로젝트
 summary: 스크린샷이 찍히는 순간 사라지는 게 아니라 모든 창 위에 떠 있어야 한다는 생각으로 만든 플로팅 캡처 유틸리티. SwiftPM으로 Xcode 없이 .app을 조립하고, ScreenCaptureKit과 NSPanel, 자체 서명 인증서까지 만난 함정을 정리한다.
 tags: macos,swift,screencapturekit,appkit,screenshot,utility,personal-project
 toc: true
+syncHash: 4de1bff1a0fa19efd0a6874afd5e737aadd759e2cc462343b76c054539fc828b
+publishedAt: 2026-09-20T16:14:20.206602Z
 
 ---
 
-![HoldImg 앱 아이콘](/assets/projects/hold-img-floating-screenshot/app-icon.png "width=180 align=center")
+![HoldImg 앱 아이콘](/api/wiki-assets/375ff376-e741-46b1-9a06-97be613a1614 "width=180 align=center")
 
 스크린샷을 찍는 이유의 절반은 공유가 아니라 참조다. 디자인 시안을 보며 레이아웃을 잡거나, 다른 화면의 숫자를 옮기거나, 문서와 코드를 나란히 대조할 때다. 그런데 macOS의 스크린샷은 찍는 순간 파일로 떨어지거나 클립보드로 사라진다. 다시 보려면 Preview를 열어야 하고, 그 창은 곧 다른 창 뒤에 묻힌다. 결국 캡처와 원본 사이를 `⌘Tab`으로 왕복하게 된다.
 
@@ -31,7 +33,7 @@ toc: true
 
 `⌃⌥C`를 누르면 전 화면이 그 순간의 스냅샷으로 덮인다. 움직이는 영상 위에서 영역을 고르는 게 아니라, 얼어붙은 화면 위에서 천천히 골라도 된다는 뜻이다. 상단 힌트 바에 지금 누를 수 있는 키가 칩으로 나열되고, 드래그 중에는 선택 영역의 치수가 배지로 따라붙는다.
 
-![드래그로 영역을 고르는 캡처 오버레이. 상단에 키 힌트와 비율 칩, 커서 옆에 980×640 치수 배지가 보인다](/assets/projects/hold-img-floating-screenshot/overlay.jpg)
+![드래그로 영역을 고르는 캡처 오버레이. 상단에 키 힌트와 비율 칩, 커서 옆에 980×640 치수 배지가 보인다](/api/wiki-assets/22479c7a-fcb4-4848-852f-bda0b6b31803)
 
 영역 선택에 몇 가지 장치를 넣었다.
 
@@ -44,7 +46,7 @@ toc: true
 
 캡처된 패널은 모든 창 위에 떠 있고 테두리가 없다. 여기서부터가 본체다.
 
-![플로팅 패널. 마우스를 올리면 우측 상단에 펜·복사·저장·OCR·비율 잠금·닫기 툴바가 나타난다](/assets/projects/hold-img-floating-screenshot/panel.png)
+![플로팅 패널. 마우스를 올리면 우측 상단에 펜·복사·저장·OCR·비율 잠금·닫기 툴바가 나타난다](/api/wiki-assets/dd870f01-48ac-46e2-a5dd-e6382592acbb)
 
 - 드래그로 옮기면 화면 모서리·중앙선·다른 패널 가장자리에 착착 달라붙는다. 방향키로 1pt, `⇧방향키`로 10pt 미세 이동도 된다.
 - 스크롤은 커서 위치 기준 줌이고, 모서리·가장자리 드래그로 크기를 바꾼다. 기본은 비율 유지, `L`로 풀 수 있다.
@@ -56,7 +58,7 @@ toc: true
 
 `P`를 누르면 주석 모드로 들어간다. 펜·형광펜·화살표·사각형·모자이크·텍스트, 그리고 그려둔 주석을 잡아 옮기는 손 도구가 있다. 모자이크는 로그나 개인정보를 가릴 때 쓰고, 완료(✓)를 누르면 주석이 원본 해상도로 이미지에 굽혀서 복사·저장에 그대로 반영된다.
 
-![주석 모드. 펜·형광펜·화살표·사각형·모자이크·텍스트·이동 도구와 4색, 되돌리기가 들어간 도구 스트립이 패널 위에 뜬다](/assets/projects/hold-img-floating-screenshot/annotate.png)
+![주석 모드. 펜·형광펜·화살표·사각형·모자이크·텍스트·이동 도구와 4색, 되돌리기가 들어간 도구 스트립이 패널 위에 뜬다](/api/wiki-assets/5da2a832-49d6-4539-9ded-76fa84676203)
 
 툴바의 OCR 버튼은 Vision으로 패널 속 텍스트를 읽어 클립보드에 넣는다. 이미지 속 주소나 에러 코드를 재입력하지 않아도 된다.
 

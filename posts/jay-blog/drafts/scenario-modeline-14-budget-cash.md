@@ -7,8 +7,9 @@ toc: true
 nextSlug: scenario-modeline-15-people-administration
 prevSlug: scenario-modeline-13-financial-close
 publishedAt: 2026-09-12T14:32:04.942316+09:00
-syncHash: 325037df08873f0844d7dc21f59c2340a5e87a536c79aba218a0e969add8f5fb
+syncHash: f2979557279a1d83f7ec10a52c933b6c3d40550c5607b190fb9a46eb3329a671
 
+updatedAt: 2026-09-15T10:05:49.366932Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)

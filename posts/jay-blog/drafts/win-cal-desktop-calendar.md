@@ -4,10 +4,12 @@ category: 개인 프로젝트
 summary: 바탕화면 위·아이콘 아래에 달력을 끼워 넣는 Windows 데스크톱 위젯 개발기. WorkerW와 XAML island 두 데스크톱 구조, 클릭 통과 창에서 클릭을 받는 저수준 훅, 사라진 더블클릭 메시지, 그리고 코드 서명을 포기한 이유까지.
 tags: windows,wpf,dotnet,csharp,win32,desktop-widget,google-calendar,personal-project
 toc: true
+syncHash: 2e203471b0ba2de224079b9627d0e23a7abc34bda2ebe547427a1b238ac4dd7d
+publishedAt: 2026-09-22T05:59:26.549794Z
 
 ---
 
-![WinCal 앱 아이콘](/assets/projects/win-cal-desktop-calendar/wincal-icon.png "width=180 align=center")
+![WinCal 앱 아이콘](/api/wiki-assets/30ceec39-37c7-44a6-8c94-0f36eb5b5d56 "width=180 align=center")
 
 달력을 확인하려고 매번 창을 여는 게 귀찮았다. 작업표시줄 시계를 눌러도 작은 팝업이 뜨고, 브라우저에서 Google 캘린더를 열면 한참 뒤에 묻힌다. 바탕화면에 달력이 그냥 붙어 있으면 되는데 — 예전에 DesktopCal이라는 유틸리티가 딱 그걸 했는데, Google 캘린더 동기화가 내 방식대로 되지 않았다.
 
@@ -15,11 +17,11 @@ toc: true
 
 ## 달력은 창이 아니라 바탕화면의 일부다
 
-![바탕화면에 임베드된 WinCal. 종일 일정은 캘린더 색 칩, 시간 일정은 색 점으로 표시되고 우측에 메모 패널이 붙어 있다](/assets/projects/win-cal-desktop-calendar/widget.png)
+![바탕화면에 임베드된 WinCal. 종일 일정은 캘린더 색 칩, 시간 일정은 색 점으로 표시되고 우측에 메모 패널이 붙어 있다](/api/wiki-assets/9298324a-90fc-42eb-a4bb-55f62561f46e)
 
 하는 일은 단순하다. 월간 달력을 바탕화면에 깔고, Google 캘린더 ICS 피드를 여러 개 구독해 일정을 칩으로 올린다. 종일 일정은 Google 캘린더처럼 캘린더 색 배경 칩, 시간 일정은 색 점 + 시각으로 구분한다. 우측에는 자유 메모 패널, 바탕화면 위에는 색이 도는 스티커 메모를 붙일 수 있다. 처음엔 셀 더블클릭으로 로컬 메모를 다는 기능이었는데, Google 캘린더에 반영되지 않는 메모는 쓸수록 어긋나서 스티커로 바꿨다. 테마 4종(다크/라이트/미니멀/웜), 한영 UI, 작업표시줄과 Alt+Tab에는 안 뜨고 트레이 아이콘으로만 제어한다. 위치는 위치 조정 모드에서 잠금을 풀고 드래그·우하단 그립으로 잡은 뒤 다시 잠그면 저장된다. 폰트는 Pretendard를 SIL OFL 라이선스로 번들했다.
 
-![설정 창. ICS 비밀 주소를 한 줄에 하나씩 넣고 테마·언어·모니터·불투명도·시작 프로그램을 고른다](/assets/projects/win-cal-desktop-calendar/settings.png)
+![설정 창. ICS 비밀 주소를 한 줄에 하나씩 넣고 테마·언어·모니터·불투명도·시작 프로그램을 고른다](/api/wiki-assets/d519fa44-2c10-4260-a76b-699ffbb39381)
 
 여기까지는 평범한 위젯이다. 재미는 "바탕화면의 일부처럼 보이게" 만드는 데서 시작한다.
 

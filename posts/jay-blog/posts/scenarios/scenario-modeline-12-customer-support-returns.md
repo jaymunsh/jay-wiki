@@ -7,7 +7,7 @@ tags: customer-support,harness-engineering,modeline,refunds,returns
 toc: true
 source: https://portfolio.leneu.cloud/api/bff/blog/posts/97 (내려받음)
 ---
-[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
 
 > 두 고객과 거래는 가상이다. 배송료 지원은 이 예시에 대한 회사의 승인 설정이다. 반품 사유별 권리·비용·기한은 실제 법과 계약을 검토해야 하며 이 이야기의 처리 순서가 이를 대신하지 않는다.
 

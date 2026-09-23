@@ -7,8 +7,9 @@ toc: true
 nextSlug: scenario-modeline-04-search-recommendation
 prevSlug: scenario-modeline-02-product-planning
 publishedAt: 2026-09-12T14:32:00.408226+09:00
-syncHash: 9452bb94c92fbaa9d2f6d7e13eca9dc83e074facccdf25ee4ad2fdcfd1aef61a
+syncHash: a2544a58043a626c3d0f3f993945b6c4ce234f61d744fae540d513ef6ab41edd
 
+updatedAt: 2026-09-15T10:05:41.534342Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)

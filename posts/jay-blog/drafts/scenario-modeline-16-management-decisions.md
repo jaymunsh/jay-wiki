@@ -7,8 +7,9 @@ toc: true
 nextSlug: scenario-modeline-17-company-overview
 prevSlug: scenario-modeline-15-people-administration
 publishedAt: 2026-09-12T14:32:05.771644+09:00
-syncHash: f3d265deb3f193fe14c764dc7ccdacd2c9895ef2daed0a65c112a6cb9114f836
+syncHash: 5f76b21edb949bff445ddb9fb052ad74dd2dbd914f2a3ac84ec6b4b1035ddcf5
 
+updatedAt: 2026-09-15T10:05:50.792850Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)

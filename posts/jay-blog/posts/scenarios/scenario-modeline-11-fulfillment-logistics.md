@@ -7,7 +7,7 @@ tags: fulfillment,inventory,logistics,modeline,wms
 toc: true
 source: https://portfolio.leneu.cloud/api/bff/blog/posts/96 (내려받음)
 ---
-[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
 
 > 모드라인은 물류관리 인력을 두고 실물 피킹·포장은 외부 3PL에 맡기는 가상 회사다. 오후 2시 마감은 이야기의 운영 가정이며 택배 서비스의 보장 시간이 아니다.
 
