@@ -1,4 +1,4 @@
-import { BookOpenText, Camera, Gauge, Music, Puzzle } from 'lucide-react';
+import { BookOpenText, Camera, Gauge, Joystick, Music, Puzzle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getBlogCategories, getBlogStats, getBlogTags, getPopularBlogPosts } from '@/lib/blog';
@@ -227,6 +227,18 @@ export async function BlogRail({
                 <rect x="7" y="11.5" width="5.5" height="5.5" rx="1.4" />
               </svg>
               <span>HoldImg</span>
+              <span className="n">↗</span>
+            </a>
+          </li>
+          <li>
+            <a
+              className="blog-cat-row"
+              href="/game/forest-jump"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Joystick className="blog-work-mark blog-work-mark--line" aria-hidden />
+              <span>숲의 계단</span>
               <span className="n">↗</span>
             </a>
           </li>

@@ -43,7 +43,11 @@ const nextConfig: NextConfig = {
     return {
       // public/benchmark 디렉터리 자체가 파일 시스템 경로로 먼저 잡히므로 beforeFiles에서
       // index.html로 보낸다. afterFiles에 두면 디렉터리 매치가 이 규칙보다 앞서 404가 난다.
-      beforeFiles: [{ source: '/benchmark', destination: '/benchmark/index.html' }],
+      beforeFiles: [
+        { source: '/benchmark', destination: '/benchmark/index.html' },
+        // 게임은 public/game/*.html 한 장짜리 파일이라 확장자 없는 주소를 여기서 연결한다.
+        { source: '/game/forest-jump', destination: '/game/forest-jump.html' },
+      ],
       afterFiles: [{ source: '/assets/:path*.:ext(png|jpg|jpeg)', destination: '/assets/:path*.webp' }],
       fallback: [],
     };
