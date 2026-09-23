@@ -7,7 +7,7 @@ tags: ecommerce,idempotency,inventory,modeline,payment
 toc: true
 source: https://portfolio.leneu.cloud/api/bff/blog/posts/90 (내려받음)
 ---
-[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
 
 > 모드라인의 가상 거래 운영 매뉴얼이다. 커머스 백엔드 4명은 개발 15명에 포함되며 판매운영·CX·재무와 함께 일한다. 금액·처리 장면은 창작이고 실제 PG 계약, 법정 처리 기한, 구현 완료 증거가 아니다.
 

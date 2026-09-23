@@ -7,7 +7,7 @@ tags: crm,customer-lifecycle,harness-engineering,modeline,privacy
 toc: true
 source: https://portfolio.leneu.cloud/api/bff/blog/posts/95 (내려받음)
 ---
-[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
 
 > 가상의 고객 관계 운영 설계다. 발송 시점·횟수는 예시이며 실제 광고 발송의 적법성 판단이나 개인정보 처리 자문이 아니다.
 

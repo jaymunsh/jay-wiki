@@ -7,7 +7,7 @@ tags: ci-cd,harness-engineering,modeline,software-development,testing
 toc: true
 source: https://portfolio.leneu.cloud/api/bff/blog/posts/88 (내려받음)
 ---
-[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
 
 > 가상 의류몰 모드라인의 개발 조직 운영을 설명한다. 인물·검사 기록·실행 계약은 창작이며 이 저장소 기능의 실제 테스트 결과가 아니다. 운영 지표의 집계 방식과 실행 상한은 별도로 정한 내부 가정이다.
 

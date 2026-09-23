@@ -7,7 +7,7 @@ tags: data-engineering,harness-engineering,modeline,recommendation,search
 toc: true
 source: https://portfolio.leneu.cloud/api/bff/blog/posts/89 (내려받음)
 ---
-[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
 
 > 직원 80명인 가상 의류몰 모드라인의 데이터 업무다. 데이터·추천 담당 2명은 개발 15명에 포함된다. 상품·검수 자료와 운영 규칙은 창작이며 검색 개선이나 실험 성과를 실제로 측정한 기록이 아니다.
 

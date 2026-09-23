@@ -7,7 +7,7 @@ tags: harness-engineering,modeline,observability,platform-engineering,sre
 toc: true
 source: https://portfolio.leneu.cloud/api/bff/blog/posts/91 (내려받음)
 ---
-[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
 
 > 가상 의류몰 모드라인의 플랫폼 운영 모델이다. 플랫폼·SRE 2명은 개발 15명에 포함된다. 대기열·훈련·목표는 설계와 가상 자료이며 서비스 가용성이나 복구를 실제 검증한 결과가 아니다.
 

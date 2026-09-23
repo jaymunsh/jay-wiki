@@ -7,7 +7,7 @@ tags: harness-engineering,inventory,merchandising,modeline,procurement
 toc: true
 source: https://portfolio.leneu.cloud/api/bff/blog/posts/92 (내려받음)
 ---
-[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
 
 > 가상 회사 모드라인의 가을 시즌 준비를 거슬러 올라간다. 수량·회의·자료는 창작이며 실제 발주나 공급 조건이 아니다.
 

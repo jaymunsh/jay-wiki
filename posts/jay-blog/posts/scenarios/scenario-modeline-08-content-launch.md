@@ -7,7 +7,7 @@ tags: catalog,harness-engineering,modeline,product-content,quality-assurance
 toc: true
 source: https://portfolio.leneu.cloud/api/bff/blog/posts/93 (내려받음)
 ---
-[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
 
 > 모드라인의 상품 제작·판매 준비를 설명하는 가상 기록이다. 소재·촬영·검수 예시는 실제 제품 인증이나 권리 확인 결과가 아니다.
 

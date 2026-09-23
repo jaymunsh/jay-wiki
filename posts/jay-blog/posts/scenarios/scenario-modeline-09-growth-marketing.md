@@ -7,7 +7,7 @@ tags: analytics,experimentation,growth-marketing,harness-engineering,modeline
 toc: true
 source: https://portfolio.leneu.cloud/api/bff/blog/posts/94 (내려받음)
 ---
-[시리즈 종합편과 전체 목차](/96/scenario-modeline-17-company-overview)
+[시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
 
 > 모드라인과 캠페인, 보고서, 금액은 가상이다. 이 글의 합성 자료는 실제 광고 단가나 회사 실적, 검증된 마케팅 성과가 아니다. 계산을 실행해 수치의 일관성을 확인한 예시이며 실제 광고 계정을 운영한 결과는 아니다.
 
