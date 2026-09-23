@@ -46,6 +46,8 @@ describe('blogRewritePath', () => {
     expect(blogRewritePath('/assets/projects/donts3p-icon.webp')).toBeNull();
     expect(blogRewritePath('/benchmark')).toBeNull();
     expect(blogRewritePath('/benchmark/js/app.js')).toBeNull();
+    expect(blogRewritePath('/game/forest-jump')).toBeNull();
+    expect(blogRewritePath('/game/forest-field-bgm.mp3')).toBeNull();
     expect(blogRewritePath('/favicon.ico')).toBeNull();
     expect(blogRewritePath('/og-image-1200x630.png')).toBeNull();
   });
