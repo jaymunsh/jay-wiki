@@ -5,8 +5,9 @@ summary: 회사 업무 지도에서 분리한 기술 설계편. 고객 웹·커�
 tags: ecommerce,architecture,harness-engineering,ai,platform-engineering
 toc: true
 publishedAt: 2026-09-15T10:01:59.324113Z
-syncHash: f6da54d091d2f1bedaca286a9f37968552f70eb2c69c802cd5a143014952684f
+syncHash: 305e1ff584d6192da6d9f5fbe894b4e46624d69b806d8a15d99ddace632d125b
 
+updatedAt: 2026-09-15T10:01:59.324114Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview) · [업무 01편: 회사 지도](/85/scenario-ecommerce-harness-engineering)

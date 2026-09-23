@@ -7,8 +7,9 @@ toc: true
 nextSlug: scenario-modeline-10-crm-lifecycle
 prevSlug: scenario-modeline-08-content-launch
 publishedAt: 2026-09-12T14:32:02.882828+09:00
-syncHash: a30975853d1dde1ae7a208611a3d4f7ce70ca4e9cb5ddfeb7f1a0f9a56adb8f6
+syncHash: f9baf4130f952f4f6cc2c8180268dc9024249fd6918869c908f42cdd31d0111b
 
+updatedAt: 2026-09-15T10:05:45.765677Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)

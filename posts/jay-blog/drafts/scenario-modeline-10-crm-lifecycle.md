@@ -7,8 +7,9 @@ toc: true
 nextSlug: scenario-modeline-11-fulfillment-logistics
 prevSlug: scenario-modeline-09-growth-marketing
 publishedAt: 2026-09-12T14:32:03.271848+09:00
-syncHash: 2e5d4e540fb8bec07d2909c7d0990519fa67057291e28495da6250ab3c554ed7
+syncHash: b762560c5ab71355509d2a203221894fa0458213b2d3a1be59eb28dccc16b067
 
+updatedAt: 2026-09-15T10:05:46.477361Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)

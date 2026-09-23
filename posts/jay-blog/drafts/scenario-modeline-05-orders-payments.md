@@ -7,8 +7,9 @@ toc: true
 nextSlug: scenario-modeline-06-platform-operations
 prevSlug: scenario-modeline-04-search-recommendation
 publishedAt: 2026-09-12T14:32:01.258433+09:00
-syncHash: a5bbfda8fd3b73a456f6644633e8c095a6ba154a8cbcf77a661c85832391ae02
+syncHash: f5681b2617a56177852d835ab72c6b4c292d5c93762cf78bbae600647d730c04
 
+updatedAt: 2026-09-15T10:05:42.944140Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)

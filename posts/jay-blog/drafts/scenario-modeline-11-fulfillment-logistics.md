@@ -7,8 +7,9 @@ toc: true
 nextSlug: scenario-modeline-12-customer-support-returns
 prevSlug: scenario-modeline-10-crm-lifecycle
 publishedAt: 2026-09-12T14:32:03.675019+09:00
-syncHash: 759770e33c293ded92ca74df0d7f5dc039fdb98ddfc3f6891b9da8d77adf1353
+syncHash: be27aa651c53d42bd28a66c9ff2c240336dee5fb1d6becbd130730e70ef0658e
 
+updatedAt: 2026-09-15T10:05:47.197577Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)

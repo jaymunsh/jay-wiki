@@ -7,8 +7,9 @@ toc: true
 nextSlug: scenario-modeline-13-financial-close
 prevSlug: scenario-modeline-11-fulfillment-logistics
 publishedAt: 2026-09-12T14:32:04.115329+09:00
-syncHash: 8d16265cdfbd5b56854e1951fca99123291ad27a1e9c0824c1bb86bae6161efa
+syncHash: ed83436a070f638a634c7473323e07069e4ef3edcbd274b086a8a4839c1f4508
 
+updatedAt: 2026-09-15T10:05:47.923887Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)

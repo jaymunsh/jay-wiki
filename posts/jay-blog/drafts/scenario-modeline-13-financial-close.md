@@ -7,8 +7,9 @@ toc: true
 nextSlug: scenario-modeline-14-budget-cash
 prevSlug: scenario-modeline-12-customer-support-returns
 publishedAt: 2026-09-12T14:32:04.534466+09:00
-syncHash: 7b2823c4739f58ef90a753cbc08aca551731faef7eabe61dde60e031e113a57a
+syncHash: 1665b502292ce825c7fff6ead87fbbefc01d49fdd97c6a207205bb41e6986f2f
 
+updatedAt: 2026-09-15T10:05:48.652641Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)

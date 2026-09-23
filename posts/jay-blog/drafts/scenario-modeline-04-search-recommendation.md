@@ -7,8 +7,9 @@ toc: true
 nextSlug: scenario-modeline-05-orders-payments
 prevSlug: scenario-modeline-03-development-harness
 publishedAt: 2026-09-12T14:32:00.799242+09:00
-syncHash: 6460400c0669e64147bbb35c9633f269354988db19142b35be600a91dbeb25ef
+syncHash: b366fb921db4a368c239d5a02145743f7c855bdff8a312aafb64fa425eb563f9
 
+updatedAt: 2026-09-15T10:05:42.233854Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)

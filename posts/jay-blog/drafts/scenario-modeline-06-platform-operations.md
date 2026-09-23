@@ -7,8 +7,9 @@ toc: true
 nextSlug: scenario-modeline-07-merchandising-procurement
 prevSlug: scenario-modeline-05-orders-payments
 publishedAt: 2026-09-12T14:32:01.639805+09:00
-syncHash: cbc5421b9741ed5830259881f089e21c6185cd79aaf9c8c5f3c7144abd9fa0b0
+syncHash: b7a6c9d26329053e8936dd73e94edbec8564f5c60bfde09d35979b606eae32f3
 
+updatedAt: 2026-09-15T10:05:43.656178Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)

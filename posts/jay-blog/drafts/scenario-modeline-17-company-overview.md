@@ -6,8 +6,9 @@ summary: 온라인 의류몰 80명의 조직과 부서별 책임, 일간·주간
 toc: true
 prevSlug: scenario-modeline-16-management-decisions
 publishedAt: 2026-09-12T14:32:06.202331+09:00
-syncHash: a14cc7cd2abd2a203a2ec6e3b0f960fc8d14138e6375daddbdf11841bf2a397a
+syncHash: 9c5218a1fcca93dba0b11f5e723dbfbc68f09034a6a4cbffe1b22c43e0230dba
 
+updatedAt: 2026-09-15T10:05:51.590609Z
 ---
 
 > 모드라인은 이 시리즈를 위해 만든 가상 회사다. 인물·거래·회의·금액은 창작이며 실제 회사의 실적이나 AI 도입 성공 사례가 아니다. 이 글은 처음 읽을 때의 입문 지도이자 전체 시리즈를 읽은 뒤의 종합 정리다.

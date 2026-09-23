@@ -6,8 +6,9 @@ tags: harness-engineering,ecommerce,architecture,ai-agent,recommendation,enginee
 toc: true
 nextSlug: scenario-modeline-02-product-planning
 publishedAt: 2026-09-12T04:50:30.857736Z
-syncHash: cbe8365535ae1dc9d73cbb7a94ca859862d8341ea915a712ad29d77e7e7a5352
+syncHash: 4e1a929747696aeb245f890e377bf80a51267e30fd3bbdc84d5113fee21068af
 
+updatedAt: 2026-09-15T10:05:39.992966Z
 ---
 
 [시리즈 종합편과 전체 목차](/102/scenario-modeline-17-company-overview)
