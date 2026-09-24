@@ -1,5 +1,6 @@
 const ADMIN_HOSTS = new Set(['admin.localhost', 'admin.leneu.cloud']);
 const BLOG_HOSTS = new Set(['blog.localhost', 'blog.leneu.cloud']);
+const GAME_HOSTS = new Set(['game.localhost', 'game.leneu.cloud']);
 const WIKI_HOSTS = new Set(['localhost', '127.0.0.1', '::1', 'portfolio.leneu.cloud']);
 
 export function hostnameOf(host: string | null | undefined): string {
@@ -12,6 +13,7 @@ export function hostnameOf(host: string | null | undefined): string {
 export const isAdminHost = (host: string | null | undefined) => ADMIN_HOSTS.has(hostnameOf(host));
 export const isProductionAdminHost = (host: string | null | undefined) => hostnameOf(host) === 'admin.leneu.cloud';
 export const isBlogHost = (host: string | null | undefined) => BLOG_HOSTS.has(hostnameOf(host));
+export const isGameHost = (host: string | null | undefined) => GAME_HOSTS.has(hostnameOf(host));
 export const isWikiHost = (host: string | null | undefined) => WIKI_HOSTS.has(hostnameOf(host));
 
 const SHARED_PUBLIC_FILES = new Set([
