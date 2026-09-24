@@ -1,4 +1,4 @@
-import { BookOpenText, Camera, Gauge, Joystick, Music, Puzzle } from 'lucide-react';
+import { BookOpenText, Camera, Gauge, HardDrive, Joystick, Music, Puzzle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getBlogCategories, getBlogStats, getBlogTags, getPopularBlogPosts } from '@/lib/blog';
@@ -239,6 +239,18 @@ export async function BlogRail({
             >
               <Joystick className="blog-work-mark blog-work-mark--line" aria-hidden />
               <span>숲의 계단</span>
+              <span className="n">↗</span>
+            </a>
+          </li>
+          <li>
+            <a
+              className="blog-cat-row"
+              href="https://github.com/jaymunsh/ntfs-manager"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <HardDrive className="blog-work-mark blog-work-mark--line" aria-hidden />
+              <span>NTFS Manager</span>
               <span className="n">↗</span>
             </a>
           </li>

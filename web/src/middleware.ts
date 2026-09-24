@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { blogRewritePath, isBlogHost } from '@/lib/blogHost';
+import { gameRewritePath, isGameHost } from '@/lib/gameHost';
 import { ENTRY_SOURCE_COOKIE, entryHost } from '@/lib/entrySource';
 import { adminExternalPath, adminOriginFor, adminRewritePath, isAdminHost, isSharedPublicAsset } from '@/lib/siteHost';
 
@@ -47,6 +48,25 @@ export function middleware(req: NextRequest) {
       return NextResponse.rewrite(url);
     }
     return new NextResponse('Not Found', { status: 404 });
+  }
+
+  if (isGameHost(host)) {
+    const rewritten = gameRewritePath(pathname);
+    if (rewritten) {
+      const url = req.nextUrl.clone();
+      url.pathname = rewritten;
+      const requestHeaders = new Headers(req.headers);
+      requestHeaders.set('x-game-site-host', host);
+      return withEntrySource(req, NextResponse.rewrite(url, { request: { headers: requestHeaders } }));
+    }
+    // A game host should never expose the portfolio and blog routes.
+    if (
+      pathname !== '/games' && !pathname.startsWith('/games/') &&
+      pathname !== '/game' && !pathname.startsWith('/game/') &&
+      pathname !== '/api' && !pathname.startsWith('/api/') &&
+      pathname !== '/_next' && !pathname.startsWith('/_next/') &&
+      !isSharedPublicAsset(pathname)
+    ) return new NextResponse('Not Found', { status: 404 });
   }
 
   if (isBlogHost(host)) {

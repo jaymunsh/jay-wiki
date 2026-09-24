@@ -1,0 +1,96 @@
+.page {
+  --ink: #192120;
+  --muted: #59615c;
+  --paper: #f4f3ed;
+  --line: #d8dad1;
+  min-height: 100dvh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+}
+
+.page ::selection { background: #c8dac4; color: var(--ink); }
+
+.shell { width: min(1140px, calc(100% - 64px)); margin: 0 auto; }
+
+.header {
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand { display: inline-flex; align-items: center; gap: 12px; font-weight: 750; font-size: 20px; letter-spacing: -.025em; }
+.brandMark { width: 31px; height: 31px; color: var(--ink); }
+.headerNote { font-size: 13px; font-weight: 550; color: var(--muted); }
+
+.intro { padding: 64px 0 55px; }
+.intro h1 {
+  margin: 0;
+  max-width: 14ch;
+  font-size: clamp(38px, 4.8vw, 58px);
+  line-height: 1.17;
+  letter-spacing: -.035em;
+  font-weight: 760;
+  word-break: keep-all;
+}
+.intro p { margin: 20px 0 0; font-size: 17px; line-height: 1.65; color: var(--muted); word-break: keep-all; }
+
+.catalog { padding-bottom: 88px; }
+.sectionHead { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.sectionHead h2 { margin: 0; font-size: 21px; line-height: 1.4; letter-spacing: -.02em; }
+.sectionHead span { font-size: 13px; color: var(--muted); white-space: nowrap; }
+
+.list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
+.card { min-width: 0; background: #fff; border: 1px solid var(--line); border-radius: 15px; overflow: hidden; }
+.cardLink { display: flex; height: 100%; flex-direction: column; color: inherit; }
+.cardLink:focus-visible { outline: 3px solid #2f6655; outline-offset: 4px; border-radius: 14px; }
+.visual { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: #17342b; }
+.image { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .45s cubic-bezier(.19,1,.22,1); }
+.cardLink:hover .image, .cardLink:focus-visible .image { transform: scale(1.035); }
+.cardContent { min-height: 273px; padding: 22px; display: flex; flex-direction: column; }
+.cardLabels { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.genre { font-size: 12px; font-weight: 650; color: #3f6d59; }
+.feature { padding: 4px 8px; border-radius: 4px; background: #edf3ec; color: #315b46; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.cardContent h3 { margin: 17px 0 0; font-size: 29px; line-height: 1.2; letter-spacing: -.025em; }
+.englishTitle { margin: 4px 0 0; font-size: 13px; color: #667069; }
+.description { margin: 17px 0 22px; font-size: 14px; line-height: 1.6; color: var(--muted); word-break: keep-all; overflow-wrap: break-word; text-wrap: pretty; }
+.cardBottom { display: flex; flex-direction: column; align-items: stretch; gap: 10px; margin-top: auto; }
+.controls { color: var(--muted); font-size: 12px; }
+.play { display: inline-flex; align-items: center; justify-content: space-between; gap: 17px; min-height: 43px; padding: 0 16px; background: var(--ink); color: #fff; border-radius: 7px; font-size: 13px; font-weight: 650; transition: background .18s ease; }
+.play span { font-size: 18px; font-weight: 400; line-height: 1; }
+.cardLink:hover .play, .cardLink:focus-visible .play { background: #2f6655; }
+
+.footer { display: flex; justify-content: space-between; gap: 20px; padding: 25px 0 35px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+
+@media (max-width: 1000px) {
+  .shell { width: calc(100% - 48px); }
+  .list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 650px) {
+  .shell { width: calc(100% - 32px); }
+  .header { min-height: 64px; }
+  .brand { font-size: 17px; gap: 9px; }
+  .brandMark { width: 26px; height: 26px; }
+  .headerNote { font-size: 11px; }
+  .intro { padding: 43px 0 37px; }
+  .intro h1 { font-size: clamp(36px, 10.4vw, 48px); }
+  .intro p { margin-top: 16px; font-size: 15px; }
+  .desktopBreak { display: none; }
+  .catalog { padding-bottom: 64px; }
+  .sectionHead { align-items: flex-end; margin-bottom: 16px; }
+  .sectionHead h2 { font-size: 18px; }
+  .sectionHead span { font-size: 12px; }
+  .list { grid-template-columns: 1fr; gap: 17px; }
+  .cardContent { min-height: 252px; padding: 20px; }
+  .cardContent h3 { font-size: 28px; }
+  .description { margin: 14px 0 18px; }
+  .footer { flex-direction: column; gap: 7px; padding-bottom: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image, .play { transition: none; }
+}

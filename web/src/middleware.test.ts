@@ -70,3 +70,57 @@ describe('admin host middleware', () => {
     expect(response.headers.get('location')).toBeNull();
   });
 });
+
+describe('game host middleware', () => {
+  it('rewrites the lobby root to the games index', () => {
+    const response = middleware(new NextRequest('http://game.localhost:3000/', {
+      headers: { host: 'game.localhost:3000' },
+    }));
+    expect(response.headers.get('x-middleware-rewrite')).toBe('http://game.localhost:3000/games');
+  });
+
+  it('rewrites a game slug to its public html file', () => {
+    const response = middleware(new NextRequest('http://game.localhost:3000/forest-jump', {
+      headers: { host: 'game.localhost:3000' },
+    }));
+    expect(response.headers.get('x-middleware-rewrite')).toBe(
+      'http://game.localhost:3000/game/forest-jump.html',
+    );
+  });
+
+  it('serves game assets without rewriting them into html paths', () => {
+    const response = middleware(new NextRequest('http://game.localhost:3000/game/forest-field-bgm.mp3', {
+      headers: { host: 'game.localhost:3000' },
+    }));
+    expect(response.headers.get('x-middleware-rewrite')).toBeNull();
+    expect(response.headers.get('x-middleware-next')).toBe('1');
+  });
+
+  it('keeps the bff api reachable on the game host', () => {
+    const response = middleware(new NextRequest('http://game.localhost:3000/api/bff/game/forest-jump/scores', {
+      headers: { host: 'game.localhost:3000' },
+    }));
+    expect(response.headers.get('x-middleware-next')).toBe('1');
+  });
+
+  it('never exposes portfolio or blog routes on the game host', () => {
+    for (const path of ['/wiki/articles', '/blog/posts/hello', '/admin/stats', '/wp-admin/setup.php']) {
+      const response = middleware(new NextRequest(`http://game.localhost:3000${path}`, {
+        headers: { host: 'game.localhost:3000' },
+      }));
+      expect(response.status).toBe(404);
+    }
+    // 단일 slug 는 게임 파일 후보로 rewrite 된다 — 파일이 없으면 정적 단계에서 404.
+    const slug = middleware(new NextRequest('http://game.localhost:3000/blog', {
+      headers: { host: 'game.localhost:3000' },
+    }));
+    expect(slug.headers.get('x-middleware-rewrite')).toBe('http://game.localhost:3000/game/blog.html');
+  });
+
+  it('does not trust lookalike game hosts', () => {
+    const response = middleware(new NextRequest('https://game.leneu.cloud.attacker.test/forest-jump', {
+      headers: { host: 'game.leneu.cloud.attacker.test' },
+    }));
+    expect(response.headers.get('x-middleware-rewrite')).toBeNull();
+  });
+});
