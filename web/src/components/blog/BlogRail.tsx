@@ -1,8 +1,8 @@
-import { BookOpenText, Camera, Gauge, HardDrive, Joystick, Music, Puzzle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getBlogCategories, getBlogStats, getBlogTags, getPopularBlogPosts } from '@/lib/blog';
 import { blogPostHref, formatBlogDate } from '@/lib/blogLinks';
+import { workCounts } from '@/lib/worksCatalog';
 import { BlogSearchBox } from './BlogSearchBox';
 
 /** 레일에 세울 태그 수. 글이 열몇 편인데 태그가 54개라 전부 내면 레일이 태그로만 채워진다. */
@@ -119,141 +119,19 @@ export async function BlogRail({
         </ul>
       </nav>
 
-      {/* 글이 아니라 돌아가는 물건으로 보내는 줄. 별도 호스트라 Link 가 아니라 a 다. */}
+      {/* 글이 아니라 돌아가는 물건으로 보내는 줄. 항목은 나열하지 않고
+          카테고리 수로만 안내해 /works 의 해당 섹션 앵커로 보낸다. */}
       <div className="blog-rail-sec">
         <h4>작업물</h4>
         <ul className="blog-cats">
-          <li>
-            <a
-              className="blog-cat-row"
-              href="https://www.yes24.com/product/goods/193453753"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {/* 표지를 쓰면 좋겠지만 세로로 긴 그림이라 15px 에서는 안 읽힌다. */}
-              <BookOpenText className="blog-work-mark blog-work-mark--line" aria-hidden />
-              <span>비전공자를 위한 AI 지식</span>
-              <span className="n">↗</span>
-            </a>
-          </li>
-          <li>
-            <a
-              className="blog-cat-row"
-              href="https://spellcrown.leneu.cloud"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {/* 게임의 현재 왕관 표식. 인라인 SVG로 그리던 Phosphor Crown은
-                  게임이 그림을 갈아끼운 뒤로 사이트에만 남은 옛 표식이었다.
-                  같은 파일을 쓰면 다음에 갈아끼울 때도 함께 따라간다. */}
-              <img
-                className="blog-work-mark"
-                src="/assets/projects/spellcrown-web-boardgame/crown.webp"
-                alt=""
-                width={15}
-                height={15}
-                loading="lazy"
-              />
-              <span>SPELLCROWN</span>
-              <span className="n">↗</span>
-            </a>
-          </li>
-          <li>
-            <a
-              className="blog-cat-row"
-              href="https://github.com/jaymunsh/jay-claude"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Puzzle className="blog-work-mark blog-work-mark--line" aria-hidden />
-              <span>jay-claude</span>
-              <span className="n">↗</span>
-            </a>
-          </li>
-          <li>
-            <a
-              className="blog-cat-row"
-              href="https://youtu.be/xuWCNbn3vk0"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Music className="blog-work-mark blog-work-mark--line" aria-hidden />
-              <span>Lost in the Neon Wave</span>
-              <span className="n">↗</span>
-            </a>
-          </li>
-          <li>
-            <a
-              className="blog-cat-row"
-              href="https://camera.leneu.cloud"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Camera className="blog-work-mark blog-work-mark--line" aria-hidden />
-              <span>사진 촬영 입문 가이드</span>
-              <span className="n">↗</span>
-            </a>
-          </li>
-          <li>
-            <a
-              className="blog-cat-row"
-              href="/benchmark/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Gauge className="blog-work-mark blog-work-mark--line" aria-hidden />
-              <span>Leneu Benchmark</span>
-              <span className="n">↗</span>
-            </a>
-          </li>
-          <li>
-            <a
-              className="blog-cat-row"
-              href="https://github.com/jaymunsh/hold-img"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {/* 앱의 메뉴 막대 아이콘과 같은 모양 — 라운드 프레임 안에 떠 있는 작은 조각 */}
-              <svg
-                className="blog-work-mark blog-work-mark--line"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                aria-hidden
-              >
-                <rect x="3.5" y="4.5" width="17" height="15" rx="3.5" />
-                <rect x="7" y="11.5" width="5.5" height="5.5" rx="1.4" />
-              </svg>
-              <span>HoldImg</span>
-              <span className="n">↗</span>
-            </a>
-          </li>
-          <li>
-            <a
-              className="blog-cat-row"
-              href="/game/forest-jump"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Joystick className="blog-work-mark blog-work-mark--line" aria-hidden />
-              <span>숲의 계단</span>
-              <span className="n">↗</span>
-            </a>
-          </li>
-          <li>
-            <a
-              className="blog-cat-row"
-              href="https://github.com/jaymunsh/ntfs-manager"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <HardDrive className="blog-work-mark blog-work-mark--line" aria-hidden />
-              <span>NTFS Manager</span>
-              <span className="n">↗</span>
-            </a>
-          </li>
+          {workCounts().map((c) => (
+            <li key={c.slug}>
+              <Link className="blog-cat-row" href={`/works#${c.slug}`}>
+                <span>{c.label}</span>
+                <span className="n">({c.count})</span>
+              </Link>
+            </li>
+          ))}
         </ul>
       </div>
 
