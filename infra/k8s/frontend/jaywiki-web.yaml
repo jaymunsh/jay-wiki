@@ -116,6 +116,17 @@ spec:
                 name: jaywiki-web
                 port:
                   number: 3000
+    # Game pages share this Deployment; middleware maps game host paths to the catalog and games.
+    - host: game.leneu.cloud
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jaywiki-web
+                port:
+                  number: 3000
     # 관리자도 같은 Deployment 를 쓰며 Host 기반 middleware 가 전용 셸과 API 경계를 적용한다.
     # Cloudflare Tunnel hostname과 Access 정책이 함께 준비된 뒤에만 외부에서 접근할 수 있다.
     - host: admin.leneu.cloud

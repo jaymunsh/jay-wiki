@@ -29,7 +29,7 @@ spec:
   entryPoints: [web]
   routes:
     - kind: Rule
-      match: '(Host(`portfolio.leneu.cloud`) || Host(`blog.leneu.cloud`)) && HeaderRegexp(`Cf-Visitor`, `"scheme"[[:space:]]*:[[:space:]]*"http"`)'
+      match: '(Host(`portfolio.leneu.cloud`) || Host(`blog.leneu.cloud`) || Host(`game.leneu.cloud`)) && HeaderRegexp(`Cf-Visitor`, `"scheme"[[:space:]]*:[[:space:]]*"http"`)'
       priority: 1000
       middlewares:
         - name: jaywiki-public-https-redirect

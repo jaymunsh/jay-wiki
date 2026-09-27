@@ -47,6 +47,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/board/**").permitAll() // 익명 게시판(작성/댓글/본인삭제)
                 .requestMatchers(HttpMethod.POST, "/api/blog/posts/*/comments").permitAll() // 익명 블로그 댓글 작성
                 .requestMatchers(HttpMethod.POST, "/api/blog/comments/*/delete").permitAll() // 익명 블로그 댓글 본인삭제
+                .requestMatchers(HttpMethod.POST, "/api/game/*/scores").permitAll() // 익명 게임 기록 등록
                 .requestMatchers(HttpMethod.POST, "/api/saga/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/chat/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/kafka/**").permitAll()
