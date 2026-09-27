@@ -1,13 +1,13 @@
 ---
-title: M1 Max에서 Splash로 Qwen3.8-27B를 돌려 보니, oMLX·MTPLX와 무엇이 다른가
+title: 우연히 발견한 Qwen 3.8 27B의 Splash 엔진 — M1 Max에서 17 tok/s를 넘길 수 있을까
 slug: splash-m1-qwen38-27b-omlx-mtplx
 category: 기술 실험
 tags: apple-silicon,local-llm,qwen3.8,splash,omlx,mtplx,dflash2,mtp,benchmark
-summary: M1 Max에서 Qwen3.8-27B 4비트 모델을 Splash로 실행한 결과와 Reddit의 oMLX·MTPLX 비교를 검토했다. 35B-A3B의 144 tok/s는 별도 사례로 다루고, 양자화와 긴 입력의 비용을 함께 정리한다.
+summary: DFlash 2를 붙여도 17 tok/s 언저리였던 M1 Max의 Qwen3.8-27B를, Reddit에서 발견한 Splash M1 포트로 직접 재측정했다. 27.2 tok/s라는 나의 수치와 oMLX·MTPLX와의 비교, 그리고 테트리스 생성 실험에서 드러난 한계까지.
 toc: true
 ---
 
-M1 Max에서 Qwen3.8-27B를 oMLX로 돌릴 때 생성 속도는 실험에 따라 대략 16~18 tok/s였다. 앞서 같은 Mac에서 Qwen3.8 Flash-Next를 MTPLX의 SSD 스트리밍 팩으로 돌려 약 30 tok/s를 본 [이전 기록](/111/m1max-external-ssd-qwen38-flash-next-setup)이 있다. 코딩 에이전트가 파일을 오래 쓰는 동안 기다리는 일이 잦아 다른 경로를 찾았다. Reddit에는 같은 M1 Max에서 **27B를 약 39~41.5 tok/s로 실행했다는 기록**이 있었다. 어떤 모델과 설정으로 얻은 수치인지 확인한 뒤 내 Mac에서도 Splash를 시험했다.
+M1 Max에서 Qwen3.8-27B를 oMLX로 돌릴 때 생성 속도는 DFlash 2 초안 모델까지 붙여 튜닝해도 대략 16~18 tok/s 언저리였다. 코딩 에이전트가 파일을 오래 쓰는 동안 기다리는 일이 잦아 다른 경로를 찾았다. 앞서 같은 Mac에서 Qwen3.8 Flash-Next를 MTPLX의 SSD 스트리밍 팩으로 돌려 약 30 tok/s를 본 [이전 기록](/111/m1max-external-ssd-qwen38-flash-next-setup)이 있다. 그러다 우연히 Reddit에서 같은 M1 Max 64GB로 **27B를 약 39~41.5 tok/s로 실행했다는 기록**을 발견했다. 어떤 모델과 설정으로 얻은 수치인지 확인한 뒤 내 Mac에서도 Splash를 시험했다.
 
 여기서 다룰 중심 모델은 **Qwen3.8-27B**다. Reddit 작성자가 보고한 27B의 속도 변화, Splash·oMLX·MTPLX의 실행 구성, 이 Mac의 재측정과 실패한 코딩 작업을 순서대로 본다. 원문 제목에 나온 35B-A3B의 144 tok/s는 다른 모델이므로 뒤에서 이전 버전과 비교하는 별도 사례로 다룬다. [Reddit 1편](https://www.reddit.com/r/LocalLLM/comments/1woq7cd/you_can_now_run_qwen3827b_on_a_2021_m1_max_at_39/), [2편](https://www.reddit.com/r/LocalLLM/comments/1wqngu9/splash_on_m1_part_2_35ba3b_at_144_toks_on_a_2021/)
 
@@ -114,7 +114,9 @@ Reddit 1편의 다섯 프롬프트와 `temperature=0`, `reasoning_effort=xhigh`,
 
 짧은 요청 세 가지를 따로 골라 `none`과 `medium`, 다시 `none`과 `xhigh`를 교차 측정했다. 모두 250토큰 상한에 도달한 실험에서 서버 생성 속도 평균은 `none` 36.0 대 `medium` 31.7 tok/s, 다른 회차에서는 `none` 35.3 대 `xhigh` 28.5 tok/s였다. 각각 약 14%, 24% 빠른 셈이다. 이 차이는 특정 프롬프트와 250토큰 상한에서 얻은 결과이며 답변 품질은 평가하지 않았다. 원자료는 `REASONING_AB_BENCH_MEDIUM.json`, `REASONING_AB_BENCH_XHIGH.json`에 있다.
 
-실제 OpenCode 작업에서는 결과가 더 까다로웠다. Splash 서버와 에이전트를 연결해 홀드 기능이 있는 테트리스를 생성하도록 했고, 추론을 끈 재시도에서 HTML 초안은 비교적 일찍 나왔다. 첫 산출물은 시작 버튼이 첫 조각을 만들지 못했다. 수정 요청 뒤 그 문제는 해결됐지만 회전·충돌·표시 결함과 누락 파일이 남았고, 사용자 확인에서도 **작동하는 게임으로 판정하지 못했다**. 생성 tok/s가 높아도 결과를 수정하고 다시 검증해야 한다면 전체 작업 시간은 짧아지지 않을 수 있다. 이 기록은 모델 품질의 일반 평가가 아니라 한 작업의 실패 사례다.
+실제 OpenCode 작업에서는 결과가 더 까다로웠다. Splash 서버와 에이전트를 연결해 홀드 기능이 있는 테트리스를 생성하도록 했는데, `medium` 추론의 첫 호출은 긴 추론만 출력하다 파일을 만들지 못해 중단했다. 추론을 끈(`none`) 재시도에서는 HTML 초안이 시작 후 약 7분 만에 나왔다.
+
+별도 Chrome 검사에서 초안의 홀드 직후 재사용 버그를 찾아 수동으로 고친 뒤 최종 검사를 통과했지만, 다음 날 `none`으로 새 폴더에서 다시 만든 시도는 다르게 실패했다. 시작 버튼이 첫 조각을 만들지 못했고, 수정 요청 뒤에도 `rotatedCells`가 회전값을 무시해 회전 모양이 같거나, 충돌 검사가 회전 전 셀을 보거나, 렌더링에서 x 좌표를 두 번 더하는 결함이 남았다. 모델이 짠 자체 테스트는 사용자 경로를 건너뛰어 이 결함을 못 잡았다. 사용자 확인에서도 **작동하는 게임으로 판정하지 못했다**. 생성 tok/s가 높아도 결과를 수정하고 다시 검증해야 한다면 전체 작업 시간은 짧아지지 않을 수 있다. 이 기록은 모델 품질의 일반 평가가 아니라 한 작업의 실패 사례다.
 
 ![OpenCode가 만든 테트리스 — 홀드·다음 조각·점수 판은 갖췄지만 회전과 충돌 결함으로 미완성](/assets/projects/splash-m1-qwen38-27b-omlx-mtplx/tetris-hold-ui.png)
 
@@ -123,5 +125,7 @@ Reddit 1편의 다섯 프롬프트와 `temperature=0`, `reasoning_effort=xhigh`,
 내 사용 목적이 한 모델의 긴 코드 생성을 빠르게 받는 것이라면 Splash M1 포트가 시험할 만한 후보가 됐다. 공개 비교에서 27B 생성·전력은 유리했고, 내 Mac에서도 기존 oMLX 실험보다 빠른 짧은 요청이 있었다. 반면 첫 장문 입력은 느렸고, M1 실행 경로는 공식 지원이 아닌 커뮤니티 포트다. 엔진의 현재 기능은 늘어나고 있으므로 “Splash는 전용 패키지만 된다”는 옛 설명도 그대로 쓰지 않는다. [Splash 저장소](https://github.com/incoai/splash), [M1 포트](https://github.com/paperniuk/splash/releases/tag/1.0.2-m1.1)
 
 여러 모델을 관리하고 긴 대화의 KV 캐시를 재사용하려면 oMLX의 메뉴 막대 관리, 동시 요청, RAM·SSD 캐시가 실용적이다. MTP 기반 조합을 집중적으로 튜닝하려면 MTPLX가 분명한 선택지다. MTPLX의 M1용 FP16 패키지는 따로 제공되지만, 내 Mac의 같은 작업으로 재측정하기 전에는 Reddit의 25.9 tok/s를 개인 기기의 예상치로 확정할 수 없다. [oMLX 저장소](https://github.com/jundot/omlx), [MTPLX M1/M2 모델 카드](https://huggingface.co/Youssofal/Qwen3.8-27B-MTPLX-Optimized-Speed-FP16)
+
+그래도 체감은 남는다. DFlash 2를 붙여도 17 tok/s 언저리를 벗어나지 못하던 27B가, 같은 Mac에서 27 tok/s를 넘고 Reddit 작성자 조건에서는 40 tok/s에 가까워진다. 짧은 코딩 요청이 이 정도로 돌아오면, 클라우드 API를 빼고 이 Mac 하나로 코딩 에이전트를 돌리는 그림이 갑자기 현실적으로 보인다. 답은 아직 안 냈지만 "이 속도면 로컬로 대체해도 되지 않을까"라는 질문을 처음 진지하게 던질 수 있게 됐다.
 
 다음 비교에서는 세 엔진을 같은 Mac에서 한 번에 하나씩 돌리고, 동일한 프롬프트·샘플링·실제 출력 토큰 수를 고정해야 한다. 짧은 입력과 16K·44K 장문을 나누며, 첫 요청과 캐시가 붙은 반복 요청을 따로 잰다. 생성 속도 외에 첫 토큰 시간, 메모리·스왑, 온도·클럭, 그리고 코딩 작업의 **완성 여부**까지 기록해야 한다. 현재 확인된 27B의 결론은 좁다. Reddit의 41.5 tok/s를 이 Mac의 27.2 tok/s로 아직 재현하지 못했고, 그 간격의 원인은 남아 있다. 35B-A3B의 144 tok/s는 별도 모델의 사례다.
