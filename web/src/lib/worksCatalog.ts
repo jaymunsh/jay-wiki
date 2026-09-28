@@ -154,6 +154,23 @@ export const WORKS: readonly WorkEntry[] = [
     source: 'open-camera-leneu.vercel.app',
   },
   {
+    slug: 'fold-menu',
+    title: 'Fold Menu',
+    description:
+      '노치에 가려지는 메뉴바 상태 아이콘을 폴더 하나로 접는 macOS 앱. 폴더에서 항목을 고르면 원본 메뉴를 잠시 꺼내 엽니다.',
+    category: 'tools',
+    kind: 'macOS · 메뉴바',
+    href: 'https://github.com/jaymunsh/fold-menu',
+    external: true,
+    articleHref: '/2334/fold-menu-macos-menubar-folder',
+    image: '/assets/works/utilities/fold-menu.png',
+    imageAlt: 'Fold Menu 앱 아이콘 — 폴더 윤곽 안에 점 세 개',
+    imageFit: 'contain',
+    imageSquare: true,
+    mark: 'frame',
+    source: 'GitHub',
+  },
+  {
     slug: 'jay-claude',
     title: 'jay-claude',
     description: 'Claude Code 사용자 설정·스킬·워크플로를 모아 둔 저장소.',
