@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>플랫폼 완주</title>
+<style>
+:root { --ink:#e8eef4; --dim:#8fa0b3; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:#0d1218; color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",sans-serif; display:flex; flex-direction:column; align-items:center; gap:10px; min-height:100vh; padding:12px; }
+#hud { display:flex; gap:18px; font-size:.95rem; font-variant-numeric:tabular-nums; }
+#hud .val { font-weight:700; }
+#stage { position:relative; }
+#game { display:block; background:#101a24; border:1px solid #2a3542; border-radius:8px; }
+#overlay { position:absolute; inset:0; background:rgba(8,12,16,.82); display:none; flex-direction:column; align-items:center; justify-content:center; gap:10px; border-radius:8px; }
+#overlay.show { display:flex; }
+#overlayTitle { font-size:1.6rem; font-weight:800; }
+#overlaySub { color:var(--dim); }
+button { background:#4da3ff; color:#08111c; border:none; border-radius:8px; padding:9px 18px; font-weight:700; cursor:pointer; }
+.help { font-size:.78rem; color:var(--dim); }
+</style>
+</head>
+<body>
+<div id="hud">
+  <span>코인 <span class="val" id="coins">0/3</span></span>
+  <span>시간 <span class="val" id="time">0.00</span>초</span>
+</div>
+<div id="stage">
+  <canvas id="game" width="800" height="600"></canvas>
+  <div id="overlay"><div id="overlayTitle"></div><div id="overlaySub"></div></div>
+</div>
+<button id="restartBtn">재시작 (R)</button>
+<div class="help">← → 이동 · Space/↑ 점프(지면에서만) · R 재시작 — 적이 보이면 밟거나 넘으세요. 옆으로 부딪치면 실패입니다.</div>
+
+<script id="platformer-core">
+"use strict";
+(function (global) {
+  const WORLD_W = 2400, WORLD_H = 600;
+  const VIEW_W = 800, VIEW_H = 600;
+
+  const GRAVITY = 2000;      // px/s^2
+  const JUMP_VEL = -800;     // px/s
+  const MOVE_SPEED = 300;    // px/s
+  const BOUNCE_VEL = -500;   // px/s
+  const ENEMY_SPEED = 120;   // px/s
+  const MAX_FALL = 1000;     // px/s
+  const COIN_SIZE = 24;
+  const GOAL_X = 2310;
+
+  const GROUND_TOP = 520;
+  // 지면 세그먼트 (x 시작, x 끝) — 윗면 y=520, 하단은 월드 바닥까지
+  const GROUND_SEGS = [[0, 650], [780, 1500], [1640, 2400]];
+  const PLATFORMS = [
+    { x: 350, y: 410, w: 160, h: 20 },
+    { x: 1100, y: 400, w: 180, h: 20 },
+    { x: 1800, y: 380, w: 180, h: 20 }
+  ];
+  const COINS = [
+    { x: 420, y: 370 },
+    { x: 1170, y: 360 },
+    { x: 1860, y: 340 }
+  ];
+  const ENEMIES = [
+    { minX: 900, maxX: 1040 },
+    { minX: 2000, maxX: 2180 }
+  ];
+  const ENEMY_W = 36, ENEMY_H = 36;
+  const PLAYER_W = 32, PLAYER_H = 44;
+  const START = { x: 80, y: 476 };
+
+  function groundRects() {
+    return GROUND_SEGS.map(([a, b]) => ({ x: a, y: GROUND_TOP, w: b - a, h: WORLD_H - GROUND_TOP }));
+  }
+
+  function solids() {
+    return groundRects().concat(PLATFORMS);
+  }
+
+  function overlaps(ax, ay, aw, ah, bx, by, bw, bh) {
+    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+  }
+
+  function createGame() {
+    const g = {
+      player: { x: START.x, y: START.y, w: PLAYER_W, h: PLAYER_H, vx: 0, vy: 0, onGround: true },
+      coins: COINS.map((c) => ({ x: c.x, y: c.y, taken: false })),
+      enemies: ENEMIES.map((e) => ({
+        x: e.minX, y: GROUND_TOP - ENEMY_H, w: ENEMY_W, h: ENEMY_H,
+        minX: e.minX, maxX: e.maxX - ENEMY_W, dir: 1, alive: true
+      })),
+      time: 0,
+      state: "playing",
+      cameraX: 0,
+      input: { left: false, right: false, jump: false },
+      _prevJump: false
+    };
+
+    function rects() { return solids(); }
+
+    function step(dt) {
+      if (g.state !== "playing") return;
+      g.time += dt;
+      const p = g.player;
+
+      // 입력 — 점프는 엣지 트리거(지면에서만)
+      p.vx = ((g.input.right ? 1 : 0) - (g.input.left ? 1 : 0)) * MOVE_SPEED;
+      if (g.input.jump && !g._prevJump && p.onGround) {
+        p.vy = JUMP_VEL;
+        p.onGround = false;
+      }
+      g._prevJump = g.input.jump;
+
+      // 중력
+      p.vy = Math.min(p.vy + GRAVITY * dt, MAX_FALL);
+
+      // X 이동 + 충돌
+      p.x += p.vx * dt;
+      if (p.x < 0) p.x = 0;
+      if (p.x + p.w > WORLD_W) p.x = WORLD_W - p.w;
+      for (const r of rects()) {
+        if (overlaps(p.x, p.y, p.w, p.h, r.x, r.y, r.w, r.h)) {
+          if (p.vx > 0) p.x = r.x - p.w;
+          else if (p.vx < 0) p.x = r.x + r.w;
+          else {
+            // 정지한 상태에서 겹침(이해할 수 없는 상태) — 가까운 쪽으로 밀어냄
+            p.x = (p.x + p.w / 2 < r.x + r.w / 2) ? r.x - p.w : r.x + r.w;
+          }
+        }
+      }
+
+      // Y 이동 + 충돌 (플랫폼 윗면/아래면 모두 단단함)
+      const prevBottom = p.y + p.h;
+      p.y += p.vy * dt;
+      p.onGround = false;
+      for (const r of rects()) {
+        if (overlaps(p.x, p.y, p.w, p.h, r.x, r.y, r.w, r.h)) {
+          if (p.vy > 0) { p.y = r.y - p.h; p.vy = 0; p.onGround = true; }
+          else if (p.vy < 0) { p.y = r.y + r.h; p.vy = 0; }
+          else { p.y = (p.y + p.h / 2 < r.y + r.h / 2) ? r.y - p.h : r.y + r.h; }
+        }
+      }
+
+      // 코인 획득 (중복 방지: taken 플래그)
+      for (const c of g.coins) {
+        if (c.taken) continue;
+        if (overlaps(p.x, p.y, p.w, p.h, c.x - COIN_SIZE / 2, c.y - COIN_SIZE / 2, COIN_SIZE, COIN_SIZE)) {
+          c.taken = true;
+        }
+      }
+
+      // 적 이동 + 판정
+      for (const e of g.enemies) {
+        if (!e.alive) continue;
+        e.x += e.dir * ENEMY_SPEED * dt;
+        if (e.x < e.minX) { e.x = e.minX; e.dir = 1; }
+        if (e.x > e.maxX) { e.x = e.maxX; e.dir = -1; }
+        if (overlaps(p.x, p.y, p.w, p.h, e.x, e.y, e.w, e.h)) {
+          const stomp = p.vy > 0 && prevBottom <= e.y + 10;
+          if (stomp) {
+            e.alive = false;
+            p.vy = BOUNCE_VEL;
+            p.onGround = false;
+          } else {
+            fail();
+            return;
+          }
+        }
+      }
+
+      // 낭떠러지 추락
+      if (p.y > WORLD_H) {
+        fail();
+        return;
+      }
+
+      // 골인
+      if (p.x + p.w / 2 >= GOAL_X) {
+        g.state = "cleared";
+      }
+
+      // 카메라 추적 (월드 경계 클램프)
+      g.cameraX = Math.max(0, Math.min(p.x + p.w / 2 - VIEW_W / 2, WORLD_W - VIEW_W));
+    }
+
+    function fail() {
+      g.state = "failed";
+    }
+
+    function restart() {
+      g.player = { x: START.x, y: START.y, w: PLAYER_W, h: PLAYER_H, vx: 0, vy: 0, onGround: true };
+      g.coins = COINS.map((c) => ({ x: c.x, y: c.y, taken: false }));
+      g.enemies = ENEMIES.map((e) => ({
+        x: e.minX, y: GROUND_TOP - ENEMY_H, w: ENEMY_W, h: ENEMY_H,
+        minX: e.minX, maxX: e.maxX - ENEMY_W, dir: 1, alive: true
+      }));
+      g.time = 0;
+      g.state = "playing";
+      g.cameraX = 0;
+      g._prevJump = false;
+    }
+
+    g.step = step;
+    g.restart = restart;
+    g.solids = rects;
+    return g;
+  }
+
+  const api = {
+    createGame,
+    WORLD_W, WORLD_H, VIEW_W, VIEW_H, GROUND_TOP, GOAL_X,
+    GROUND_SEGS, PLATFORMS, COINS, ENEMIES, ENEMY_W, ENEMY_H,
+    PLAYER_W, PLAYER_H, START, COIN_SIZE,
+    PHYS: { GRAVITY, JUMP_VEL, MOVE_SPEED, BOUNCE_VEL, ENEMY_SPEED, MAX_FALL }
+  };
+  if (global) global.PlatformerCore = api;
+  return api;
+})(typeof window !== "undefined" ? window : globalThis);
+</script>
+
+<script id="platformer-ui">
+"use strict";
+(function () {
+  const cv = document.getElementById("game");
+  const ctx = cv.getContext("2d");
+  const coinsEl = document.getElementById("coins");
+  const timeEl = document.getElementById("time");
+  const overlay = document.getElementById("overlay");
+  const overlayTitle = document.getElementById("overlayTitle");
+  const overlaySub = document.getElementById("overlaySub");
+  const restartBtn = document.getElementById("restartBtn");
+
+  const C = PlatformerCore;
+  let game = C.createGame();
+  let rafId = null;
+  let lastTs = null;
+
+  function render() {
+    const cam = game.cameraX;
+    ctx.fillStyle = "#101a24";
+    ctx.fillRect(0, 0, C.VIEW_W, C.VIEW_H);
+    ctx.save();
+    ctx.translate(-cam, 0);
+
+    // 지면 + 플랫폼
+    ctx.fillStyle = "#3d5a73";
+    for (const r of C.GROUND_SEGS.map(([a, b]) => ({ x: a, y: C.GROUND_TOP, w: b - a, h: C.WORLD_H - C.GROUND_TOP }))) {
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+    }
+    ctx.fillStyle = "#557893";
+    for (const r of C.PLATFORMS) ctx.fillRect(r.x, r.y, r.w, r.h);
+
+    // 코인
+    for (const c of game.coins) {
+      if (c.taken) continue;
+      ctx.fillStyle = "#ffd75e";
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, C.COIN_SIZE / 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 적
+    ctx.fillStyle = "#e05d5d";
+    for (const e of game.enemies) {
+      if (!e.alive) continue;
+      ctx.fillRect(e.x, e.y, e.w, e.h);
+      ctx.fillStyle = "#101a24";
+      const ex = e.dir > 0 ? e.x + e.w - 12 : e.x + 4;
+      ctx.fillRect(ex, e.y + 8, 8, 8);
+      ctx.fillStyle = "#e05d5d";
+    }
+
+    // 골인
+    ctx.fillStyle = "#5dd06a";
+    ctx.fillRect(C.GOAL_X, C.GROUND_TOP - 120, 12, 120);
+    ctx.fillStyle = "#e8eef4";
+    ctx.font = "16px sans-serif";
+    ctx.fillText("GOAL", C.GOAL_X - 2, C.GROUND_TOP - 130);
+
+    // 플레이어
+    const p = game.player;
+    ctx.fillStyle = "#4da3ff";
+    ctx.fillRect(p.x, p.y, p.w, p.h);
+    ctx.fillStyle = "#101a24";
+    ctx.fillRect(p.x + (p.vx >= 0 ? p.w - 14 : 6), p.y + 8, 8, 8);
+
+    ctx.restore();
+
+    coinsEl.textContent = game.coins.filter((c) => c.taken).length + "/" + game.coins.length;
+    timeEl.textContent = game.time.toFixed(2);
+
+    if (game.state === "cleared") {
+      overlayTitle.textContent = "클리어!";
+      overlaySub.textContent = "소요 " + game.time.toFixed(2) + "초 — R 또는 버튼으로 재시작";
+      overlay.classList.add("show");
+    } else if (game.state === "failed") {
+      overlayTitle.textContent = "실패";
+      overlaySub.textContent = "R 또는 버튼으로 재시작";
+      overlay.classList.add("show");
+    } else {
+      overlay.classList.remove("show");
+    }
+  }
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    let dt = (ts - lastTs) / 1000;
+    lastTs = ts;
+    dt = Math.min(dt, 1 / 30);
+    // 고정 스텝 1/60으로 분할해 충돌을 안정적으로
+    let acc = dt;
+    const h = 1 / 60;
+    while (acc > 0 && game.state === "playing") {
+      game.step(Math.min(h, acc));
+      acc -= h;
+    }
+    render();
+    rafId = requestAnimationFrame(frame);
+  }
+
+  function doRestart() {
+    game.restart();
+    lastTs = null;
+    render();
+  }
+
+  const keys = (code, down) => {
+    if (code === "ArrowLeft") game.input.left = down;
+    if (code === "ArrowRight") game.input.right = down;
+    if (code === "Space" || code === "ArrowUp" || code === "KeyW") game.input.jump = down;
+  };
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "KeyR") { doRestart(); return; }
+    if (["ArrowLeft", "ArrowRight", "Space", "ArrowUp", "KeyW"].includes(e.code)) e.preventDefault();
+    keys(e.code, true);
+  });
+  window.addEventListener("keyup", (e) => keys(e.code, false));
+  restartBtn.addEventListener("click", doRestart);
+
+  // 검사 편의용 상태 주입 훅 — 일반 플레이 입력 경로와 분리된다.
+  window.__platformerDebug = {
+    game: game,
+    setInput: function (patch) { Object.assign(game.input, patch); },
+    setPlayer: function (patch) { Object.assign(game.player, patch); },
+    setState: function (patch) { Object.assign(game, patch); },
+    stepOnce: function (dt) { game.step(dt || 1 / 60); render(); }
+  };
+
+  rafId = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
