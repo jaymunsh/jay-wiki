@@ -5,9 +5,12 @@ category: 개인 프로젝트
 summary: Windows 포맷 드라이브가 macOS에 꽂으면 읽기만 되는 문제를 FUSE-T + ntfs-3g 조합으로 푼 개인 유틸리티 개발기. FSKit이 entitlement 벽에 막힌 이유, root인데 EPERM이 뜨는 TCC 함정, launchd 권한 헬퍼 설계, 그리고 커뮤니티 이슈로 확인한 아직 검증하지 않은 영역까지.
 tags: macos,swift,swiftui,ntfs,fuse-t,ntfs-3g,launchd,diskarbitration,personal-project
 toc: true
+syncHash: 03d662bedaed48956306d60a7b9051ec095181b6ad9826216f84cf3c01076cdf
+publishedAt: 2026-09-23T03:42:55.72377Z
+
 ---
 
-![NTFS Manager 앱 아이콘](/assets/projects/ntfs-manager-macos-ntfs-rw/app-icon.png "width=180 align=center")
+![NTFS Manager 앱 아이콘](/api/wiki-assets/dd6b8a49-92a1-467a-960a-f0b601a457b7 "width=180 align=center")
 
 Windows 세상에서 흔히 쓰이는 NTFS 포맷 외장 드라이브는 macOS에 꽂으면 읽기는 되는데 쓰기가 안 된다. Paragon NTFS나 Tuxera NTFS 같은 유료 드라이버를 사거나, 커널 확장을 깔거나, 그냥 exFAT로 다시 포맷하거나 — 선택지는 있지만 마땅한 무료 GUI 유틸리티가 없었다. 그래서 직접 만들었다. Dock에 뜨는 SwiftUI 앱 + CLI + launchd 권한 헬퍼까지, 이 글은 그 과정의 기록이다. 코드는 [GitHub에 MIT로 공개](https://github.com/jaymunsh/ntfs-manager)했다.
 
@@ -48,17 +51,17 @@ flowchart TB
 
 WD My Passport 2TB를 꽂으면 macOS가 읽기 전용으로 자동 마운트한다. 앱의 볼륨 목록에는 DiskArbitration 이벤트로 드라이브가 즉시 나타난다 — 폴링 없이 꽂는 순간 갱신된다.
 
-![NTFS 드라이브를 처음 연결한 상태 — "My Passport"가 읽기 전용으로 인식되고 "읽기/쓰기로 마운트" 버튼이 보인다](/assets/projects/ntfs-manager-macos-ntfs-rw/01-connected.png)
+![NTFS 드라이브를 처음 연결한 상태 — "My Passport"가 읽기 전용으로 인식되고 "읽기/쓰기로 마운트" 버튼이 보인다](/api/wiki-assets/c099f285-bf24-433e-88ad-981c23f22799)
 
 "읽기/쓰기로 마운트"를 누르면 macOS가 자동으로 잡아둔 읽기 전용 마운트를 내렸다가, ntfs-3g를 FUSE-T 경유로 R/W 마운트로 다시 올린다.
 
-![읽기/쓰기로 마운트를 누른 뒤 — 볼륨이 "읽기/쓰기" 초록 상태로 바뀌고 Finder 버튼이 생겼다](/assets/projects/ntfs-manager-macos-ntfs-rw/02-mounted-rw.png)
+![읽기/쓰기로 마운트를 누른 뒤 — 볼륨이 "읽기/쓰기" 초록 상태로 바뀌고 Finder 버튼이 생겼다](/api/wiki-assets/72286c52-58a4-4091-a674-b59240f1d067)
 
 이 상태에서 간단한 파일 이동(파일을 드라이브로 복사해 다른 폴더로 옮기기)은 실제로 해봤다 — 정상적으로 읽고 써진다. 다만 이건 "켜진다" 확인일 뿐이고, 깊게 테스트한 건 아니다. 무엇이 부족한지는 뒤에 따로 정리했다.
 
 작업이 끝나면 "제거" 버튼이 언마운트 → eject를 순서대로 수행한다. WD 인클로저는 eject 성공 후에도 `disk4` 노드가 남아 자신을 계속 열거하는 특성이 있는데, 볼륨이 언마운트됐으면 이미 안전하므로 앱은 "안전하게 제거됨 — 케이블을 뽑아도 됩니다" 메시지를 보여준다.
 
-![제거 버튼을 누른 뒤 — 볼륨이 언마운트되고 안전하게 뽑을 수 있다는 메시지가 뜬다](/assets/projects/ntfs-manager-macos-ntfs-rw/03-ejected.png)
+![제거 버튼을 누른 뒤 — 볼륨이 언마운트되고 안전하게 뽑을 수 있다는 메시지가 뜬다](/api/wiki-assets/2643044b-1bf7-4a05-a7cc-81f27bd1f14e)
 
 ## 설치는 세 줄이면 끝난다
 

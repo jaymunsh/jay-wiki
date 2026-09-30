@@ -5,9 +5,12 @@ category: 개인 프로젝트
 tags: macos,menubar,swift,appkit,accessibility,windowserver,menubar-app
 summary: 노치와 좁은 메뉴바에 가려지는 상태 아이콘을 폴더 하나에 접어 넣는 macOS 앱을 만들었다. 체크박스 자동 편집이 다른 앱의 아이콘을 메뉴바에서 지워버린 사고를 거쳐, 사용자가 직접 배치하고 앱은 읽기만 하는 구조로 방향을 바꾼 기록이다.
 toc: true
+syncHash: a1ab26d474ada7ea76e4fc702dcfb9790e45371ddf2e0bc4f8513fd0c6c6a1e3
+publishedAt: 2026-09-28T10:15:00.170688Z
+
 ---
 
-![Fold Menu 앱 아이콘 — 폴더 윤곽 안에 점 세 개](/assets/projects/fold-menu-macos-menubar-folder/app-icon.png)
+![Fold Menu 앱 아이콘 — 폴더 윤곽 안에 점 세 개](/api/wiki-assets/3be24e5d-151e-402d-a1d8-b4513c11cc5a)
 
 노치가 있는 MacBook에서 메뉴바는 좁다. Orca, oMLX, Docker Desktop, Tailscale 같은 앱이 상태 아이콘을 올리기 시작하면 우측부터 차례대로 가려진다. 원래 있던 아이콘이 노치 뒤로 숨어 클릭할 수 없게 되는 일이 잦아졌다.
 
@@ -42,13 +45,13 @@ toc: true
 
 접는 방식 자체도 단순하다. Fold Menu의 자체 `NSStatusItem` 하나를 **길이 10,000pt의 예약 영역**으로 만들면, 그 왼쪽에 놓인 다른 앱 아이콘은 화면 밖 좌표에 위치한다. 작은 폴더 그림은 확인된 실제 예약 영역 끝에 오버레이로 얹는다. 다른 앱의 아이콘을 복제해 가리는 구조가 아니다.
 
-![메뉴바에 보이는 Fold Menu — 닫힌 폴더 그림에 접힌 항목 수를 그린다](/assets/projects/fold-menu-macos-menubar-folder/menubar-indicator.png)
+![메뉴바에 보이는 Fold Menu — 닫힌 폴더 그림에 접힌 항목 수를 그린다](/api/wiki-assets/35dc6b3f-0965-48d9-9e9e-0410b82058e2)
 
 ## 패널의 아이콘은 스냅샷이고, 꺼낼 때는 실제 항목이 움직인다
 
 폴더를 누르면 버튼 아래에 패널이 붙는다.
 
-![Fold Menu 패널 — 접힌 앱의 아이콘 스냅샷 6개가 나열된다. Xcode, Docker, 카카오톡 등](/assets/projects/fold-menu-macos-menubar-folder/folder-panel.png)
+![Fold Menu 패널 — 접힌 앱의 아이콘 스냅샷 6개가 나열된다. Xcode, Docker, 카카오톡 등](/api/wiki-assets/126d9b3d-c861-4189-9b43-56884a4491e8)
 
 여기 보이는 그림은 실시간 미러링이 아니다. 상태 아이콘의 CPU 수치나 배지가 계속 바뀌어도 패널의 그림은 이전 캡처일 수 있다. 실제 아이콘 이미지를 캡처하려면 화면 기록 권한이 필요하고, 캡처가 실패하면 이전 이미지나 앱 아이콘, 기본 기호 순으로 대체한다.
 

@@ -5,6 +5,9 @@ category: 개발 노트
 summary: 하루 세 번 오던 AI 브리핑이 어느 날 아침 안 왔다. 원인은 외부 API의 503이었지만 진짜 문제는 실패가 다섯 시간 동안 아무 신호도 내지 않았다는 것이다. 백업 cron으로 자동 복구를, ERR trap으로 즉시 알림을 달았고, 실패한 API가 자기 이름을 말하게 고쳤다.
 tags: cron,monitoring,ops,personal-project,self-hosting,telegram-bot,trouble-shooting
 toc: true
+syncHash: fc19bf4477ee726a5586b841dab1cb901dd1d77560368bb496632d76cd827978
+publishedAt: 2026-09-24T04:55:13.138646Z
+
 ---
 
 아침 브리핑이 안 왔다. 07시 30분에 오기로 한 회차가 정오가 지나도 없었다. 어제 저녁 회차까지는 멀쩡했다.

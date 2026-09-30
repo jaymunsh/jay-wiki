@@ -5,9 +5,12 @@ category: 기술 실험
 tags: apple-silicon,local-llm,qwen3.8,splash,omlx,mtplx,dflash2,mtp,benchmark
 summary: DFlash 2를 붙여도 17 tok/s 언저리였던 M1 Max의 Qwen3.8-27B를, Reddit에서 발견한 Splash M1 포트로 직접 재측정했다. 27.2 tok/s라는 나의 수치와 oMLX·MTPLX와의 비교, 테트리스 생성 실패와 긴 세션의 Metal 중단 사례까지.
 toc: true
+syncHash: cee18fd27a6d2ef1a4319020282b592258cc67f2cd5b4befa822590149c2c304
+publishedAt: 2026-09-27T22:34:58.686874Z
+
 ---
 
-M1 Max에서 Qwen3.8-27B를 oMLX로 돌릴 때 생성 속도는 DFlash 2 초안 모델까지 붙여 튜닝해도 대략 16~18 tok/s 언저리였다. 코딩 에이전트가 파일을 오래 쓰는 동안 기다리는 일이 잦아 다른 경로를 찾았다. 앞서 같은 Mac에서 Qwen3.8 Flash-Next를 MTPLX의 SSD 스트리밍 팩으로 돌려 약 30 tok/s를 본 [이전 기록](/111/m1max-external-ssd-qwen38-flash-next-setup)이 있다. 그러다 우연히 Reddit에서 같은 M1 Max 64GB로 **27B를 약 39~41.5 tok/s로 실행했다는 기록**을 발견했다. 어떤 모델과 설정으로 얻은 수치인지 확인한 뒤 내 Mac에서도 Splash를 시험했다.
+M1 Max에서 Qwen3.8-27B를 oMLX로 돌릴 때 생성 속도는 DFlash 2 초안 모델까지 붙여 튜닝해도 대략 16~18 tok/s 언저리였다. 코딩 에이전트가 파일을 오래 쓰는 동안 기다리는 일이 잦아 다른 경로를 찾았다. 앞서 같은 Mac에서 Qwen3.8 Flash-Next를 MTPLX의 SSD 스트리밍 팩으로 돌려 약 30 tok/s를 본 [이전 기록](/111/m1max-external-ssd-qwen38-flash-next)이 있다. 그러다 우연히 Reddit에서 같은 M1 Max 64GB로 **27B를 약 39~41.5 tok/s로 실행했다는 기록**을 발견했다. 어떤 모델과 설정으로 얻은 수치인지 확인한 뒤 내 Mac에서도 Splash를 시험했다.
 
 여기서 다룰 중심 모델은 **Qwen3.8-27B**다. Reddit 작성자가 보고한 27B의 속도 변화, Splash·oMLX·MTPLX의 실행 구성, 이 Mac의 재측정과 실패한 코딩 작업을 순서대로 본다. 원문 제목에 나온 35B-A3B의 144 tok/s는 다른 모델이므로 뒤에서 이전 버전과 비교하는 별도 사례로 다룬다. [Reddit 1편](https://www.reddit.com/r/LocalLLM/comments/1woq7cd/you_can_now_run_qwen3827b_on_a_2021_m1_max_at_39/), [2편](https://www.reddit.com/r/LocalLLM/comments/1wqngu9/splash_on_m1_part_2_35ba3b_at_144_toks_on_a_2021/)
 
@@ -118,7 +121,7 @@ Reddit 1편의 다섯 프롬프트와 `temperature=0`, `reasoning_effort=xhigh`,
 
 별도 Chrome 검사에서 초안의 홀드 직후 재사용 버그를 찾아 수동으로 고친 뒤 최종 검사를 통과했지만, 다음 날 `none`으로 새 폴더에서 다시 만든 시도는 다르게 실패했다. 시작 버튼이 첫 조각을 만들지 못했고, 수정 요청 뒤에도 `rotatedCells`가 회전값을 무시해 회전 모양이 같거나, 충돌 검사가 회전 전 셀을 보거나, 렌더링에서 x 좌표를 두 번 더하는 결함이 남았다. 모델이 짠 자체 테스트는 사용자 경로를 건너뛰어 이 결함을 못 잡았다. 사용자 확인에서도 **작동하는 게임으로 판정하지 못했다**. 생성 tok/s가 높아도 결과를 수정하고 다시 검증해야 한다면 전체 작업 시간은 짧아지지 않을 수 있다. 이 기록은 모델 품질의 일반 평가가 아니라 한 작업의 실패 사례다.
 
-![OpenCode가 만든 테트리스 — 홀드·다음 조각·점수 판은 갖췄지만 회전과 충돌 결함으로 미완성](/assets/projects/splash-m1-qwen38-27b-omlx-mtplx/tetris-hold-ui.png)
+![OpenCode가 만든 테트리스 — 홀드·다음 조각·점수 판은 갖췄지만 회전과 충돌 결함으로 미완성](/api/wiki-assets/9afcc09f-e6c4-4bc4-b263-5592baae6368)
 
 ## 긴 에이전트 세션에서는 Metal 오류로 엔진이 멈췄다
 

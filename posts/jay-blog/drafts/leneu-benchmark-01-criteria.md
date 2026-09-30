@@ -6,7 +6,7 @@ tags: ai-benchmark,leneu-benchmark,agent,harness,writing,research
 toc: true
 publishedAt: 2026-09-14T02:10:11.463393+09:00
 updatedAt: 2026-09-30T12:24:00+09:00
-syncHash: af9b975ae339352e54e34d4595d61e21ffafac5b0be16e591521d9453580af4c
+syncHash: 8188adaeb1968c345263db2ee7636b68bd406e6deba9eb33d083df750607ebda
 
 ---
 
