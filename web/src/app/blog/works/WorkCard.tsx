@@ -86,6 +86,8 @@ export function WorkCard({ work }: { readonly work: WorkEntry }) {
                 className={`${styles.action} ${styles.articleAction}`}
                 href={work.articleHref}
                 aria-label={`${work.title} 소개 글 보기`}
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <BookOpenText size={14} strokeWidth={1.8} aria-hidden />
                 글 보기
@@ -96,7 +98,8 @@ export function WorkCard({ work }: { readonly work: WorkEntry }) {
                 className={`${styles.action} ${styles.workAction}`}
                 href={work.href}
                 aria-label={`${work.title} 작업물 보기 (${work.source})`}
-                {...(work.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 작업물 보기 <span aria-hidden>→</span>
               </a>
