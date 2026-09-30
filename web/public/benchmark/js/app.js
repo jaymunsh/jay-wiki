@@ -296,6 +296,15 @@ function renderLeaderboard() {
 
     const remainingCount = Math.max(0, taskKeys.length - (taskKeys.filter(t => m.tasks[t].hasHtml).length + 4));
 
+    // 탐색 버튼은 종합 제출서로 들어간다. 제출서가 없는 실행은 등록 순 첫 과제로 대체한다.
+    const taskOrder = Object.keys(state.catalog?.taskMeta || {});
+    const firstTask = taskOrder.find(t => m.tasks?.[t]) || taskKeys[0];
+    const explore = m.hasSubmission
+      ? `openInspectorItem('${m.modelSlug}', '${m.runId}', 'SUBMISSION.md', 'MD', '종합 제출서')`
+      : m.tasks?.[firstTask]?.hasHtml
+        ? `openInspectorItem('${m.modelSlug}', '${m.runId}', 'outputs/${firstTask}/index.html', 'HTML', '${m.modelSlug} - ${firstTask}')`
+        : `openInspectorItem('${m.modelSlug}', '${m.runId}', 'outputs/${firstTask}/RESULT.md', 'MD', '${firstTask} 결과 보고서')`;
+
     return `
       <tr class="hover:bg-indigo-50/40 dark:hover:bg-slate-800/40 transition group">
         <td class="py-4 px-4 text-center">
@@ -332,7 +341,7 @@ function renderLeaderboard() {
           </div>
         </td>
         <td class="py-4 px-4 text-right">
-          <button onclick="openInspectorItem('${m.modelSlug}', '${m.runId}', 'outputs/GAME-01/index.html', 'HTML', '${m.modelSlug} - GAME-01')" class="px-3 py-1.5 text-xs bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs transition">
+          <button onclick="${explore}" class="px-3 py-1.5 text-xs bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs transition">
             탐색 &rarr;
           </button>
         </td>
@@ -458,6 +467,30 @@ function setArenaViewport(width) {
   const iframeB = document.getElementById('iframe-b');
   if (iframeA) iframeA.style.width = width;
   if (iframeB) iframeB.style.width = width;
+}
+
+// LIVE HTML 산출물이 패널보다 크게 그려질 때 가상 뷰포트를 넓히고 축소 표시한다.
+// 산출물 응답에 CSP sandbox가 걸려 안쪽 크기를 부모에서 읽을 수 없으므로,
+// 아레나 데스크톱 프리셋과 같은 1024px 가상 폭으로 통일해 맞춘다.
+const LIVE_FRAME_WIDTH = 1024;
+
+function fitLiveFrame(iframe) {
+  if (!iframe) return;
+  const pane = iframe.parentElement;
+  if (!pane || pane.clientWidth < 8 || pane.clientHeight < 8) return;
+  const scale = Math.min(pane.clientWidth / LIVE_FRAME_WIDTH, 1);
+  iframe.style.transformOrigin = '0 0';
+  iframe.style.transform = scale < 1 ? `scale(${scale})` : 'none';
+  iframe.style.width = `${pane.clientWidth / scale}px`;
+  iframe.style.height = `${pane.clientHeight / scale}px`;
+}
+
+function scheduleLiveFrameFit(iframe) {
+  // 이전 산출물의 크기 조정이 남아 있으면 기준이 어긋나므로 먼저 원래 비율로 돌린다.
+  iframe.style.width = '100%';
+  iframe.style.height = '100%';
+  iframe.style.transform = 'none';
+  fitLiveFrame(iframe);
 }
 
 // 3. Inspector Renderer
@@ -595,6 +628,7 @@ function renderInspector() {
     }
     if (frame) {
       frame.classList.remove('hidden');
+      frame.onload = () => scheduleLiveFrameFit(frame);
       frame.src = fullPath;
     }
     if (mdView) mdView.classList.add('hidden');
@@ -782,7 +816,9 @@ function previewArtifact(model, runId, relativePath, title) {
   document.getElementById('modal-title').innerText = title;
   document.getElementById('modal-subtitle').innerText = fullPath;
   document.getElementById('modal-external-link').href = fullPath;
-  document.getElementById('modal-iframe').src = fullPath;
+  const modalFrame = document.getElementById('modal-iframe');
+  modalFrame.onload = () => scheduleLiveFrameFit(modalFrame);
+  modalFrame.src = fullPath;
   document.getElementById('preview-modal').classList.remove('hidden');
 }
 
@@ -871,3 +907,10 @@ function closeInfoModal() {
 
 // Bootstrap
 window.addEventListener('DOMContentLoaded', initApp);
+window.addEventListener('resize', () => {
+  const wsFrame = document.getElementById('ws-frame');
+  if (wsFrame && !wsFrame.classList.contains('hidden') && wsFrame.src) fitLiveFrame(wsFrame);
+  const modal = document.getElementById('preview-modal');
+  const modalFrame = document.getElementById('modal-iframe');
+  if (modal && modalFrame && !modal.classList.contains('hidden') && modalFrame.src) fitLiveFrame(modalFrame);
+});

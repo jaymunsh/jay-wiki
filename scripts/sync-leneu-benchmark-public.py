@@ -101,9 +101,20 @@ def copy_public_files(source: Path, destination: Path) -> tuple[int, int]:
                     # 탐색기는 files 목록에 없는 대표 파일을 RESULT.md로 대체해 연다.
                     print(f"  경고: 대표 답안 없음, RESULT.md만 공개: {model_slug}/{run_id}/{task_id}/{name}")
                     continue
-                shutil.copy2(source_file, target_task / name)
+                target_file = target_task / name
+                target_file.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source_file, target_file)
                 copied_names.append(name)
             task["files"] = copied_names
+        # 종합 제출서는 실행 루트에 있는 문서라 outputs allowlist와 별도로 복사한다.
+        # 원본에 없으면 카탈로그 플래그도 내려 탐색기가 없는 버튼을 만들지 않게 한다.
+        submission = source / "runs" / model_slug / run_id / "SUBMISSION.md"
+        if submission.is_file() and not submission.is_symlink():
+            target_run = destination / "runs" / model_slug / run_id
+            target_run.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(submission, target_run / "SUBMISSION.md")
+        else:
+            model["hasSubmission"] = False
         copied_runs += 1
 
     # 원본 카탈로그의 files에는 .history와 입력 사본 디렉터리도 들어 있다. 공개본은 위에서
@@ -195,6 +206,10 @@ def normalize_public_text(destination: Path) -> None:
 def verify_primary_files(destination: Path, catalog: dict) -> None:
     missing: list[Path] = []
     for model in catalog["models"]:
+        if model.get("hasSubmission"):
+            submission = destination / "runs" / model["modelSlug"] / model["runId"] / "SUBMISSION.md"
+            if not submission.is_file():
+                missing.append(submission)
         base = destination / "runs" / model["modelSlug"] / model["runId"] / "outputs"
         for task_id, task in model.get("tasks", {}).items():
             primary = "index.html" if task.get("hasHtml") else "RESULT.md"

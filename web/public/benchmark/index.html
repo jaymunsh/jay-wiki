@@ -1169,11 +1169,13 @@
   </div>
 
   <!-- App Script -->
-  <script src="js/app.js?v=20260921-1"></script>
+  <script src="js/app.js?v=20260930-1"></script>
   <script>
+    // 높이는 패널에 남은 공간을 그대로 쓰는 가변 가상 높이로 잡는다 —
+    // 고정 560px로 두면 그보다 큰 산출물(게임 등)이 세로로 잘렸다.
     const arenaViewportPresets = {
-      '100%': { label: '1024×560', width: 1024, height: 560 },
-      '390px': { label: '390×560', width: 390, height: 560 }
+      '100%': { width: 1024 },
+      '390px': { width: 390 }
     };
 
     // 아레나에서는 양쪽 패널이 같은 실행을 비교하지 않도록 반대편 선택값을 잠근다.
@@ -1205,30 +1207,26 @@
       const preset = arenaViewportPresets[state.arena.viewport] || arenaViewportPresets['100%'];
       const readout = document.getElementById('arena-viewport-readout');
       let scale = 1;
+      let virtualHeight = 0;
       document.querySelectorAll('#view-concept2 .arena-viewport-host').forEach((host) => {
         const iframe = host.querySelector('iframe');
         if (!iframe || !host.clientWidth || !host.clientHeight) return;
         const panel = host.parentElement;
-        const panelHeader = panel?.firstElementChild;
+        if (panel) panel.style.height = '';
         const isDesktopPreset = preset.width > 390;
-        if (panel && !isDesktopPreset) panel.style.height = '';
-        scale = Math.min(host.clientWidth / preset.width, host.clientHeight / preset.height, 1);
+        const marginTop = isDesktopPreset ? 40 : 0; // 'A · fit preview' 라벨이 덮는 높이만큼 비운다
         host.style.alignItems = 'flex-start';
-        if (panel && panelHeader) {
-          // Desktop preview is scaled to fit horizontally, so shrink the outer card
-          // to the rendered frame instead of leaving a 620px empty well underneath.
-          panel.style.height = isDesktopPreset
-            ? `${Math.ceil(panelHeader.getBoundingClientRect().height + (preset.height * scale) + 72)}px`
-            : '';
-        }
+        scale = Math.min(host.clientWidth / preset.width, 1);
+        virtualHeight = Math.ceil((host.clientHeight - marginTop) / scale);
         const frameLabel = host.querySelector('.arena-frame-label');
-        if (frameLabel) frameLabel.style.display = preset.width > 390 ? '' : 'none';
+        if (frameLabel) frameLabel.style.display = isDesktopPreset ? '' : 'none';
+        iframe.style.transformOrigin = 'top center';
         iframe.style.width = `${preset.width}px`;
-        iframe.style.height = `${preset.height}px`;
-        iframe.style.marginTop = preset.width > 390 ? '2.5rem' : '0';
+        iframe.style.height = `${virtualHeight}px`;
+        iframe.style.marginTop = `${marginTop}px`;
         iframe.style.transform = `scale(${scale})`;
       });
-      if (readout) readout.textContent = `viewport ${preset.label} · ${Math.round(scale * 100)}% fit`;
+      if (readout) readout.textContent = `viewport ${preset.width}×${virtualHeight} · ${Math.round(scale * 100)}% fit`;
     }
 
     // app.js의 초기 렌더 파이프라인이 호출하는 아레나 진입점을 이 페이지에서 연결한다.
@@ -1548,6 +1546,9 @@
       };
 
       // 인스펙터는 세션 ID를 그대로 나열한다. 부분·중단 실행도 포함해 전체 기록을 보여준다.
+      // 과제 순서는 현황 카탈로그의 taskMeta 등록 순(영역 묶음)을 따르고, 알파벳 정렬은 쓰지 않는다.
+      const taskOrder = new Map(Object.keys(state.catalog?.taskMeta || {}).map((id, i) => [id, i]));
+      const orderOf = (id) => taskOrder.has(id) ? taskOrder.get(id) : taskOrder.size;
       // 실행 하나의 과제 버튼 목록(제출서 + 과제별 산출물)을 만든다.
       const buildRunBody = (run) => {
         const taskList = document.createElement('div');
@@ -1569,7 +1570,7 @@
         }
 
         Object.entries(run.tasks || {})
-          .sort(([taskA], [taskB]) => taskA.localeCompare(taskB, 'en'))
+          .sort(([taskA], [taskB]) => (orderOf(taskA) - orderOf(taskB)) || taskA.localeCompare(taskB, 'en'))
           .forEach(([taskId, task]) => {
           const isHtml = Boolean(task.hasHtml);
           const primaryArtifact = primaryArtifacts[taskId];
@@ -1620,7 +1621,13 @@
         groups.get(run.modelSlug).push(run);
       });
 
-      groups.forEach((runs, modelSlug) => {
+      // 나열은 응시 시간 오래된 순 — 묶음 위치는 그 모델의 첫 세션 시각,
+      // 묶음 안 세션도 오래된 것부터 나열한다.
+      const sortedGroups = [...groups.entries()]
+        .map(([slug, list]) => [slug, [...list].sort((a, b) => a.runId.localeCompare(b.runId))])
+        .sort(([, a], [, b]) => a[0].runId.localeCompare(b[0].runId));
+
+      sortedGroups.forEach(([modelSlug, runs]) => {
         const details = document.createElement('details');
         details.className = 'rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden';
         details.open = runs.includes(activeRun);
@@ -1649,7 +1656,7 @@
         count.className = 'shrink-0 text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full font-bold';
         count.textContent = runs.length === 1
           ? `${Object.keys(runs[0].tasks || {}).length} 과제`
-          : `${runs.length}개 실행`;
+          : `${Math.max(...runs.map((r) => Object.keys(r.tasks || {}).length))} 과제 · ${runs.length}개 실행`;
         summary.append(identity, count);
         details.addEventListener('toggle', () => {
           if (!details.open) return;

@@ -5,9 +5,12 @@ category: 개인 프로젝트
 summary: 구독형 필터 앱에 지쳐 WebGL2 싱글 패스 셰이더로 만든 설치형 카메라 PWA 개발기. 3D LUT 텍스처 파이프라인, MediaPipe 지연 로딩, 그리고 후지·LUMIX 룩을 번들하지 못하는 저작권 문제를 사용자 import로 푼 과정까지.
 tags: pwa,ios,webgl2,camera,lut,mediapipe,react,typescript,personal-project
 toc: true
+syncHash: 8acb64e100a4172f040237b2aae81f24a8c325d7bf9b327cfa5ee38e53f6cece
+publishedAt: 2026-09-27T09:26:06.685565Z
+
 ---
 
-![Open Camera 앱 아이콘](/assets/projects/open-camera-iphone-filter-pwa/app-icon.png "width=180 align=center")
+![Open Camera 앱 아이콘](/api/wiki-assets/11b12ff4-f1ca-4fdb-850c-5bc520f38982 "width=180 align=center")
 
 iPhone용 필터 앱을 찾아보면 하나같이 같은 패턴이다 — 무료라고 받았더니 필터 몇 개만 열어주고 나머지는 주간 구독. 그런데 필터 앱이 하는 일의 본질은 "센서 프레임에 색 변환 함수를 적용하는 것"이다. 그건 브라우저의 WebGL로도 충분히 할 수 있다. 그래서 직접 만들었다 — 설치형 PWA 카메라 필터 앱 **Open Camera**다. [open-camera-leneu.vercel.app](https://open-camera-leneu.vercel.app)에서 바로 쓸 수 있고("홈 화면에 추가"로 설치), 코드는 [GitHub에 공개](https://github.com/jaymunsh/open-camera)했다.
 
@@ -22,13 +25,13 @@ iPhone용 필터 앱을 찾아보면 하나같이 같은 패턴이다 — 무료
 - **커스텀 LUT** — `.cube` / HaldCLUT PNG 가져오기, 그리고 "현재 설정을 LUT로 굽기"
 - **PWA** — 홈 화면 설치, 서비스 워커 오프라인 동작, JPEG 저장/Web Share 공유
 
-![앱의 카메라 화면 — 하단 필터 스트립에 프리셋 썸네일이 나란히 놓이고, 좌하단에 필터/보정/조절 탭이 있다. 1:1 비율로 레터박스된 상태](/assets/projects/open-camera-iphone-filter-pwa/app-screenshot.png "width=340 align=center")
+![앱의 카메라 화면 — 하단 필터 스트립에 프리셋 썸네일이 나란히 놓이고, 좌하단에 필터/보정/조절 탭이 있다. 1:1 비율로 레터박스된 상태](/api/wiki-assets/00c4f54b-a0eb-484b-8926-c8eeb0ad76b2 "width=340 align=center")
 
 필터 스트립의 각 썸네일은 현재 프레임에 그 프리셋을 실제로 적용한 미리보기다 — 재미있는 구현 디테일인데, 별도 오프스크린 `FilterPipeline`(128px) 하나를 공유해 순차로 생성한다. 처음엔 프리셋마다 소스 텍스처를 다시 업로드해서 시트가 느렸는데, `setSource`를 루프 밖으로 빼 한 번만 하도록 고치니 빨라졌다.
 
 아래는 AI 생성 샘플 이미지에 필름 계열 프리셋을 적용한 결과다 — 앱의 LUT/조절/그레인 체인이 그대로 타는 출력물.
 
-![필름 계열 프리셋을 적용한 출력 예시](/assets/projects/open-camera-iphone-filter-pwa/sample-look.png)
+![필름 계열 프리셋을 적용한 출력 예시](/api/wiki-assets/544d7985-aeaa-4671-8e40-88284e7a4111)
 
 ## 모든 처리는 셰이더 한 방에 — WebGL2 uber-shader
 
