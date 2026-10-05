@@ -101,8 +101,19 @@ jobs:
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '22'
-      - run: npm audit --audit-level=high
+      - name: Test audit policy
+        run: node --test scripts/lib/npm-audit-policy.test.mjs
+      - name: Audit all dependencies with documented temporary exceptions
+        run: node ../scripts/check-npm-audit.mjs
         working-directory: web
+      - name: Retain complete npm audit report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: npm-audit-${{ github.sha }}
+          path: web/npm-audit.json
+          if-no-files-found: error
+          retention-days: 30
 
   python:
     needs: changes
