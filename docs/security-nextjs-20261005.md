@@ -25,3 +25,20 @@ glob dependency chain. No application routes or authentication rules change.
 The existing threshold remains High/Critical. Two Moderate development-only
 Vitest findings remain reported; upgrading the test runner is separate work.
 Runtime image scans continue to block fixable High/Critical vulnerabilities.
+
+## Other runtime findings surfaced by the full release scan
+
+The PR's full Security run also blocked pre-existing fixable vulnerabilities in
+other services. The same release applies two focused dependency updates:
+
+- Jackson BOM 2.21.5 → 2.21.7 on the existing 2.21 line. Runtime scans identified
+  CVE-2026-89407, CVE-2026-89425, CVE-2026-68497, CVE-2026-91776 and
+  CVE-2026-91777 in jackson-core/databind. See the
+  [Jackson 2.21 release history](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.21).
+- urllib3 2.7.0 → 2.8.0 in the payment and shipping lockfiles. This fixes HTTPS
+  proxy TLS configuration, unbounded chunk-size buffering and a Deflate streaming
+  loop; see the [upstream release](https://github.com/urllib3/urllib3/releases/tag/2.8.0).
+  Only urllib3 changed in each lockfile. No new exception covers these findings.
+
+The full PR CI must pass Java and both Python integration tests with disposable
+databases, together with the runtime JAR/image scans, before production delivery.
