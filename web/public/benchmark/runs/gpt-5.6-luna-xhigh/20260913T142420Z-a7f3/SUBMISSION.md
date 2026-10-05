@@ -1,3 +1,5 @@
+공개 사본 안내: 실행 원본의 일부 JSON·로그·코드 파일은 공개 배포 대상이 아니다. 공개 사본에 없는 산출물은 링크 대신 파일 경로로 표기했다.
+
 # 응시 결과 제출
 
 ## 실행 정보
@@ -70,8 +72,8 @@
 | REASON-MATH-01 | submitted | 22,000ms | [출력](outputs/REASON-MATH-01/) · [RESULT](outputs/REASON-MATH-01/RESULT.md) |
 | REASON-SCI-01 | submitted | 25,000ms | [출력](outputs/REASON-SCI-01/) · [RESULT](outputs/REASON-SCI-01/RESULT.md) |
 
-추가 기록은 [manifest.json](manifest.json), [summary.json](summary.json),
-[events.jsonl](events.jsonl)에 남겼다. 토큰 수, 첫 토큰 시간, 출력 속도,
+추가 기록은 `manifest.json`, `summary.json`,
+`events.jsonl`에 남겼다. 토큰 수, 첫 토큰 시간, 출력 속도,
 모델·재시도 호출 수, 대기 시간, 비용은 현재 앱에 노출되지 않아 `null`과
 사유로 기록했다. 독립 채점과 합격 판정은 수행하지 않았으며 미채점 상태다.
 최종 측정에서 실행 폴더 regular-file 합계는 401,099 bytes(디스크 700 KiB),
@@ -88,9 +90,9 @@ SHA-256 검증 후 보관했으며, 새 답안은 원래 outputs 폴더 바로 �
 
 | 과제 | 상태 | 소요 | 새 산출물 |
 |---|---|---:|---|
-| WRITE-01 | submitted / pending | 107,750ms | [article.md](outputs/WRITE-01/article.md) · [evidence.json](outputs/WRITE-01/evidence.json) · [RESULT.md](outputs/WRITE-01/RESULT.md) |
-| WRITE-02 | submitted / pending | 73,337ms | [edited.md](outputs/WRITE-02/edited.md) · [changes.md](outputs/WRITE-02/changes.md) · [RESULT.md](outputs/WRITE-02/RESULT.md) |
-| THINK-01 | submitted / pending | 99,423ms | [summary.md](outputs/THINK-01/summary.md) · [facts.json](outputs/THINK-01/facts.json) · [analysis.md](outputs/THINK-01/analysis.md) · [RESULT.md](outputs/THINK-01/RESULT.md) |
+| WRITE-01 | submitted / pending | 107,750ms | [article.md](outputs/WRITE-01/article.md) · `outputs/WRITE-01/evidence.json` · [RESULT.md](outputs/WRITE-01/RESULT.md) |
+| WRITE-02 | submitted / pending | 73,337ms | [edited.md](outputs/WRITE-02/edited.md) · `outputs/WRITE-02/changes.md` · [RESULT.md](outputs/WRITE-02/RESULT.md) |
+| THINK-01 | submitted / pending | 99,423ms | [summary.md](outputs/THINK-01/summary.md) · `outputs/THINK-01/facts.json` · `outputs/THINK-01/analysis.md` · [RESULT.md](outputs/THINK-01/RESULT.md) |
 
 추가 시도 ID는 `writing-v2.1-20260914T173912Z-r1`이다. 세 과제 구간은
 `2026-09-14T17:41:57.988956000Z`–`2026-09-14T17:47:37.742703000Z`이며,
@@ -108,9 +110,9 @@ SHA-256 검증 후 보관했으며, 새 답안은 원래 outputs 폴더 바로 �
 |---|---|---:|---|
 | BUILD-01 | submitted / pending | 175,168ms | [`server.mjs`](outputs/BUILD-01/server.mjs) · [`RESULT.md`](outputs/BUILD-01/RESULT.md) |
 | STYLE-01 | submitted / pending | 47,646ms | [`status-page.md`](outputs/STYLE-01/status-page.md) · [`apology-email.md`](outputs/STYLE-01/apology-email.md) · [`exec-summary.md`](outputs/STYLE-01/exec-summary.md) |
-| AMBIG-01 | submitted / pending | 33,928ms | [`solution.mjs`](outputs/AMBIG-01/solution.mjs) · [`assumptions.md`](outputs/AMBIG-01/assumptions.md) |
-| AMBIG-02 | submitted / pending | 25,141ms | [`retry.mjs`](outputs/AMBIG-02/retry.mjs) · [`assumptions.md`](outputs/AMBIG-02/assumptions.md) |
-| AMBIG-03 | submitted / pending | 40,902ms | [`solution.mjs`](outputs/AMBIG-03/solution.mjs) · [`assumptions.md`](outputs/AMBIG-03/assumptions.md) |
+| AMBIG-01 | submitted / pending | 33,928ms | `outputs/AMBIG-01/solution.mjs` · [`assumptions.md`](outputs/AMBIG-01/assumptions.md) |
+| AMBIG-02 | submitted / pending | 25,141ms | `outputs/AMBIG-02/retry.mjs` · [`assumptions.md`](outputs/AMBIG-02/assumptions.md) |
+| AMBIG-03 | submitted / pending | 40,902ms | `outputs/AMBIG-03/solution.mjs` · [`assumptions.md`](outputs/AMBIG-03/assumptions.md) |
 | TRAP-01 | submitted / pending | 21,444ms | [`report.md`](outputs/TRAP-01/report.md) |
 | TRAP-02 | submitted / pending | 42,128ms | [`guide.md`](outputs/TRAP-02/guide.md) |
 | TRAP-03 | submitted / pending | 39,349ms | [`answer.md`](outputs/TRAP-03/answer.md) |
