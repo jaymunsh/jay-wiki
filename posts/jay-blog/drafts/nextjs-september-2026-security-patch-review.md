@@ -4,7 +4,7 @@ category: 리서치
 tags: nextjs,security,dependency,cve,github-actions,k3s,maintenance
 summary: 2026년 9월 Next.js 보안 공지를 운영 중인 jay-wiki와 jay-blog에 대입했다. 취약점의 영향 조건, 실제 운영 버전, 개발용 의존성 경고와 패치 배포를 구분해 정리한다.
 toc: true
-syncHash: 3487b17ebff4076d76ebb60e8c1f93bc09c493892135b381a77aeccbfd068503
+syncHash: df150c48bc27c582ee0b40ae75658b0a27dfd8e61b3ec64739d9fee38583652b
 publishedAt: 2026-10-05T08:46:34.382Z
 
 ---
@@ -118,3 +118,13 @@ Jackson은 [기존 2.21 계열의 패치 릴리스](https://github.com/FasterXML
 - 개발 테스트 도구 Vitest는 4.1.11 이상으로 올렸다. 패치된 테스트 모커를 사용하고, 이번 버전의 잠금 파일에서 취약한 Tinypool 의존성도 제거했다. [worker 옵션 공지](https://github.com/advisories/GHSA-5gmw-xhrv-c9v3)와 [run 옵션 공지](https://github.com/advisories/GHSA-85c8-ppgw-ccpr)는 선행 prototype pollution을 전제로 하므로, 공개 웹 요청만으로 서비스가 침해됐다는 의미로 해석하지 않는다.
 
 변경 후 `npm audit --omit=dev`의 보고 건수는 0이다. 개발 의존성까지 포함하면 이전에 기록한 `braces` 경로만 남는다. 한 원인에서 상위 패키지로 전파된 경고 5건이며 예외 범위와 만료일은 그대로다. 단위 검사·타입 검사·프로덕션 빌드·컨테이너 보안 검사로 새 버전의 호환성을 확인한 뒤 배포한다.
+
+### 오목 이미지와 Spring의 실행 경로도 확인했다
+
+새로 배포할 오목 컨테이너에서는 서비스 실행에 필요 없는 전역 npm·Corepack 도구를 제거하고 Alpine 패키지를 갱신했다. 앱의 운영 의존성은 설치한 채 유지하고, 실제 서버와 WebSocket이 실행되는지 다시 확인했다.
+
+Java 검사에는 Spring MVC 6.2.19의 `CVE-2026-47884`도 표시됐다. [Spring 공식 공지](https://spring.io/security/cve-2026-47884/)의 공격 조건은 XSLT 뷰를 사용하는 앱에 화면 렌더링으로 이어지는 포괄 URL 매핑과 암묵적인 뷰 이름이 함께 있는 경우다. 공개 수정 버전은 7.0.9이고, 같은 6.2 계열의 6.2.20은 Enterprise Support 대상이다.
+
+현재 백엔드는 REST 응답 본문을 반환하며 XSLT 뷰와 해석기를 설정하지 않았다. 실제 Spring 애플리케이션 컨텍스트를 띄워 이 조건과 정적 파일용 포괄 매핑을 검사하는 회귀 테스트 3개를 추가했다. 이를 근거로 현재 앱의 해당 실행 경로는 사용되지 않는다고 판단했다. 라이브러리가 패치됐거나 다른 앱도 안전하다는 뜻은 아니다.
+
+검사 원본에는 경고를 남기고, 이 공지와 정확한 패키지 버전에만 현재 앱의 비영향 판단을 OpenVEX로 기록했다. **2026년 10월 20일 00:00 UTC 전에 재검토해야 하며**, 기한이 지나면 CI가 차단한다. MVC 화면 렌더링이나 의존성 버전을 바꿀 때도 다시 판단한다. 다른 취약점까지 검사에서 제외하지 않는다.
