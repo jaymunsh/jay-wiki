@@ -7,6 +7,8 @@
  * 실제 프로젝트의 자리를 옮기지 않는다.
  */
 
+import type { BlogPostSummary } from './blog';
+
 export type WorkCategory = 'games' | 'tools' | 'labs' | 'content';
 
 /**
@@ -89,6 +91,21 @@ export const WORKS: readonly WorkEntry[] = [
     featured: true,
   },
   {
+    slug: 'omok',
+    title: 'OMOK',
+    description: '입체 원목 보드에서 즐기는 오목. 봇과 연습하거나 한 화면에서 둘이 두고, 방 코드로 친구를 초대해 온라인 대전을 할 수 있습니다.',
+    category: 'games',
+    kind: '오목 · 보드게임',
+    feature: '봇 · 둘이 · 온라인',
+    href: '/game/omok',
+    external: false,
+    image: '/assets/works/games/omok.svg',
+    imageAlt: 'OMOK의 흑백 대각선 원형 로고',
+    imageFit: 'contain',
+    mark: 'board',
+    source: '전용 게임 서버',
+  },
+  {
     slug: 'spellcrown',
     title: 'SPELLCROWN',
     description: '카드로 펼치는 웹 보드게임. 전용 서브도메인에서 설치 없이 바로 플레이합니다.',
@@ -135,6 +152,22 @@ export const WORKS: readonly WorkEntry[] = [
     mark: 'harddrive',
     source: 'GitHub',
     featured: true,
+  },
+  {
+    slug: 'port-manager',
+    title: 'PortManager',
+    description:
+      '개발 서버 포트와 프로세스, 외장 SSD·USB·Thunderbolt 장치를 한곳에서 관리하는 macOS 앱.',
+    category: 'tools',
+    kind: 'macOS 유틸리티',
+    href: 'https://github.com/jaymunsh/port-manager',
+    external: true,
+    articleHref: '/117/port-manager-macos-network-and-storage',
+    image: '/api/wiki-assets/e3899b22-720d-49f9-bdca-222411a500d4',
+    imageAlt: 'PortManager 앱 아이콘',
+    imageFit: 'contain',
+    mark: 'server',
+    source: 'GitHub',
   },
   {
     slug: 'open-camera',
@@ -219,7 +252,7 @@ export const WORKS: readonly WorkEntry[] = [
   {
     slug: 'memonowz',
     title: 'Memonowz',
-    description: '내가 외울 것만 넣는 로컬 우선 암기 PWA.',
+    description: '내 자료로 덱을 만들고, 틀린 카드만 다시 푸는 로컬 암기 PWA.',
     category: 'tools',
     kind: 'PWA · 학습',
     href: 'https://github.com/jaymunsh/memonowz',
@@ -361,8 +394,20 @@ export function isWorkCategory(value: string): value is WorkCategory {
   return WORK_CATEGORIES.some((c) => c.slug === value);
 }
 
-export function worksByCategory(category: WorkCategory): WorkEntry[] {
-  return WORKS.filter((w) => w.category === category);
+/** 소개 글의 발행일 내림차순. 날짜 없는 항목과 동률은 기존 목록 순서를 유지한다. */
+export function worksByCategory(
+  category: WorkCategory,
+  posts: readonly Pick<BlogPostSummary, 'slug' | 'publishedAt'>[] = [],
+): WorkEntry[] {
+  const publishedTimes = new Map(posts.map((post) => {
+    const time = Date.parse(post.publishedAt ?? '');
+    return [post.slug, Number.isFinite(time) ? time : 0];
+  }));
+  const publicationTime = (work: WorkEntry) =>
+    publishedTimes.get(work.articleHref?.split('/').at(-1) ?? '') ?? 0;
+
+  return WORKS.filter((w) => w.category === category)
+    .sort((a, b) => publicationTime(b) - publicationTime(a));
 }
 
 /** 레일의 '이름 (n)' 표기에 쓰는 카테고리별 수. */

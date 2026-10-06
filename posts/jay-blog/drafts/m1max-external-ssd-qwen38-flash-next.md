@@ -7,7 +7,7 @@ tags: external-ssd,local-llm,m1-max,mlx,moe,mtp,mtplx,omlx,qwen,qwen38-flash-nex
 toc: true
 source: http://localhost:8080/api/blog/posts/111 (내려받음)
 syncHash: 13b37f7f9c62e8b80e458da4b13219faf92be4580df6dac151f63ec3ecf65559
-publishedAt: 2026-09-30T06:39:15.823Z
+publishedAt: 2026-09-20T02:43:51.141Z
 
 ---
 Qwen3.8 Flash-Next를 로컬에서 써 보고 싶었지만 M1 Max의 64GB 통합 메모리와 512GB 내장 SSD가 먼저 걸렸다. 모델 이름에 붙은 Flash와 MoE만 보면 가볍게 움직일 것 같지만, 저장해야 할 전체 가중치는 64GB를 훌쩍 넘는다. 내장 SSD에 모델 하나로 수십 GB를 더 쓰기도 부담스러웠다.

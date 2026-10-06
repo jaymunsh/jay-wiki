@@ -45,6 +45,8 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
       - run: python3 scripts/check-public-security-boundary.py
+      - run: python3 scripts/test-jaywiki-vex.py
+      - run: python3 scripts/check-jaywiki-vex.py
 
   images:
     needs: changes
@@ -73,9 +75,16 @@ jobs:
             --severity HIGH,CRITICAL --format json --output /scan/report.json
           node -e 'const r=require("./scan-results/report.json"); if (!r.Results?.some(x=>x.Packages?.length)) throw Error("Scanner inspected no packages")'
       - name: Block fixable high and critical vulnerabilities
+        env:
+          CONTEXT: ${{ matrix.context }}
         run: |
-          docker run --rm -v "$PWD/scan-results:/scan:ro" aquasec/trivy:0.74.0 image \
-            --input /scan/runtime.tar --scanners vuln --ignore-unfixed \
+          vex_args=()
+          if [[ "$CONTEXT" == spring ]]; then
+            python3 scripts/check-jaywiki-vex.py
+            vex_args=(--vex /policy/jaywiki.openvex.json)
+          fi
+          docker run --rm -v "$PWD/scan-results:/scan:ro" -v "$PWD/security:/policy:ro" aquasec/trivy:0.74.0 image \
+            --input /scan/runtime.tar --scanners vuln --ignore-unfixed "${vex_args[@]}" \
             --severity HIGH,CRITICAL --exit-code 1
       - name: Name the report artifact
         if: always()
@@ -147,12 +156,30 @@ jobs:
           cache: gradle
       - run: ./gradlew bootJar
         working-directory: spring
-      # rootfs scans packaged JARs; fs only scans supported manifests here.
-      - name: Audit the actual runtime JAR
-        run: >-
-          docker run --rm -v "$PWD/spring/build/libs:/scan:ro"
-          aquasec/trivy:0.74.0 rootfs --scanners vuln
-          --severity HIGH,CRITICAL --exit-code 1 /scan
+      - name: Verify current MVC exploitability preconditions
+        working-directory: spring
+        run: ./gradlew test --tests cloud.leneu.jaywiki.MvcXsltReachabilityTest
+        env:
+          APP_OPENSEARCH_ENABLED: 'false'
+      - name: Keep unfiltered runtime JAR findings
+        run: |
+          mkdir -p scan-results
+          docker run --rm -v "$PWD/spring/build/libs:/scan:ro" -v "$PWD/scan-results:/results" \
+            aquasec/trivy:0.74.0 rootfs --scanners vuln --severity HIGH,CRITICAL \
+            --format json --output /results/java-unfiltered.json /scan
+      - name: Gate the runtime JAR with exact application VEX
+        run: |
+          python3 scripts/check-jaywiki-vex.py
+          docker run --rm -v "$PWD/spring/build/libs:/scan:ro" -v "$PWD/security:/policy:ro" \
+            aquasec/trivy:0.74.0 rootfs --scanners vuln --severity HIGH,CRITICAL \
+            --vex /policy/jaywiki.openvex.json --exit-code 1 /scan
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: security-java-${{ github.sha }}
+          path: scan-results/java-unfiltered.json
+          retention-days: 30
+          if-no-files-found: warn
 
   secrets:
     runs-on: ubuntu-latest

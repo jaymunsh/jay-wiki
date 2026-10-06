@@ -37,15 +37,20 @@ class ScopeTests(unittest.TestCase):
         self.assertEqual(result["python"], ["payment-api"])
         self.assertEqual(result["images"], ["services/payment-api"])
 
+    def test_omok_has_its_own_runtime_image(self):
+        result = module.scope(["services/omok/server.js"])
+        self.assertEqual(result["images"], ["services/omok"])
+        self.assertEqual(result["python"], [])
+
     def test_shared_and_unknown_changes_select_everything(self):
         for path in ["scripts/ci-scope.py", ".github/workflows/ci.yml",
                      "infra/k8s/app.yaml", "docker-compose.dev.yml", "new-app/main.py"]:
             with self.subTest(path=path):
-                self.assertEqual(len(module.scope([path])["images"]), 5)
+                self.assertEqual(len(module.scope([path])["images"]), 6)
 
     def test_schedule_and_manual_full_scan(self):
         result = module.scope([], full=True)
-        self.assertEqual(len(result["images"]), 5)
+        self.assertEqual(len(result["images"]), 6)
         self.assertEqual(len(result["python"]), 3)
 
     def test_entire_pr_and_move_out_of_component(self):

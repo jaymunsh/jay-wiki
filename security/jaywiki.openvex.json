@@ -1,0 +1,17 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://github.com/jaymunsh/jay-wiki/security/jaywiki-xslt-20261006",
+  "author": "jay-wiki maintainers",
+  "timestamp": "2026-10-06T11:45:00Z",
+  "version": 1,
+  "x-jaywiki-review-before": "2026-10-20T00:00:00Z",
+  "statements": [
+    {
+      "vulnerability": {"name": "CVE-2026-47884"},
+      "products": [{"@id": "pkg:maven/org.springframework/spring-webmvc@6.2.19"}],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Only the jay-wiki Spring application at this reviewed source is assessed: application handlers write response bodies; no XsltView or XsltViewResolver is configured; catch-all URL handlers serve static resources. MvcXsltReachabilityTest verifies the actual application context. Spring's required XSLT implicit-view execution path is absent. This does not patch Spring or declare the library safe in other applications. Reassess when MVC configuration, controller response contracts or the component version changes."
+    }
+  ]
+}

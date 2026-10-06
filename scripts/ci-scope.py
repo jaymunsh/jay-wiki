@@ -4,7 +4,7 @@ import json
 import os
 import subprocess
 
-COMPONENTS = ("web", "spring", "payment-api", "shipping-api", "partner-simulator")
+COMPONENTS = ("web", "spring", "payment-api", "shipping-api", "partner-simulator", "omok")
 
 
 def scope(paths, full=False):

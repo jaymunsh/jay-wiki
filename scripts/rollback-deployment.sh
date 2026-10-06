@@ -22,6 +22,11 @@ while IFS=$'\t' read -r namespace deployment container image; do
     echo "invalid rollback state row" >&2
     exit 1
   }
+  if [ "${image}" = __absent__ ]; then
+    test "${namespace}/${deployment}" = frontend/jaywiki-omok
+    kubectl -n frontend delete deployment/jaywiki-omok service/jaywiki-omok ingress/jaywiki-omok networkpolicy/jaywiki-omok --ignore-not-found
+    continue
+  fi
   echo "--- ${namespace}/${deployment}:${container} <- ${image}"
   kubectl -n "${namespace}" set image "deployment/${deployment}" "${container}=${image}"
   targets+=("${namespace}/${deployment}")

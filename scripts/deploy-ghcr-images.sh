@@ -9,6 +9,7 @@ set -euo pipefail
 : "${PAYMENT_IMAGE:?PAYMENT_IMAGE is required}"
 : "${SHIPPING_IMAGE:?SHIPPING_IMAGE is required}"
 : "${PARTNER_IMAGE:?PARTNER_IMAGE is required}"
+: "${OMOK_IMAGE:?OMOK_IMAGE is required}"
 
 # 상한이지 목표가 아니다. 2026-08-15 배포에서 180초로 두 번 연속 실패했고, 실측은 이렇다.
 #
@@ -58,12 +59,14 @@ set_image backend jaywiki-payment-api jaywiki-payment-api "${PAYMENT_IMAGE}"
 set_image backend jaywiki-shipping-api jaywiki-shipping-api "${SHIPPING_IMAGE}"
 set_image backend jaywiki-partner-simulator jaywiki-partner-simulator "${PARTNER_IMAGE}"
 set_image backend jaywiki jaywiki "${BACKEND_IMAGE}"
+set_image frontend jaywiki-omok jaywiki-omok "${OMOK_IMAGE}"
 set_image frontend jaywiki-web jaywiki-web "${WEB_IMAGE}"
 
 kubectl -n backend rollout status deployment/jaywiki-payment-api --timeout="${ROLLOUT_TIMEOUT}"
 kubectl -n backend rollout status deployment/jaywiki-shipping-api --timeout="${ROLLOUT_TIMEOUT}"
 kubectl -n backend rollout status deployment/jaywiki-partner-simulator --timeout="${ROLLOUT_TIMEOUT}"
 kubectl -n backend rollout status deployment/jaywiki --timeout="${ROLLOUT_TIMEOUT}"
+kubectl -n frontend rollout status deployment/jaywiki-omok --timeout="${ROLLOUT_TIMEOUT}"
 kubectl -n frontend rollout status deployment/jaywiki-web --timeout="${ROLLOUT_TIMEOUT}"
 
 trap - ERR

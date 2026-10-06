@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BlogRail } from '@/components/blog/BlogRail';
 import { BlogShell } from '@/components/blog/BlogShell';
+import { getBlogPosts } from '@/lib/blog';
 import {
   WORK_CATEGORIES,
   isWorkCategory,
@@ -39,7 +40,7 @@ export default async function WorkCategoryPage({
   const { category } = await params;
   if (!isWorkCategory(category)) notFound();
   const cat = WORK_CATEGORIES.find((c) => c.slug === category)!;
-  const works = worksByCategory(category);
+  const works = worksByCategory(category, await getBlogPosts());
 
   return (
     <BlogShell rail={<BlogRail />} title={`작업물 · ${cat.label}`}>
@@ -49,7 +50,7 @@ export default async function WorkCategoryPage({
             <Link href="/works">← 전체 작업물</Link>
           </p>
           <h1>{cat.label}</h1>
-          <p>{works.length}개</p>
+          <p>{works.length}개 · 최근 소개 글 순</p>
         </div>
         <div className={styles.list}>
           {works.map((work) => (

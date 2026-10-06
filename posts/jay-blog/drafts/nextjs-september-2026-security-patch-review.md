@@ -4,7 +4,7 @@ category: 리서치
 tags: nextjs,security,dependency,cve,github-actions,k3s,maintenance
 summary: 2026년 9월 Next.js 보안 공지를 운영 중인 jay-wiki와 jay-blog에 대입했다. 취약점의 영향 조건, 실제 운영 버전, 개발용 의존성 경고와 패치 배포를 구분해 정리한다.
 toc: true
-syncHash: abc8c056841e5cc2cd9f41a86a3d4cc5925425585b6bc11e2dd7cd7bc78b8e7e
+syncHash: df150c48bc27c582ee0b40ae75658b0a27dfd8e61b3ec64739d9fee38583652b
 publishedAt: 2026-10-05T08:46:34.382Z
 
 ---
@@ -106,3 +106,25 @@ Jackson은 [기존 2.21 계열의 패치 릴리스](https://github.com/FasterXML
 운영 배포, 콘텐츠 반영 전 DB 백업과 공개 페이지 검사가 성공했다. 운영 브라우저 스모크 8개도 통과했고, 롤백은 실행되지 않았다. 위키·블로그가 정상 응답하고 관리자 도메인의 인증 경계가 유지되는 것까지 확인했다. 패키지를 설치한 결과와 실제 운영에서 실행되는 결과를 함께 확인한 뒤 이번 패치를 완료했다.
 
 이번 점검은 현재 설정에서의 영향 판단과 의존성 패치를 다룬다. 과거 침해가 없었음을 입증하는 포렌식이나 모든 취약점의 공격 재현은 하지 않았다. 외부 이미지, 캐시와 미리보기 설정을 바꿀 때에는 지금 남긴 비영향 판단도 함께 다시 읽어야 한다.
+
+
+## 2026-10-06 업데이트 — 의존성 검사를 다시 돌렸다
+
+전날의 패치 결과는 그날 조회한 보안 데이터 기준이었다. 10월 6일 전체 반영을 준비하며 다시 검사하니 Next.js 자체 외의 추가 경고가 확인됐다. Next.js 15.5.27과 React 19.2.7은 유지하고 다음 의존성을 정리했다.
+
+- `source-map-js`를 1.2.2 이상으로 고정했다. 인덱스 소스맵의 큰 section offset이 이벤트 루프를 막는 문제이며, [공식 수정 릴리스](https://github.com/7rulnik/source-map-js/releases/tag/v1.2.2)와 [보안 공지](https://github.com/advisories/GHSA-68fv-2mgg-jv7q)를 확인했다. 이 앱에서 외부 소스맵으로 공격이 성립했음을 관찰한 것은 아니다.
+- Mermaid가 사용하는 KaTeX를 0.18.2 이상으로 고정했다. 기존 prototype pollution이 있을 때 trust 제한을 우회하는 [보안 공지](https://github.com/advisories/GHSA-238p-pmpm-9mq7)를 따른 조치다.
+- 이미 본문 원본을 DB에서 읽어 사용하지 않던 `gray-matter`를 제거했다. 함께 들어오던 YAML·문자열 포맷 의존성도 빠진다. [sprintf-js 공지](https://github.com/advisories/GHSA-hp3w-g68c-fv3c)의 경고를 구버전으로 다운그레이드해 숨기는 방식은 사용하지 않았다.
+- 개발 테스트 도구 Vitest는 4.1.11 이상으로 올렸다. 패치된 테스트 모커를 사용하고, 이번 버전의 잠금 파일에서 취약한 Tinypool 의존성도 제거했다. [worker 옵션 공지](https://github.com/advisories/GHSA-5gmw-xhrv-c9v3)와 [run 옵션 공지](https://github.com/advisories/GHSA-85c8-ppgw-ccpr)는 선행 prototype pollution을 전제로 하므로, 공개 웹 요청만으로 서비스가 침해됐다는 의미로 해석하지 않는다.
+
+변경 후 `npm audit --omit=dev`의 보고 건수는 0이다. 개발 의존성까지 포함하면 이전에 기록한 `braces` 경로만 남는다. 한 원인에서 상위 패키지로 전파된 경고 5건이며 예외 범위와 만료일은 그대로다. 단위 검사·타입 검사·프로덕션 빌드·컨테이너 보안 검사로 새 버전의 호환성을 확인한 뒤 배포한다.
+
+### 오목 이미지와 Spring의 실행 경로도 확인했다
+
+새로 배포할 오목 컨테이너에서는 서비스 실행에 필요 없는 전역 npm·Corepack 도구를 제거하고 Alpine 패키지를 갱신했다. 앱의 운영 의존성은 설치한 채 유지하고, 실제 서버와 WebSocket이 실행되는지 다시 확인했다.
+
+Java 검사에는 Spring MVC 6.2.19의 `CVE-2026-47884`도 표시됐다. [Spring 공식 공지](https://spring.io/security/cve-2026-47884/)의 공격 조건은 XSLT 뷰를 사용하는 앱에 화면 렌더링으로 이어지는 포괄 URL 매핑과 암묵적인 뷰 이름이 함께 있는 경우다. 공개 수정 버전은 7.0.9이고, 같은 6.2 계열의 6.2.20은 Enterprise Support 대상이다.
+
+현재 백엔드는 REST 응답 본문을 반환하며 XSLT 뷰와 해석기를 설정하지 않았다. 실제 Spring 애플리케이션 컨텍스트를 띄워 이 조건과 정적 파일용 포괄 매핑을 검사하는 회귀 테스트 3개를 추가했다. 이를 근거로 현재 앱의 해당 실행 경로는 사용되지 않는다고 판단했다. 라이브러리가 패치됐거나 다른 앱도 안전하다는 뜻은 아니다.
+
+검사 원본에는 경고를 남기고, 이 공지와 정확한 패키지 버전에만 현재 앱의 비영향 판단을 OpenVEX로 기록했다. **2026년 10월 20일 00:00 UTC 전에 재검토해야 하며**, 기한이 지나면 CI가 차단한다. MVC 화면 렌더링이나 의존성 버전을 바꿀 때도 다시 판단한다. 다른 취약점까지 검사에서 제외하지 않는다.

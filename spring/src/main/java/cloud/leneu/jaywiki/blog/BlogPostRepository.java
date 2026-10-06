@@ -45,6 +45,32 @@ public interface BlogPostRepository extends JpaRepository<BlogPost, Long> {
 
     Page<BlogPost> findByCategoryIdAndStatusOrderByPublishedAtDescIdDesc(Long categoryId, String status, Pageable pageable);
 
+    /**
+     * 개인 프로젝트는 발행 뒤 고친 글을 위에 둔다. 화면의 isEditedAfterPublish 와 같이
+     * 1분 미만 차이는 발행 절차로 보고 발행일을 쓴다. 수정일이 없거나 더 이른 글도 같다.
+     * 페이지를 자르기 전에 DB 에서 정렬하고, 동률은 발행일 → id 로 확정한다.
+     */
+    @Query(value = """
+        select p.* from public.tb_blog_post p
+        where p.category_id = :categoryId and p.status = 'published'
+        order by case when p.updated_at >= p.published_at + interval '1 minute'
+                      then p.updated_at else p.published_at end desc,
+                 p.published_at desc, p.id desc
+        """, nativeQuery = true)
+    List<BlogPost> findPublishedByCategoryOrderByActivity(@Param("categoryId") Long categoryId);
+
+    @Query(value = """
+        select p.* from public.tb_blog_post p
+        where p.category_id = :categoryId and p.status = 'published'
+        order by case when p.updated_at >= p.published_at + interval '1 minute'
+                      then p.updated_at else p.published_at end desc,
+                 p.published_at desc, p.id desc
+        """, countQuery = """
+        select count(*) from public.tb_blog_post p
+        where p.category_id = :categoryId and p.status = 'published'
+        """, nativeQuery = true)
+    Page<BlogPost> findPublishedByCategoryOrderByActivity(@Param("categoryId") Long categoryId, Pageable pageable);
+
     long countByCategoryId(Long categoryId);
 
     boolean existsByBodyContaining(String value);

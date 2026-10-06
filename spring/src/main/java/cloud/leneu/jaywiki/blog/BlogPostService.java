@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 public class BlogPostService {
 
     private static final String PUBLISHED = "published";
+    private static final String PERSONAL_PROJECTS = "personal-projects";
     private static final String DRAFT = "draft";
 
     private final BlogPostRepository posts;
@@ -63,6 +64,9 @@ public class BlogPostService {
     private Page<BlogPost> findPage(BlogPostPageQuery query) {
         if (query.categorySlug() != null) {
             BlogCategory category = categoryService.bySlug(query.categorySlug());
+            if (PERSONAL_PROJECTS.equals(category.getSlug())) {
+                return posts.findPublishedByCategoryOrderByActivity(category.getId(), query.pageable());
+            }
             return posts.findByCategoryIdAndStatusOrderByPublishedAtDescIdDesc(
                     category.getId(), PUBLISHED, query.pageable());
         }
@@ -133,7 +137,10 @@ public class BlogPostService {
     @Transactional(readOnly = true)
     public List<BlogPostSummaryDto> byCategory(String categorySlug) {
         BlogCategory category = categoryService.bySlug(categorySlug);
-        return toSummaries(posts.findByCategoryIdAndStatusOrderByPublishedAtDescIdDesc(category.getId(), PUBLISHED));
+        List<BlogPost> found = PERSONAL_PROJECTS.equals(category.getSlug())
+                ? posts.findPublishedByCategoryOrderByActivity(category.getId())
+                : posts.findByCategoryIdAndStatusOrderByPublishedAtDescIdDesc(category.getId(), PUBLISHED);
+        return toSummaries(found);
     }
 
     @Transactional(readOnly = true)
