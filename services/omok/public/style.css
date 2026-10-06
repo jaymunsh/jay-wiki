@@ -248,5 +248,13 @@ dialog p{font-size:13px;line-height:1.85;color:var(--muted);word-break:keep-all}
 .board-empty p{color:var(--sage-ink)}
 .local-mode-note{color:var(--sage-ink)}
 ::selection{background:#e6c6ac;color:var(--ink)}
+.game-timeline{margin-top:24px;padding:20px 0;border-top:1px solid var(--border)}
+.game-timeline h2{font-size:18px;margin:0 0 6px;color:var(--ink)}
+.game-timeline>p{font-size:13px;color:var(--sage-ink);margin:0 0 16px;font-variant-numeric:tabular-nums}
+#timeline-list{list-style:none;margin:0;padding:0 8px 0 0;max-height:240px;overflow-y:auto;scrollbar-color:var(--sage-ink) transparent;scrollbar-width:thin}
+#timeline-list li{display:grid;grid-template-columns:76px 1fr;gap:12px;padding:8px 0;font-size:14px;line-height:1.6;color:var(--ink);border-bottom:1px solid var(--border)}
+#timeline-list:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+#timeline-list time{color:var(--sage-ink);font-size:12px;font-variant-numeric:tabular-nums}
+#timeline-list .timeline-current{font-weight:600;color:var(--orange)}
 input{caret-color:var(--orange)}
 @media(max-width:520px){.player strong{font-size:13px}.player small,.player>span{font-size:11px}.secondary-actions button{font-size:12px}.room-links .text-button{font-size:13px}.last-move-note{font-size:10px}}

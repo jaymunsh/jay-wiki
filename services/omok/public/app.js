@@ -7,8 +7,13 @@ const storage={
  set(key,value){try{localStorage.setItem('omok:'+key,JSON.stringify(value));}catch{toast('브라우저 저장 공간을 사용할 수 없어 기록을 저장하지 못했습니다.');}},
  remove(key){try{localStorage.removeItem('omok:'+key);}catch{}}
 };
-// Session credentials belong to this tab; separate tabs can play each other.
-const session={get(){try{return JSON.parse(sessionStorage.getItem('omok:session'));}catch{return null;}},set(value){try{sessionStorage.setItem('omok:session',JSON.stringify(value));}catch{toast('이 브라우저에서는 자동 재접속 정보를 저장할 수 없습니다.');}},clear(){try{sessionStorage.removeItem('omok:session');}catch{}}};
+// Active seats stay tab-specific; saved credentials allow explicit closed-tab recovery.
+const recoveries=()=>{const entries=storage.get('recovery',[]);return Array.isArray(entries)?entries.filter(s=>/^[A-F0-9]{6}$/.test(s?.code)&&/^[a-f0-9]{64}$/.test(s?.token)&&s.savedAt>Date.now()-86400000).slice(0,8):[];};
+const session={
+ get(){try{return JSON.parse(sessionStorage.getItem('omok:session'));}catch{return null;}},
+ set(value){try{sessionStorage.setItem('omok:session',JSON.stringify(value));}catch{toast('이 브라우저에서는 자동 재접속 정보를 저장할 수 없습니다.');}storage.set('recovery',[{...value,savedAt:Date.now()},...recoveries().filter(s=>s.token!==value.token)].slice(0,8));},
+ clear(forget=true){const current=this.get();if(forget&&current)storage.set('recovery',recoveries().filter(s=>s.token!==current.token));try{sessionStorage.removeItem('omok:session');}catch{}}
+};
 let board=emptyBoard(),turn=1,winner=0,line=null,last=null,history=[],mode='bot',socket=null,myColor=1,ready=true,code='',sound=false,audio;
 let worker=null,aiTimer=null,aiWatchdog=null,aiId=0,reconnectTimer=null,reconnectAttempts=0,connecting=null,networkBusy=false,movePending=false;
 let gameId=newId(),reason=null,players=[],deadline=null,serverOffset=0,remaining=0,seconds=0,rematch=[],review=null,connectionText='방을 만들거나 코드로 입장하세요.';
@@ -18,6 +23,7 @@ let forbiddenCacheKey='',forbiddenCache=new Map();
 let capacity=null,capacityLoading=false,capacityFailed=false,capacityController=null;
 let waitingUntil=null,closeAt=null,graceSeconds=120,pendingLeave=null;
 let latestRecord=null;
+let timeline=[],previewCredentials=[];
 const prefs=storage.get('preferences',{});
 $('#difficulty').value=['easy','normal','hard'].includes(prefs.difficulty)?prefs.difficulty:'normal';
 $('#my-stone').value=['1','2','random'].includes(prefs.stone)?prefs.stone:'1';
@@ -84,7 +90,7 @@ function recordGame(){
  const perspective=mode==='local'?null:myColor;
  if(records.some(r=>r.id===gameId&&r.mode===mode&&r.myColor===perspective))return;
  const opponent=mode==='local'?'둘이 대전':mode==='bot'?`봇 · ${{easy:'쉬움',normal:'보통',hard:'어려움'}[$('#difficulty').value]}`:players.find(p=>p.color!==myColor)?.name||'상대 플레이어';
- latestRecord={id:gameId,date:new Date().toISOString(),mode,opponent,myColor:perspective,winner,reason,rule:currentRule,history:[...history]};records.unshift(latestRecord);storage.set('records',records.slice(0,30));renderStats();
+ latestRecord={id:gameId,date:new Date().toISOString(),mode,opponent,myColor:perspective,winner,reason,rule:currentRule,history:[...history],timeline:mode==='online'?structuredClone(timeline):[]};records.unshift(latestRecord);storage.set('records',records.slice(0,30));renderStats();
 }
 window.addEventListener('storage',event=>{
  if(event.key!=='omok:records')return;
@@ -180,14 +186,36 @@ function render(){
  $('#local-rule-help').textContent=(currentRule==='renju'?'흑돌만 삼삼·사사·장목 금지.':'흑백 모두 금수 없이 5개 이상이면 승리.')+(history.length?' 규칙은 새 대국에서 바꿀 수 있어요.':'');
  $('#room-rule-label').textContent=`${ruleName(currentRule)}${currentRule==='renju'?' · 흑 금수 적용':''} · ${seconds?`한 수 ${seconds}초`:'시간 무제한'}`;
  $('#room-preview').hidden=!roomPreview&&!previewLoading;
- $('#room-preview').textContent=previewLoading?'방의 규칙을 확인하고 있어요…':roomPreview?`${ruleName(roomPreview.rule)}${roomPreview.rule==='renju'?' · 흑 금수 적용':''} / ${roomPreview.seconds?`한 수 ${roomPreview.seconds}초`:'시간 무제한'} — 확인 후 입장하세요.`:'';
+ $('#room-preview').textContent=previewLoading?'방의 규칙을 확인하고 있어요…':roomPreview?.recovery?.length?'저장된 참가자 정보로 이전 자리에 재접속할 수 있어요.':roomPreview?`${ruleName(roomPreview.rule)}${roomPreview.rule==='renju'?' · 흑 금수 적용':''} / ${roomPreview.seconds?`한 수 ${roomPreview.seconds}초`:'시간 무제한'} — 확인 후 입장하세요.`:'';
+ const choices=roomPreview?.recovery||[],selected=$('#recovery-seat').value;
+ $('#recovery-choice').hidden=choices.length<2;$('#recovery-seat').replaceChildren();
+ for(const choice of choices){const option=document.createElement('option');option.value=choice.index;option.textContent=`${choice.color===1?'흑돌':'백돌'} · ${choice.name}${choice.online?' · 다른 탭 연결 중':''}`;$('#recovery-seat').append(option);}
+ if(choices.some(c=>String(c.index)===selected))$('#recovery-seat').value=selected;
  $('#difficulty-help').textContent=({easy:'가볍게 시작하며 오목의 감각을 익혀보세요.',normal:'공격과 수비를 익히는 균형 잡힌 연습.',hard:'여러 수 앞을 읽는 봇. 신중한 한 수가 필요해요.'})[$('#difficulty').value];
  $('#room-error').hidden=!roomError;$('#room-error').textContent=roomError;$('#room-input').setAttribute('aria-invalid',String(!!roomError));
- $('#create-room').firstChild.textContent=networkBusy&&networkAction==='create'?'방을 만드는 중… ':'새로운 방 만들기 ';$('#join-room').textContent=networkBusy&&networkAction==='join'?'연결 중…':'입장';
+ $('#create-room').firstChild.textContent=networkBusy&&networkAction==='create'?'방을 만드는 중… ':'새로운 방 만들기 ';$('#join-room').textContent=networkBusy&&['join','resume'].includes(networkAction)?'연결 중…':choices.length?'재접속':'입장';
  for(const name of ['bot','local','online']){$(`#${name}-mode`).setAttribute('aria-pressed',String(mode===name));$(`#${name}-mode`).classList.toggle('selected',mode===name);}
- updateClock();
+ renderTimeline();updateClock();
+}
+function renderTimeline(){
+ const events=review?review.record.timeline||[]:mode==='online'?timeline:[];
+ $('#game-timeline').hidden=!events.length;
+ const list=$('#timeline-list'),follow=list.scrollTop+list.clientHeight>=list.scrollHeight-8;
+ list.replaceChildren();
+ const stone=color=>color===1?'흑돌':'백돌';
+ for(const e of events){
+  const row=document.createElement('li'),time=document.createElement('time'),text=document.createElement('span');
+  time.dateTime=new Date(e.at).toISOString();time.textContent=new Date(e.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  const ending={five:'오목 완성',draw:'무승부',resign:'기권',leave:'퇴장',disconnect:'재접속 시간 초과',timeout:'착수 시간 초과','no-legal-moves':'가능한 착수 없음'}[e.reason]||'대국 종료';
+  text.textContent=e.type==='move'?`${e.move}수 · ${stone(e.color)} ${String.fromCharCode(65+e.index%15)}${15-Math.floor(e.index/15)}`:e.type==='disconnect'?`${stone(e.color)} 연결 끊김 · 대국 일시정지`:e.type==='resume'?`${stone(e.color)} 재접속`:e.type==='end'?`${ending} · ${e.winner===3?'무승부':stone(e.winner)+' 승리'}`:({created:'방 개설 · 상대 대기',start:'대국 시작',restart:'서버 재시작 · 재접속 대기'})[e.type]||'대국 기록';
+  row.classList.toggle('timeline-current',!!review&&e.type==='move'&&e.move===review.step);row.append(time,text);list.append(row);
+ }
+ if(follow)list.scrollTop=list.scrollHeight;
 }
 function updateClock(){
+ const events=review?review.record.timeline||[]:timeline,start=events.find(e=>e.type==='start'),end=events.find(e=>e.type==='end');
+ const elapsed=start?Math.max(0,Math.floor(((end?.at||Date.now()+serverOffset)-start.at)/1000)):0;
+ $('#timeline-summary').textContent=start?`${new Date(start.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})} 시작 · ${Math.floor(elapsed/60)}분 ${String(elapsed%60).padStart(2,'0')}초${end?' · 종료':''}`:'상대가 입장하면 대국이 시작됩니다.';
  $('#clock-display').hidden=mode!=='online'||!seconds||!code||!!winner||!!review;
  const left=Math.max(0,Math.ceil((deadline?deadline-Date.now()-serverOffset:remaining)/1000));
  $('#clock-display').textContent=`${ready?'남은 착수 시간':'시간 일시정지'} · ${left}초`;$('#clock-display').classList.toggle('urgent',ready&&left<=10);
@@ -221,12 +249,12 @@ function move(i){
  place(i);if(mode==='bot'&&!winner)startAI();
 }
 function send(message){if(socket?.readyState!==WebSocket.OPEN){toast('서버에 다시 연결하고 있습니다. 잠시 기다려 주세요.');return false;}socket.send(JSON.stringify(message));return true;}
-function clearOnline(){session.clear();code='';players=[];deadline=null;remaining=0;seconds=0;rematch=[];movePending=false;waitingUntil=null;closeAt=null;}
-function disconnect(explicit=true){
+function clearOnline(forget=true){session.clear(forget);code='';players=[];deadline=null;remaining=0;seconds=0;rematch=[];movePending=false;waitingUntil=null;closeAt=null;}
+function disconnect(explicit=true,forget=true){
  clearTimeout(reconnectTimer);reconnectAttempts=0;
  const old=socket;socket=null;connecting=null;
  if(old){if(explicit&&old.readyState===WebSocket.OPEN)old.send(JSON.stringify({type:'leave'}));old.close();}
- clearOnline();
+ clearOnline(forget);
 }
 function leaveCopy(){
  return winner?{title:'대국을 마친 방을 나갈까요?',message:'방이 닫히고 상대도 나가게 됩니다. 대국 기록과 복기는 그대로 남습니다.',actionLabel:'방 나가기'}:players.length<2?{title:'대기 중인 방을 닫을까요?',message:'초대 코드가 만료됩니다. 대국 전이므로 승패는 기록되지 않습니다.',actionLabel:'대기 취소'}:{title:'대국을 끝내고 방을 나갈까요?',message:'내 패배로 기록되고 상대가 승리합니다. 방이 닫히며 대국 기록은 남습니다.',actionLabel:'패배 처리하고 나가기'};
@@ -277,13 +305,14 @@ async function connect(){
   if(socket!==ws)return;let m;try{m=JSON.parse(event.data);}catch{return;}
   if(m.type==='preview'){
    if(m.code!==$('#room-input').value.trim().toUpperCase()||mode!=='online'||code)return;
-   previewLoading=false;roomPreview=m.available?{code:m.code,rule:normalizeRule(m.rule,'freestyle'),seconds:m.seconds}:null;
-   roomError=m.available?'':'방을 찾을 수 없거나 이미 가득 찼습니다.';render();return;
+   const recovery=Array.isArray(m.recovery)?m.recovery.filter(c=>previewCredentials[c.index]):[];
+   previewLoading=false;roomPreview=m.available||recovery.length?{code:m.code,rule:normalizeRule(m.rule,'freestyle'),seconds:m.seconds,recovery:m.available?[]:recovery}:null;
+   roomError=roomPreview?'':'방을 찾을 수 없거나 이미 가득 찼습니다.';render();return;
   }
   networkBusy=false;movePending=false;
   if(m.type==='session'){session.set({code:m.code,token:m.token});return;}
   if(m.type==='error'){if(m.reason==='expired'){clearOnline();ready=false;connectionText=m.message;}if(!['double-three','double-four','overline'].includes(m.reason))roomError=m.message;if(m.reason==='capacity')void refreshCapacity();toast(m.message);render();return;}
-  if(m.type==='replaced'){disconnect(false);ready=false;connectionText='다른 탭에서 이 대국에 접속했습니다.';render();return;}
+  if(m.type==='replaced'){disconnect(false,false);ready=false;connectionText='다른 탭에서 이 대국에 접속했습니다.';render();return;}
   if(m.type==='closed'||m.type==='left'){const leaving=pendingLeave?.done;clearOnline();ready=false;connectionText=m.message||'방을 나갔습니다. 대국 기록은 최근 대국에서 볼 수 있어요.';if(leaving)leaving(true);toast(connectionText);render();void refreshCapacity();return;}
   if(m.type==='state'){
    const changedRoom=m.code!==code;
@@ -291,7 +320,7 @@ async function connect(){
    if(review&&m.id!==gameId&&!m.winner)review=null;
    if(m.last!==last&&m.last!==null)clickSound();
    currentRule=normalizeRule(m.rule,'freestyle');board=m.board;turn=m.turn;winner=m.winner;line=m.line;last=m.last;myColor=m.color;ready=m.ready;code=m.code;players=m.players||[];deadline=m.deadline;remaining=m.remaining;seconds=m.seconds||0;history=m.history||[];reason=m.reason;rematch=m.rematch||[];gameId=m.id;serverOffset=(m.serverTime||Date.now())-Date.now();
-   waitingUntil=m.waitingUntil;closeAt=m.closeAt;graceSeconds=m.graceSeconds||120;
+   timeline=Array.isArray(m.timeline)?m.timeline:[];waitingUntil=m.waitingUntil;closeAt=m.closeAt;graceSeconds=m.graceSeconds||120;
    connectionText=winner?'대국이 종료되었습니다. 재대결하거나 방을 나갈 수 있어요.':ready?'연결됨 · 실시간 대국':players.length<2?'초대 코드를 공유하고 친구를 기다려 주세요.':'상대의 재접속을 기다리고 있습니다.';
    recordGame();render();if(changedRoom)void refreshCapacity();
   }
@@ -308,16 +337,18 @@ async function previewRoom(){
  const entered=$('#room-input').value.trim().toUpperCase();roomPreview=null;
  if(mode!=='online'||code||!/^[A-F0-9]{6}$/.test(entered)){previewLoading=false;render();return;}
  previewLoading=true;roomError='';render();
- try{await connect();if(mode==='online'&&!code&&entered===$('#room-input').value.trim().toUpperCase())send({type:'preview',code:entered});}
+ try{await connect();if(mode==='online'&&!code&&entered===$('#room-input').value.trim().toUpperCase()){previewCredentials=recoveries().filter(s=>s.code===entered);send({type:'preview',code:entered,tokens:previewCredentials.map(s=>s.token)});}}
  catch(e){previewLoading=false;roomError=e.message;render();}
 }
 async function roomAction(type){
  if(networkBusy)return;
  const entered=$('#room-input').value.trim().toUpperCase();if(type==='join'&&!/^[A-F0-9]{6}$/.test(entered)){roomError='영문 A–F와 숫자로 된 6자리 코드를 입력해 주세요.';render();$('#room-input').focus();return;}
  if(type==='join'&&(!roomPreview||roomPreview.code!==entered)){await previewRoom();return;}
+ const recovering=type==='join'&&roomPreview.recovery?.length?previewCredentials[Number($('#recovery-seat').value)]:null;
+ if(recovering&&roomPreview.recovery.find(c=>c.index===Number($('#recovery-seat').value))?.online&&!await confirmAction('이 자리로 재접속할까요?','다른 탭의 연결은 종료되고 이 탭에서 대국을 이어갑니다.',{actionLabel:'재접속'}))return;
  if(code&&(!await confirmLeave()||!await leaveOnline()))return;
  savePrefs();networkBusy=true;networkAction=type;roomError='';render();
- try{await connect();send({type,code:entered,name:$('#nickname').value,rule:type==='create'?$('#room-rule').value:roomPreview.rule,seconds:Number($('#time-control').value)});}catch(e){networkBusy=false;roomError=e.message;toast(e.message);render();}
+ try{await connect();if(recovering){session.set({code:entered,token:recovering.token});networkAction='resume';send({type:'resume',code:entered,token:recovering.token});}else send({type,code:entered,name:$('#nickname').value,rule:type==='create'?$('#room-rule').value:roomPreview.rule,seconds:Number($('#time-control').value)});}catch(e){networkBusy=false;roomError=e.message;toast(e.message);render();}
 }
 async function copy(text,message){try{await navigator.clipboard.writeText(text);toast(message);}catch{toast(text);}}
 async function changeBotSetting(control){
@@ -390,7 +421,7 @@ if(new URL(location.href).searchParams.get('from')==='works'){
 }
 savedBot=storage.get('bot',null);savedLocal=storage.get('local',null);
 const resume=session.get(),invite=new URL(location.href).searchParams.get('room');
-if(resume){mode='online';ready=false;code=resume.code;connectionText='저장된 대국에 다시 연결하고 있습니다…';modeUI();render();connect().catch(()=>{});}
+if(resume){session.set(resume);mode='online';ready=false;code=resume.code;connectionText='저장된 대국에 다시 연결하고 있습니다…';modeUI();render();connect().catch(()=>{});}
 else if(invite&&/^[A-Fa-f0-9]{6}$/.test(invite)){mode='online';ready=false;$('#room-input').value=invite.toUpperCase();connectionText='초대받은 방 코드가 입력되었습니다. 입장을 눌러 주세요.';modeUI();render();previewTimer=setTimeout(previewRoom,0);}
 else{mode=storage.get('offline-mode','bot')==='local'?'local':'bot';modeUI();const saved=mode==='local'?savedLocal:savedBot;if(validOffline(saved))loadOffline(saved);else resetOffline();}
 renderStats();

@@ -42,7 +42,9 @@ try{
   if(Date.now()-room.updated>86400000)continue;
   if(room.deadline)room.remaining=Math.max(1000,room.deadline-Date.now());
   room.rule=normalizeRule(room.rule,'freestyle');room.createdAt??=room.updated;
-  room.deadline=null;room.players.forEach(p=>{p.ws=null;p.disconnectedAt=Date.now();});rooms.set(room.code,room);
+  room.deadline=null;room.players.forEach(p=>{p.ws=null;p.disconnectedAt=Date.now();});
+  if(!Array.isArray(room.timeline))room.timeline=[];
+  if(!room.winner)event(room,'restart');rooms.set(room.code,room);
  }
  log('rooms_restored',{count:rooms.size});
 }catch(e){if(e.code!=='ENOENT'){log('startup_error',{message:e.message});process.exit(1);}}
@@ -97,7 +99,12 @@ function publish(room){
  for(const p of room.players)send(p.ws,stateFor(room,p));
  save();
 }
-function stateFor(room,p){return {type:'state',code:room.code,rule:room.rule,board:room.board,turn:room.turn,winner:room.winner,line:room.line,last:room.last,color:p.color,ready:online(room),players:room.players.map(s=>({name:s.name,color:s.color,online:!!s.ws,disconnectedAt:s.disconnectedAt})),deadline:room.deadline,remaining:room.remaining,seconds:room.seconds,serverTime:Date.now(),history:room.history,reason:room.reason,rematch:room.rematch,id:room.id,graceSeconds:GRACE/1000,waitingUntil:room.players.length===1?room.createdAt+WAIT_TTL:null,closeAt:room.winner?room.updated+RESULT_TTL:null};}
+function event(room,type,details={}){
+ room.timeline??=[];room.timeline.push({type,at:Date.now(),...details});
+ // Retain the start time even when many reconnections fill the bounded history.
+ while(room.timeline.length>600){const i=room.timeline.findIndex(e=>e.type!=='created'&&e.type!=='start');room.timeline.splice(i<0?0:i,1);}
+}
+function stateFor(room,p){return {type:'state',code:room.code,rule:room.rule,board:room.board,turn:room.turn,winner:room.winner,line:room.line,last:room.last,color:p.color,ready:online(room),players:room.players.map(s=>({name:s.name,color:s.color,online:!!s.ws,disconnectedAt:s.disconnectedAt})),deadline:room.deadline,remaining:room.remaining,seconds:room.seconds,serverTime:Date.now(),history:room.history,timeline:room.timeline,reason:room.reason,rematch:room.rematch,id:room.id,graceSeconds:GRACE/1000,waitingUntil:room.players.length===1?room.createdAt+WAIT_TTL:null,closeAt:room.winner?room.updated+RESULT_TTL:null};}
 function expireRooms(now=Date.now()){
  for(const room of rooms.values()){
   const closed=room.closedAt&&now>=room.closedAt+GRACE;
@@ -110,7 +117,7 @@ function expireRooms(now=Date.now()){
   rooms.delete(room.code);save();log('room_expired',{code:room.code,reason:waiting?'waiting':finished?'finished':'idle'});
  }
 }
-function finish(room,winner,reason){room.winner=winner;room.reason=reason;room.deadline=null;room.rematch=[];log('game_finished',{code:room.code,reason,moves:room.history.length});}
+function finish(room,winner,reason){room.winner=winner;room.reason=reason;room.deadline=null;room.rematch=[];event(room,'end',{winner,reason});log('game_finished',{code:room.code,reason,moves:room.history.length});}
 function detach(ws,explicit=false){
  const room=rooms.get(ws.room);ws.room=null;if(!room)return;
  const seat=room.players.find(p=>p.ws===ws);if(!seat)return;
@@ -127,11 +134,11 @@ function detach(ws,explicit=false){
   }
   if(pendingResult){room.closedAt=Date.now();room.updated=room.closedAt;}else rooms.delete(room.code);
   save();
- }else publish(room);
+ }else{if(!room.winner)event(room,'disconnect',{color:seat.color});publish(room);}
 }
 function attach(ws,room,seat,token){ws.room=room.code;seat.ws=ws;seat.disconnectedAt=null;if(token)send(ws,{type:'session',code:room.code,token});publish(room);}
 function seatFor(ws,name,color){const token=randomBytes(32).toString('hex');return {token,seat:{tokenHash:hash(token),name:typeof name==='string'?name.trim().slice(0,16)||'플레이어':'플레이어',color,ws,disconnectedAt:null}};}
-function newGame(room){Object.assign(room,{board:emptyBoard(),turn:1,winner:0,line:null,last:null,history:[],reason:null,rematch:[],id:randomBytes(12).toString('hex'),deadline:null,remaining:room.seconds*1000,createdAt:Date.now()});}
+function newGame(room){Object.assign(room,{board:emptyBoard(),turn:1,winner:0,line:null,last:null,history:[],timeline:[],reason:null,rematch:[],id:randomBytes(12).toString('hex'),deadline:null,remaining:room.seconds*1000,createdAt:Date.now()});event(room,room.players.length===2?'start':'created');}
 wss.on('connection',ws=>{
  ws.alive=true;ws.rate={start:Date.now(),count:0,actions:[]};
  ws.on('pong',()=>ws.alive=true);ws.on('error',e=>log('socket_error',{message:e.message}));
@@ -143,7 +150,12 @@ wss.on('connection',ws=>{
   const room=rooms.get(ws.room);
   if(m.type==='preview'){
    const code=String(m.code).toUpperCase(),r=rooms.get(code);
-   send(ws,{type:'preview',code,available:!!r&&r.players.length===1&&!!r.players[0].ws&&!r.winner,rule:r?.rule,seconds:r?.seconds});return;
+   const recovery=[];
+   if(r&&Array.isArray(m.tokens))for(const [index,token] of m.tokens.slice(0,8).entries()){
+    const p=typeof token==='string'&&/^[a-f0-9]{64}$/.test(token)?r.players.find(p=>p.tokenHash===hash(token)):null;
+    if(p&&!recovery.some(s=>s.color===p.color))recovery.push({index,color:p.color,name:p.name,online:!!p.ws});
+   }
+   send(ws,{type:'preview',code,available:!!r&&r.players.length===1&&!!r.players[0].ws&&!r.winner,recovery,rule:r?.rule,seconds:r?.seconds});return;
   }
   if(m.type==='leave'){detach(ws,true);send(ws,{type:'left'});return;}
   if(m.type==='resume'){
@@ -156,7 +168,7 @@ wss.on('connection',ws=>{
     p.resultReceived=true;if(r.players.every(s=>s.resultReceived))rooms.delete(r.code);save();return;
    }
    if(p.ws&&p.ws!==ws){p.ws.room=null;send(p.ws,{type:'replaced'});p.ws.close(4001,'Session resumed elsewhere');}
-   attach(ws,r,p);return;
+   if(!r.winner)event(r,'resume',{color:p.color});attach(ws,r,p);return;
   }
   if(m.type==='create'||m.type==='join'){
    ws.rate.actions=ws.rate.actions.filter(t=>now-t<60000);if(ws.rate.actions.length>=8)return error(ws,'방 요청이 많습니다. 잠시 후 다시 시도해 주세요.');ws.rate.actions.push(now);
@@ -169,7 +181,7 @@ wss.on('connection',ws=>{
    }else{
     const r=rooms.get(String(m.code).toUpperCase());if(!r||r.players.length!==1||!r.players[0].ws||r.players.some(p=>p.ws===ws)||r.winner)return error(ws,'입장할 수 없는 방입니다. 방이 만료되었거나 방장이 연결되어 있지 않을 수 있어요.');
     if(m.rule!==r.rule)return error(ws,'방의 규칙을 다시 확인한 뒤 입장해 주세요.','rule-mismatch');
-    detach(ws,true);const {token,seat}=seatFor(ws,m.name,2);r.players.push(seat);attach(ws,r,seat,token);
+    detach(ws,true);const {token,seat}=seatFor(ws,m.name,2);r.players.push(seat);event(r,'start');attach(ws,r,seat,token);
    }return;
   }
   if(!room)return error(ws,'먼저 방에 입장해 주세요.');
@@ -180,6 +192,7 @@ wss.on('connection',ws=>{
    const verdict=validateMove(room.board,i,room.turn,room.rule);
    if(!verdict.legal)return error(ws,forbiddenMessage(verdict.reason),verdict.reason);
    room.board[i]=room.turn;room.last=i;room.history.push(i);room.line=verdict.line;
+   event(room,'move',{color:room.turn,index:i,move:room.history.length});
    if(room.line)finish(room,room.turn,'five');else if(room.board.every(Boolean))finish(room,3,'draw');
    room.turn=3-room.turn;if(!room.winner&&!hasLegalMove(room.board,room.turn,room.rule))finish(room,3,'no-legal-moves');room.deadline=null;clock(room,true);publish(room);
   }else if(m.type==='resign'&&!room.winner&&room.players.length===2){finish(room,3-seat.color,'resign');publish(room);}
