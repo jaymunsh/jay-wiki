@@ -215,7 +215,7 @@ function renderTimeline(){
 function updateClock(){
  const events=review?review.record.timeline||[]:timeline,start=events.find(e=>e.type==='start'),end=events.find(e=>e.type==='end');
  const elapsed=start?Math.max(0,Math.floor(((end?.at||Date.now()+serverOffset)-start.at)/1000)):0;
- $('#timeline-summary').textContent=start?`${new Date(start.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})} 시작 · ${Math.floor(elapsed/60)}분 ${String(elapsed%60).padStart(2,'0')}초${end?' · 종료':''}`:'상대가 입장하면 대국이 시작됩니다.';
+ $('#timeline-summary').textContent=start?`${new Date(start.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})} 시작 · ${Math.floor(elapsed/60)}분 ${String(elapsed%60).padStart(2,'0')}초${end?' · 종료':''}`:!review&&players.length<2&&!winner?'상대가 입장하면 대국이 시작됩니다.':'이전 대국의 시작 시각은 기록되지 않았습니다.';
  $('#clock-display').hidden=mode!=='online'||!seconds||!code||!!winner||!!review;
  const left=Math.max(0,Math.ceil((deadline?deadline-Date.now()-serverOffset:remaining)/1000));
  $('#clock-display').textContent=`${ready?'남은 착수 시간':'시간 일시정지'} · ${left}초`;$('#clock-display').classList.toggle('urgent',ready&&left<=10);
