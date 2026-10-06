@@ -24,6 +24,7 @@ let capacity=null,capacityLoading=false,capacityFailed=false,capacityController=
 let waitingUntil=null,closeAt=null,graceSeconds=120,pendingLeave=null;
 let latestRecord=null;
 let timeline=[],previewCredentials=[];
+let undo={limit:3,requests:{1:0,2:0},pending:null};
 const prefs=storage.get('preferences',{});
 $('#difficulty').value=['easy','normal','hard'].includes(prefs.difficulty)?prefs.difficulty:'normal';
 $('#my-stone').value=['1','2','random'].includes(prefs.stone)?prefs.stone:'1';
@@ -130,7 +131,7 @@ function render(){
   if(el.dataset.value!==String(value)){el.innerHTML=value?`<span class="stone ${value===1?'black':'white'}"></span>`:'';el.dataset.value=String(value);}
   el.firstElementChild?.classList.toggle('last',i===shownLast);el.firstElementChild?.classList.toggle('won',!!shownLine?.includes(i));
   el.classList.toggle('occupied',!!value);el.classList.toggle('forbidden',bans.has(i));el.title=bans.has(i)?forbiddenMessage(bans.get(i)):'';el.setAttribute('aria-label',`${String.fromCharCode(65+i%15)}${15-Math.floor(i/15)}, ${value===1?'흑돌':value===2?'백돌':bans.has(i)?forbiddenMessage(bans.get(i)):'빈 자리'}`);
-  el.disabled=!!value||!!winner||!ready||(mode!=='local'&&turn!==myColor)||!!review||movePending;
+  el.disabled=!!value||!!winner||!ready||(mode!=='local'&&turn!==myColor)||!!review||movePending||(mode==='online'&&!!undo.pending);
  });
  if(cells[focusIndex].disabled)focusIndex=cells.findIndex(el=>!el.disabled);
  cells.forEach((el,i)=>el.tabIndex=i===focusIndex?0:-1);
@@ -144,10 +145,15 @@ function render(){
   $(`#${name}-indicator`).textContent=!winner&&ready&&turn===color?(mode==='local'?'둘 차례':myColor===color?'내 차례':'생각 중'):'';
   $(`#${name}-name`).textContent=mode==='local'?`${color===1?'흑':'백'} 플레이어`:color===myColor?'나':mode==='bot'?'오목 봇':players.find(p=>p.color===color)?.name||'입장 대기 중';
  }
- $('#undo').disabled=mode==='online'||!history.length||!!winner||!!review||(mode==='bot'&&myColor===2&&history.length===1);
+ $('#undo').disabled=(mode==='online'&&(!ready||!!undo.pending||movePending||(undo.requests[myColor]||0)>=undo.limit))||!history.length||!!winner||!!review||(mode==='bot'&&myColor===2&&history.length===1);
  $('#board-action-help').hidden=!!review||!!winner||(mode==='online'&&!code);
- $('#board-action-help').textContent=mode==='online'?'온라인에서는 무르기를 사용할 수 없어요. 기권하면 상대가 승리합니다.':mode==='local'?'무르기는 마지막 한 수를 되돌립니다. 흑백을 번갈아 놓으세요.':'무르기는 내 마지막 수와 봇의 응답을 함께 되돌립니다.';
- $('#undo').title=mode==='online'?'온라인 대국에서는 무르기를 지원하지 않습니다.':mode==='local'?'마지막 한 수 되돌리기':'내 마지막 수와 봇의 응답 되돌리기';
+ $('#board-action-help').textContent=mode==='online'?`상대가 수락하면 마지막 한 수 취소 · 내 남은 요청 ${undo.limit-(undo.requests[myColor]||0)} / ${undo.limit}회`:mode==='local'?'무르기는 마지막 한 수를 되돌립니다. 흑백을 번갈아 놓으세요.':'무르기는 내 마지막 수와 봇의 응답을 함께 되돌립니다.';
+ $('#undo').title=mode==='online'?'상대에게 마지막 한 수 취소 요청하기':mode==='local'?'마지막 한 수 되돌리기':'내 마지막 수와 봇의 응답 되돌리기';
+ $('#undo-request-panel').hidden=mode!=='online'||!code||!undo.pending||!!winner||!!review;
+ $('#undo-response-actions').hidden=undo.pending?.color===myColor;
+ $('#undo-accept').disabled=$('#undo-decline').disabled=!ready||movePending;
+ $('#transfer-device').hidden=mode!=='online'||!code||!!winner||!!review;$('#transfer-device').disabled=!session.get()||networkBusy;
+ if($('#transfer-device').hidden){$('#transfer-details').hidden=true;$('#transfer-link').value='';}
  $('#resign').disabled=!!winner||!ready||!!review||(mode==='online'&&!code);
  $('#new-game').hidden=mode==='online'||!!review;$('#new-game').disabled=!!review;
  $('#difficulty').disabled=!!review;$('#my-stone').disabled=!!review;$('#bot-rule').disabled=!!review||history.length>0;$('#local-rule').disabled=!!review||history.length>0;
@@ -203,12 +209,15 @@ function renderTimeline(){
  const list=$('#timeline-list'),follow=list.scrollTop+list.clientHeight>=list.scrollHeight-8;
  list.replaceChildren();
  const stone=color=>color===1?'흑돌':'백돌';
+ const activeMoves=[];for(const e of events){if(e.type==='move')activeMoves.push(e);else if(e.type==='undo-accepted')activeMoves.pop();}
  for(const e of events){
   const row=document.createElement('li'),time=document.createElement('time'),text=document.createElement('span');
   time.dateTime=new Date(e.at).toISOString();time.textContent=new Date(e.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
   const ending={five:'오목 완성',draw:'무승부',resign:'기권',leave:'퇴장',disconnect:'재접속 시간 초과',timeout:'착수 시간 초과','no-legal-moves':'가능한 착수 없음'}[e.reason]||'대국 종료';
   text.textContent=e.type==='move'?`${e.move}수 · ${stone(e.color)} ${String.fromCharCode(65+e.index%15)}${15-Math.floor(e.index/15)}`:e.type==='disconnect'?`${stone(e.color)} 연결 끊김 · 대국 일시정지`:e.type==='resume'?`${stone(e.color)} 재접속`:e.type==='end'?`${ending} · ${e.winner===3?'무승부':stone(e.winner)+' 승리'}`:({created:'방 개설 · 상대 대기',start:'대국 시작',restart:'서버 재시작 · 재접속 대기'})[e.type]||'대국 기록';
-  row.classList.toggle('timeline-current',!!review&&e.type==='move'&&e.move===review.step);row.append(time,text);list.append(row);
+  if(e.type.startsWith('undo-'))text.textContent=`${stone(e.color)} · ${{'undo-request':'무르기 요청','undo-accepted':'무르기 수락 · 마지막 한 수 취소','undo-declined':'무르기 거절','undo-expired':'무르기 응답 시간 초과','undo-cancelled':'무르기 취소 · 대국 또는 연결 상태 변경'}[e.type]||'무르기'}`;
+  if(e.type==='move'&&!activeMoves.includes(e))text.textContent+=' · 취소된 수';
+  row.classList.toggle('timeline-current',!!review&&activeMoves[review.step-1]===e);row.append(time,text);list.append(row);
  }
  if(follow)list.scrollTop=list.scrollHeight;
 }
@@ -216,9 +225,12 @@ function updateClock(){
  const events=review?review.record.timeline||[]:timeline,start=events.find(e=>e.type==='start'),end=events.find(e=>e.type==='end');
  const elapsed=start?Math.max(0,Math.floor(((end?.at||Date.now()+serverOffset)-start.at)/1000)):0;
  $('#timeline-summary').textContent=start?`${new Date(start.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})} 시작 · ${Math.floor(elapsed/60)}분 ${String(elapsed%60).padStart(2,'0')}초${end?' · 종료':''}`:!review&&players.length<2&&!winner?'상대가 입장하면 대국이 시작됩니다.':'이전 대국의 시작 시각은 기록되지 않았습니다.';
+ $('#elapsed-display').hidden=!(mode==='online'&&(code||winner)||review?.record.mode==='online');
+ $('#elapsed-display').textContent=start?`총 경과 ${Math.floor(elapsed/60).toString().padStart(2,'0')}:${String(elapsed%60).padStart(2,'0')}${end?' · 종료':''}`:players.length<2&&!winner&&!review?'총 경과 · 시작 대기':'총 경과 · 시작 시각 미기록';
+ if(undo.pending){const wait=Math.max(0,Math.ceil((undo.pending.expiresAt-Date.now()-serverOffset)/1000));$('#undo-request-text').textContent=`${undo.pending.color===myColor?'상대의 답변을 기다립니다.':'상대가 마지막 한 수 취소를 요청했습니다.'} ${wait}초 남음 · 착수 시간 일시정지`; }
  $('#clock-display').hidden=mode!=='online'||!seconds||!code||!!winner||!!review;
  const left=Math.max(0,Math.ceil((deadline?deadline-Date.now()-serverOffset:remaining)/1000));
- $('#clock-display').textContent=`${ready?'남은 착수 시간':'시간 일시정지'} · ${left}초`;$('#clock-display').classList.toggle('urgent',ready&&left<=10);
+ $('#clock-display').textContent=`${ready&&!undo.pending?'남은 착수 시간':'시간 일시정지'} · ${left}초`;$('#clock-display').classList.toggle('urgent',ready&&!undo.pending&&left<=10);
  if(mode==='online'&&code){
   const format=at=>{const s=Math.max(0,Math.ceil((at-Date.now()-serverOffset)/1000));return `${Math.floor(s/60)}분 ${String(s%60).padStart(2,'0')}초`;};
   $('#room-lifecycle').textContent=winner&&closeAt?`활동이 없으면 ${format(closeAt)} 후 방이 닫혀요. 기록은 최근 대국에 남습니다.`:players.length<2&&waitingUntil?`남은 대기 ${format(waitingUntil)} · 친구가 입장하면 시작됩니다.`:'대국 중 방을 나가면 내 패배로 기록되고 방이 닫힙니다.';
@@ -243,13 +255,13 @@ function place(i){
  const verdict=validateMove(board,i,turn,currentRule);if(!verdict.legal){toast(forbiddenMessage(verdict.reason));return;}board[i]=turn;history.push(i);last=i;line=verdict.line;winner=line?turn:board.every(Boolean)?3:0;reason=winner?(line?'five':'draw'):null;turn=3-turn;if(!winner&&!hasLegalMove(board,turn,currentRule)){winner=3;reason='no-legal-moves';}clickSound();persistOffline();recordGame();render();
 }
 function move(i){
- if(board[i]||winner||!ready||(mode!=='local'&&turn!==myColor)||review||movePending)return;
+ if(board[i]||winner||!ready||(mode!=='local'&&turn!==myColor)||review||movePending||(mode==='online'&&undo.pending))return;
  const verdict=validateMove(board,i,turn,currentRule);if(!verdict.legal){toast(forbiddenMessage(verdict.reason));return;}
  if(mode==='online'){if(send({type:'move',index:i})){movePending=true;render();}return;}
  place(i);if(mode==='bot'&&!winner)startAI();
 }
 function send(message){if(socket?.readyState!==WebSocket.OPEN){toast('서버에 다시 연결하고 있습니다. 잠시 기다려 주세요.');return false;}socket.send(JSON.stringify(message));return true;}
-function clearOnline(forget=true){session.clear(forget);code='';players=[];deadline=null;remaining=0;seconds=0;rematch=[];movePending=false;waitingUntil=null;closeAt=null;}
+function clearOnline(forget=true){session.clear(forget);code='';players=[];deadline=null;remaining=0;seconds=0;rematch=[];movePending=false;waitingUntil=null;closeAt=null;undo={limit:3,requests:{1:0,2:0},pending:null};$('#transfer-details').hidden=true;$('#transfer-link').value='';}
 function disconnect(explicit=true,forget=true){
  clearTimeout(reconnectTimer);reconnectAttempts=0;
  const old=socket;socket=null;connecting=null;
@@ -312,7 +324,7 @@ async function connect(){
   networkBusy=false;movePending=false;
   if(m.type==='session'){session.set({code:m.code,token:m.token});return;}
   if(m.type==='error'){if(m.reason==='expired'){clearOnline();ready=false;connectionText=m.message;}if(!['double-three','double-four','overline'].includes(m.reason))roomError=m.message;if(m.reason==='capacity')void refreshCapacity();toast(m.message);render();return;}
-  if(m.type==='replaced'){disconnect(false,false);ready=false;connectionText='다른 탭에서 이 대국에 접속했습니다.';render();return;}
+  if(m.type==='replaced'){disconnect(false,false);ready=false;connectionText='다른 기기 또는 탭에서 이 대국을 이어하고 있습니다.';render();return;}
   if(m.type==='closed'||m.type==='left'){const leaving=pendingLeave?.done;clearOnline();ready=false;connectionText=m.message||'방을 나갔습니다. 대국 기록은 최근 대국에서 볼 수 있어요.';if(leaving)leaving(true);toast(connectionText);render();void refreshCapacity();return;}
   if(m.type==='state'){
    const changedRoom=m.code!==code;
@@ -320,7 +332,7 @@ async function connect(){
    if(review&&m.id!==gameId&&!m.winner)review=null;
    if(m.last!==last&&m.last!==null)clickSound();
    currentRule=normalizeRule(m.rule,'freestyle');board=m.board;turn=m.turn;winner=m.winner;line=m.line;last=m.last;myColor=m.color;ready=m.ready;code=m.code;players=m.players||[];deadline=m.deadline;remaining=m.remaining;seconds=m.seconds||0;history=m.history||[];reason=m.reason;rematch=m.rematch||[];gameId=m.id;serverOffset=(m.serverTime||Date.now())-Date.now();
-   timeline=Array.isArray(m.timeline)?m.timeline:[];waitingUntil=m.waitingUntil;closeAt=m.closeAt;graceSeconds=m.graceSeconds||120;
+   timeline=Array.isArray(m.timeline)?m.timeline:[];undo=m.undo||{limit:3,requests:{1:0,2:0},pending:null};waitingUntil=m.waitingUntil;closeAt=m.closeAt;graceSeconds=m.graceSeconds||120;
    connectionText=winner?'대국이 종료되었습니다. 재대결하거나 방을 나갈 수 있어요.':ready?'연결됨 · 실시간 대국':players.length<2?'초대 코드를 공유하고 친구를 기다려 주세요.':'상대의 재접속을 기다리고 있습니다.';
    recordGame();render();if(changedRoom)void refreshCapacity();
   }
@@ -383,9 +395,11 @@ $('#local-rule').onchange=()=>{if(history.length){$('#local-rule').value=current
 $('#room-rule').onchange=()=>{savePrefs();render();};
 $('#nickname').onchange=savePrefs;
 $('#undo').onclick=()=>{
+ if(mode==='online'){if($('#undo').disabled)return;if(send({type:'undo-request'})){movePending=true;render();}return;}
  stopAI();const count=mode==='local'?1:turn===myColor?2:1;for(let n=0;n<count;n++){const i=history.pop();if(i!==undefined)board[i]=0;}
  turn=mode==='local'?history.length%2+1:myColor;last=history.at(-1)??null;winner=0;line=null;persistOffline();render();
 };
+for(const [id,accept] of [['#undo-accept',true],['#undo-decline',false]])$(id).onclick=()=>{if(!undo.pending||movePending||!ready)return;if(send({type:'undo-respond',id:undo.pending.id,accept})){movePending=true;render();}};
 $('#resign').onclick=async()=>{
  const resigningColor=mode==='local'?turn:myColor;
  const title=mode==='local'?`${resigningColor===1?'흑':'백'} 플레이어가 기권할까요?`:'이번 대국을 기권할까요?';
@@ -397,6 +411,9 @@ $('#resign').onclick=async()=>{
 $('#create-room').onclick=()=>roomAction('create');$('#join-room').onclick=()=>roomAction('join');$('#room-input').onkeydown=e=>{if(e.key==='Enter')roomAction('join');};
 $('#room-code').onclick=()=>copy(code,'방 코드를 복사했습니다.');
 $('#share-link').onclick=()=>{const url=new URL(location.href);url.search='';url.searchParams.set('room',code);url.hash='';copy(url.href,'초대 링크를 복사했습니다. 친구에게 공유해 주세요.');};
+$('#transfer-device').onclick=()=>{const seat=session.get();if(!seat||seat.code!==code)return;const url=new URL(appRoot);url.search='';url.hash=`resume=${seat.code}.${seat.token}`;$('#transfer-link').value=url.href;$('#transfer-details').hidden=!$('#transfer-details').hidden;};
+$('#copy-transfer').onclick=async()=>{try{await navigator.clipboard.writeText($('#transfer-link').value);toast('본인용 이어하기 링크를 복사했습니다. 옮길 기기에서 열어 주세요.');}catch{$('#transfer-link').focus();$('#transfer-link').select();toast('링크를 선택했습니다. 직접 복사해 주세요.');}};
+$('#transfer-link').onclick=event=>event.target.select();
 $('#leave-room').onclick=async()=>{if(pendingLeave||!await confirmLeave()||!await leaveOnline())return;ready=false;connectionText='방을 나갔습니다. 새 대국에 참가해 보세요.';render();};
 $('#refresh-capacity').onclick=()=>void refreshCapacity();
 $('#rematch').onclick=()=>send({type:'rematch'});
@@ -420,6 +437,10 @@ if(new URL(location.href).searchParams.get('from')==='works'){
  back.onclick=async event=>{event.preventDefault();if(pendingLeave)return;if(mode==='online'&&code&&(!await confirmLeave()||!await leaveOnline()))return;location.assign(back.href);};
 }
 savedBot=storage.get('bot',null);savedLocal=storage.get('local',null);
+// URL fragments are not sent to the server. Remove the private credential before any app request.
+const incoming=/^#resume=([A-F0-9]{6})\.([a-f0-9]{64})$/.exec(location.hash);
+if(location.hash.startsWith('#resume=')){const clean=new URL(location.href);clean.hash='';window.history.replaceState(null,'',clean);}
+if(incoming)session.set({code:incoming[1],token:incoming[2]});
 const resume=session.get(),invite=new URL(location.href).searchParams.get('room');
 if(resume){session.set(resume);mode='online';ready=false;code=resume.code;connectionText='저장된 대국에 다시 연결하고 있습니다…';modeUI();render();connect().catch(()=>{});}
 else if(invite&&/^[A-Fa-f0-9]{6}$/.test(invite)){mode='online';ready=false;$('#room-input').value=invite.toUpperCase();connectionText='초대받은 방 코드가 입력되었습니다. 입장을 눌러 주세요.';modeUI();render();previewTimer=setTimeout(previewRoom,0);}

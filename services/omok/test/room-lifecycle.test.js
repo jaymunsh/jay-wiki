@@ -97,3 +97,61 @@ test('replacement cannot exceed capacity when an offline opponent still needs a 
  a.send({type:'create'});assert.equal((await a.get('error')).reason,'capacity');assert.equal((await (await fetch(f.base+'/room-status')).json()).rooms,1);
  a.send({type:'leave'});const result=await a.get('state');assert.equal(result.code,room.code);assert.equal(result.winner,2);await a.get('left');
 });
+
+async function undoGame(t,seconds=60,rooms=[]){
+ const f=await fixture(t,rooms),a=await f.client(),b=await f.client();let hostSession;
+ if(rooms.length){a.send({type:'resume',code:'ABCDEF',token:'a'.repeat(64)});await a.get('state');b.send({type:'resume',code:'ABCDEF',token:'b'.repeat(64)});}
+ else{a.send({type:'create',seconds});const room=await a.get('state');hostSession=await a.get('session');b.send({type:'join',code:room.code,rule:room.rule});await b.get('session');}
+ await a.get('state');await b.get('state');
+ const states=async()=>{const sa=await a.get('state'),sb=await b.get('state');assert.deepEqual(sa.history,sb.history);assert.deepEqual(sa.undo,sb.undo);return sa;};
+ return {f,a,b,states,hostSession};
+}
+test('online undo requires the opponent consent and removes exactly the last stone',async t=>{
+ const {a,b,states}=await undoGame(t);
+ a.send({type:'move',index:112});await states();b.send({type:'move',index:113});await states();
+ a.send({type:'undo-request'});const requested=await states();
+ assert.equal(requested.undo.pending.color,1);assert.equal(requested.undo.requests[1],1);assert.equal(requested.deadline,null);assert.equal(requested.ready,true);
+ b.send({type:'move',index:114});assert.equal((await b.get('error')).reason,'undo-pending');
+ a.send({type:'undo-respond',id:requested.undo.pending.id,accept:true});assert.equal((await a.get('error')).reason,'undo-response');
+ b.send({type:'undo-respond',id:'stale',accept:true});assert.equal((await b.get('error')).reason,'undo-response');
+ b.send({type:'undo-respond',id:requested.undo.pending.id,accept:true});const accepted=await states();
+ assert.deepEqual(accepted.history,[112]);assert.equal(accepted.board[112],1);assert.equal(accepted.board[113],0);assert.equal(accepted.turn,2);assert.equal(accepted.last,112);assert.equal(accepted.undo.pending,null);assert.ok(accepted.deadline>Date.now()+59000);
+ assert.deepEqual(accepted.timeline.slice(-2).map(e=>e.type),['undo-request','undo-accepted']);assert.equal(accepted.timeline.at(-1).index,113);
+ b.send({type:'undo-respond',id:requested.undo.pending.id,accept:true});assert.equal((await b.get('error')).reason,'undo-response');
+ b.send({type:'move',index:114});const continued=await states();assert.deepEqual(continued.history,[112,114]);
+});
+test('rejected undo requests consume a per-player limit of three and rematch resets it',async t=>{
+ const {a,b,states}=await undoGame(t);a.send({type:'move',index:112});await states();
+ for(let n=1;n<=3;n++){
+  a.send({type:'undo-request'});const requested=await states();assert.equal(requested.undo.requests[1],n);
+  b.send({type:'undo-respond',id:requested.undo.pending.id,accept:false});const denied=await states();assert.deepEqual(denied.history,[112]);assert.equal(denied.undo.pending,null);assert.ok(denied.deadline>Date.now());
+ }
+ a.send({type:'undo-request'});assert.equal((await a.get('error')).reason,'undo-limit');
+ b.send({type:'undo-request'});const requested=await states();assert.equal(requested.undo.requests[2],1);
+ a.send({type:'undo-respond',id:requested.undo.pending.id,accept:true});assert.deepEqual((await states()).history,[]);
+ a.send({type:'resign'});await states();a.send({type:'undo-request'});assert.equal((await a.get('error')).reason,'undo-unavailable');
+ a.send({type:'rematch'});await states();b.send({type:'rematch'});const reset=await states();assert.deepEqual(reset.undo.requests,{'1':0,'2':0});assert.equal(reset.undo.pending,null);
+ a.send({type:'undo-request'});assert.equal((await a.get('error')).reason,'undo-unavailable');
+});
+test('disconnect cancels pending undo without refunding requests and credentials transfer the same seat',async t=>{
+ const {f,a,b,states,hostSession}=await undoGame(t);a.send({type:'move',index:112});await states();
+ a.send({type:'undo-request'});await states();a.ws.close();const paused=await b.get('state');
+ assert.equal(paused.undo.pending,null);assert.equal(paused.undo.requests[1],1);assert.equal(paused.deadline,null);assert.equal(paused.timeline.at(-2).type,'undo-cancelled');
+ const returning=await f.client();returning.send({...hostSession,type:'resume'});const resumed=await returning.get('state');await b.get('state');
+ assert.equal(resumed.color,1);assert.deepEqual(resumed.history,[112]);assert.equal(resumed.undo.requests[1],1);
+ const mobile=await f.client();mobile.send({...hostSession,type:'resume'});await returning.get('replaced');const transferred=await mobile.get('state');await b.get('state');
+ assert.equal(transferred.color,1);assert.equal(transferred.id,resumed.id);assert.deepEqual(transferred.history,[112]);assert.equal(transferred.undo.requests[1],1);
+});
+
+test('server restart retains undo limits and cancels an interrupted request',async t=>{
+ const r=savedRoom({history:[112],board:Array.from({length:225},(_,i)=>i===112?1:0),turn:2,last:112,undoRequests:{'1':3,'2':1},undoPending:{id:'old',color:1,expiresAt:Date.now()+30000}});
+ r.players.push({tokenHash:createHash('sha256').update('b'.repeat(64)).digest('hex'),name:'guest',color:2});
+ const {a,states}=await undoGame(t,60,[r]);a.send({type:'undo-request'});assert.equal((await a.get('error')).reason,'undo-limit');
+ a.send({type:'resign'});const state=await states();assert.equal(state.undo.pending,null);assert.deepEqual(state.undo.requests,{'1':3,'2':1});
+});
+test('unanswered undo request expires and resumes the preserved turn clock',{timeout:40000},async t=>{
+ const {a,b,states}=await undoGame(t);a.send({type:'move',index:112});await states();a.send({type:'undo-request'});const requested=await states();
+ assert.ok(requested.undo.pending.expiresAt<=Date.now()+30000);
+ const expired=await Promise.all([a,b].map(c=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Undo did not expire')),34000);c.ws.on('message',raw=>{const m=JSON.parse(raw);if(m.type==='state'&&!m.undo?.pending){clearTimeout(timer);resolve(m);}});})));
+ assert.equal(expired[0].undo.pending,null);assert.deepEqual(expired[0].history,[112]);assert.equal(expired[0].undo.requests[1],1);assert.equal(expired[0].timeline.at(-1).type,'undo-expired');assert.ok(expired[0].deadline>Date.now());
+});

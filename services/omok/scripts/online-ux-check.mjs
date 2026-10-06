@@ -19,7 +19,7 @@ try{
  await b.locator('#online-mode').click();await expect(b.locator('#room-capacity')).toContainText('1 / 1');await expect(b.locator('#create-room')).toBeDisabled();await expect(b.locator('#join-room')).toBeEnabled();
  await b.locator('#room-input').fill(code);await expect(b.locator('#room-preview')).toContainText('확인 후 입장');await b.locator('#join-room').click();await expect(b.locator('#room-code')).toHaveText(code);
  await a.locator('.intersection').nth(112).click();await expect(b.locator('.stone')).toHaveCount(1);await b.locator('.intersection').nth(113).click();await expect(a.locator('.stone')).toHaveCount(2);
- await expect(b.locator('#undo')).toBeDisabled();await expect(b.locator('#board-action-help')).toContainText('온라인에서는 무르기');
+ await expect(b.locator('#undo')).toBeEnabled();await expect(b.locator('#board-action-help')).toContainText('상대가 수락하면 마지막 한 수');
  await b.reload();await expect(b.locator('.stone')).toHaveCount(2);await expect(b.locator('#room-code')).toHaveText(code);
  await mkdir('artifacts/online-ux',{recursive:true});await a.screenshot({path:'artifacts/online-ux/desktop-playing.png',fullPage:true});await b.screenshot({path:'artifacts/online-ux/mobile-playing.png',fullPage:true});
  await a.locator('#leave-room').click();await expect(a.locator('#confirm-message')).toContainText('내 패배');await a.locator('#confirm-yes').click();
