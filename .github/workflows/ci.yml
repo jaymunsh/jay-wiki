@@ -243,3 +243,9 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm audit --audit-level=high
+      - name: Install Chromium for reconnect regression
+        run: npx playwright install --with-deps chromium
+      - name: Verify closed-tab recovery and game timeline
+        env:
+          OMOK_CHROME_CHANNEL: chromium
+        run: node scripts/reconnect-check.mjs

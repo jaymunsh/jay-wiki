@@ -53,6 +53,32 @@ test('connection loss pauses play and same-tab credentials restore the seat',asy
  a.ws.close();const paused=await b.get('state');assert.equal(paused.winner,0);assert.equal(paused.ready,false);assert.equal(paused.deadline,null);assert.equal(paused.graceSeconds,120);
  const restored=await f.client();restored.send({...session,type:'resume'});const state=await restored.get('state');assert.equal(state.ready,true);assert.equal(state.color,1);assert.equal(state.id,room.id);assert.ok(state.deadline>Date.now());
 });
+test('full-room preview offers only seats authenticated by saved recovery tokens',async t=>{
+ const f=await fixture(t),a=await f.client(),b=await f.client();a.send({type:'create'});const room=await a.get('state'),session=await a.get('session');
+ b.send({type:'join',code:room.code,rule:'renju'});await b.get('session');await b.get('state');await a.get('state');
+ a.ws.close();await b.get('state');const returning=await f.client();
+ returning.send({type:'preview',code:room.code,tokens:['b'.repeat(64),session.token]});const preview=await returning.get('preview');
+ assert.equal(preview.available,false);assert.deepEqual(preview.recovery,[{index:1,color:1,name:'플레이어',online:false}]);
+ returning.send({type:'preview',code:room.code,tokens:['b'.repeat(64)]});assert.deepEqual((await returning.get('preview')).recovery,[]);
+ returning.send({...session,type:'resume'});assert.equal((await returning.get('state')).color,1);
+});
+test('timeline orders start, moves, disconnect, resume and finish and resets on rematch',async t=>{
+ const f=await fixture(t),a=await f.client(),b=await f.client();a.send({type:'create'});const room=await a.get('state'),session=await a.get('session');
+ b.send({type:'join',code:room.code,rule:'renju'});await b.get('session');await b.get('state');await a.get('state');
+ a.send({type:'move',index:112});await a.get('state');await b.get('state');a.ws.close();await b.get('state');
+ const returning=await f.client();returning.send({...session,type:'resume'});await returning.get('state');await b.get('state');
+ b.send({type:'resign'});const end=await returning.get('state');await b.get('state');
+ assert.deepEqual(end.timeline.map(e=>e.type),['created','start','move','disconnect','resume','end']);
+ assert.equal(end.timeline[2].index,112);assert.equal(end.timeline[2].move,1);assert.equal(end.timeline[2].color,1);
+ assert.ok(end.timeline.every((e,i)=>Number.isFinite(e.at)&&(!i||e.at>=end.timeline[i-1].at)));
+ returning.send({type:'rematch'});await returning.get('state');await b.get('state');b.send({type:'rematch'});const next=await returning.get('state');await b.get('state');
+ assert.notEqual(next.id,room.id);assert.deepEqual(next.timeline.map(e=>e.type),['start']);
+});
+test('restoring a long timeline retains its start and records the server restart',async t=>{
+ const at=Date.now()-10000,timeline=[{type:'created',at},{type:'disconnect',at},{type:'resume',at},{type:'start',at},...Array.from({length:600},()=>({type:'resume',at,color:1}))];
+ const f=await fixture(t,[savedRoom({timeline})]),a=await f.client();a.send({type:'resume',code:'ABCDEF',token:'a'.repeat(64)});const state=await a.get('state');
+ assert.equal(state.timeline.length,600);assert.ok(state.timeline.some(e=>e.type==='start'&&e.at===at));assert.ok(state.timeline.some(e=>e.type==='restart'));assert.equal(state.timeline.at(-1).type,'resume');
+});
 test('invalid HTTP request targets return 400 without terminating the server',async t=>{
  const f=await fixture(t);
  const response=await new Promise((resolve,reject)=>{const socket=createConnection(Number(new URL(f.base).port),'127.0.0.1');let text='';socket.setTimeout(2000,()=>{socket.destroy();reject(Error('socket timeout'));});socket.on('connect',()=>socket.write('GET http://[ HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n'));socket.on('data',data=>text+=data);socket.on('error',reject);socket.on('close',()=>resolve(text));});
