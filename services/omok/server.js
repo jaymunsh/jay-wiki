@@ -13,6 +13,7 @@ const configuredRooms=Number(process.env.MAX_ROOMS??100);
 if(!Number.isSafeInteger(configuredRooms)||configuredRooms<1)throw Error('MAX_ROOMS must be a positive integer');
 const MAX_ROOMS=configuredRooms;
 const GRACE=120000;
+const UNDO_LIMIT=3,UNDO_WAIT=30000;
 const WAIT_TTL=10*60000,RESULT_TTL=5*60000,IDLE_TTL=2*3600000;
 const rooms=new Map();
 const PUBLIC_PATH=(process.env.PUBLIC_PATH||'').replace(/\/$/,'');
@@ -44,6 +45,8 @@ try{
   room.rule=normalizeRule(room.rule,'freestyle');room.createdAt??=room.updated;
   room.deadline=null;room.players.forEach(p=>{p.ws=null;p.disconnectedAt=Date.now();});
   if(!Array.isArray(room.timeline))room.timeline=[];
+  room.undoRequests=Object.fromEntries([1,2].map(color=>[color,Math.min(UNDO_LIMIT,Math.max(0,Number.isInteger(room.undoRequests?.[color])?room.undoRequests[color]:0))]));
+  endUndo(room,'undo-cancelled');
   if(!room.winner)event(room,'restart');rooms.set(room.code,room);
  }
  log('rooms_restored',{count:rooms.size});
@@ -91,7 +94,7 @@ server.on('upgrade',(req,socket,head)=>{
 const online=room=>room.players.length===2&&room.players.every(p=>p.ws?.readyState===WebSocket.OPEN);
 function clock(room,reset=false){
  if(reset)room.remaining=room.seconds*1000;
- if(room.winner||!online(room)){if(room.deadline)room.remaining=Math.max(0,room.deadline-Date.now());room.deadline=null;}
+ if(room.winner||room.undoPending||!online(room)){if(room.deadline)room.remaining=Math.max(0,room.deadline-Date.now());room.deadline=null;}
  else if(room.seconds&&!room.deadline)room.deadline=Date.now()+room.remaining;
 }
 function publish(room){
@@ -104,7 +107,7 @@ function event(room,type,details={}){
  // Retain the start time even when many reconnections fill the bounded history.
  while(room.timeline.length>600){const i=room.timeline.findIndex(e=>e.type!=='created'&&e.type!=='start');room.timeline.splice(i<0?0:i,1);}
 }
-function stateFor(room,p){return {type:'state',code:room.code,rule:room.rule,board:room.board,turn:room.turn,winner:room.winner,line:room.line,last:room.last,color:p.color,ready:online(room),players:room.players.map(s=>({name:s.name,color:s.color,online:!!s.ws,disconnectedAt:s.disconnectedAt})),deadline:room.deadline,remaining:room.remaining,seconds:room.seconds,serverTime:Date.now(),history:room.history,timeline:room.timeline,reason:room.reason,rematch:room.rematch,id:room.id,graceSeconds:GRACE/1000,waitingUntil:room.players.length===1?room.createdAt+WAIT_TTL:null,closeAt:room.winner?room.updated+RESULT_TTL:null};}
+function stateFor(room,p){return {type:'state',code:room.code,rule:room.rule,board:room.board,turn:room.turn,winner:room.winner,line:room.line,last:room.last,color:p.color,ready:online(room),players:room.players.map(s=>({name:s.name,color:s.color,online:!!s.ws,disconnectedAt:s.disconnectedAt})),deadline:room.deadline,remaining:room.remaining,seconds:room.seconds,serverTime:Date.now(),history:room.history,timeline:room.timeline,undo:{limit:UNDO_LIMIT,requests:room.undoRequests,pending:room.undoPending},reason:room.reason,rematch:room.rematch,id:room.id,graceSeconds:GRACE/1000,waitingUntil:room.players.length===1?room.createdAt+WAIT_TTL:null,closeAt:room.winner?room.updated+RESULT_TTL:null};}
 function expireRooms(now=Date.now()){
  for(const room of rooms.values()){
   const closed=room.closedAt&&now>=room.closedAt+GRACE;
@@ -117,11 +120,13 @@ function expireRooms(now=Date.now()){
   rooms.delete(room.code);save();log('room_expired',{code:room.code,reason:waiting?'waiting':finished?'finished':'idle'});
  }
 }
-function finish(room,winner,reason){room.winner=winner;room.reason=reason;room.deadline=null;room.rematch=[];event(room,'end',{winner,reason});log('game_finished',{code:room.code,reason,moves:room.history.length});}
+function endUndo(room,type,details={}){if(room.undoPending)event(room,type,{color:room.undoPending.color,...details});room.undoPending=null;}
+function expireUndo(room,now){if(room.undoPending&&now>=room.undoPending.expiresAt){endUndo(room,'undo-expired');publish(room);}}
+function finish(room,winner,reason){endUndo(room,'undo-cancelled');room.winner=winner;room.reason=reason;room.deadline=null;room.rematch=[];event(room,'end',{winner,reason});log('game_finished',{code:room.code,reason,moves:room.history.length});}
 function detach(ws,explicit=false){
  const room=rooms.get(ws.room);ws.room=null;if(!room)return;
  const seat=room.players.find(p=>p.ws===ws);if(!seat)return;
- seat.ws=null;seat.disconnectedAt=Date.now();
+ endUndo(room,'undo-cancelled');seat.ws=null;seat.disconnectedAt=Date.now();
  if(explicit){
   if(room.players.length===2&&!room.winner)finish(room,3-seat.color,'leave');
   room.deadline=null;room.rematch=[];
@@ -138,7 +143,7 @@ function detach(ws,explicit=false){
 }
 function attach(ws,room,seat,token){ws.room=room.code;seat.ws=ws;seat.disconnectedAt=null;if(token)send(ws,{type:'session',code:room.code,token});publish(room);}
 function seatFor(ws,name,color){const token=randomBytes(32).toString('hex');return {token,seat:{tokenHash:hash(token),name:typeof name==='string'?name.trim().slice(0,16)||'플레이어':'플레이어',color,ws,disconnectedAt:null}};}
-function newGame(room){Object.assign(room,{board:emptyBoard(),turn:1,winner:0,line:null,last:null,history:[],timeline:[],reason:null,rematch:[],id:randomBytes(12).toString('hex'),deadline:null,remaining:room.seconds*1000,createdAt:Date.now()});event(room,room.players.length===2?'start':'created');}
+function newGame(room){Object.assign(room,{board:emptyBoard(),turn:1,winner:0,line:null,last:null,history:[],timeline:[],undoRequests:{1:0,2:0},undoPending:null,reason:null,rematch:[],id:randomBytes(12).toString('hex'),deadline:null,remaining:room.seconds*1000,createdAt:Date.now()});event(room,room.players.length===2?'start':'created');}
 wss.on('connection',ws=>{
  ws.alive=true;ws.rate={start:Date.now(),count:0,actions:[]};
  ws.on('pong',()=>ws.alive=true);ws.on('error',e=>log('socket_error',{message:e.message}));
@@ -186,8 +191,22 @@ wss.on('connection',ws=>{
   }
   if(!room)return error(ws,'먼저 방에 입장해 주세요.');
   const seat=room.players.find(p=>p.ws===ws);if(!seat)return;
+  expireUndo(room,now);
   if(room.deadline&&now>=room.deadline&&!room.winner){finish(room,3-room.turn,'timeout');publish(room);return;}
-  if(m.type==='move'){
+  if(m.type==='undo-request'){
+   if(!online(room)||room.winner||!room.history.length)return error(ws,'진행 중인 대국에서 돌이 놓인 뒤 요청할 수 있습니다.','undo-unavailable');
+   if(room.undoPending)return error(ws,'이미 무르기 답변을 기다리고 있습니다.','undo-pending');
+   if(room.undoRequests[seat.color]>=UNDO_LIMIT)return error(ws,'이번 대국의 무르기 요청 3회를 모두 사용했습니다.','undo-limit');
+   room.undoRequests[seat.color]++;room.undoPending={id:randomBytes(12).toString('hex'),color:seat.color,expiresAt:now+UNDO_WAIT};
+   event(room,'undo-request',{color:seat.color});publish(room);
+  }else if(m.type==='undo-respond'){
+   const pending=room.undoPending;
+   if(!online(room)||room.winner||!pending||pending.id!==m.id||pending.color===seat.color||typeof m.accept!=='boolean')return error(ws,'상대의 현재 요청에만 수락하거나 거절할 수 있습니다.','undo-response');
+   if(m.accept){const index=room.history.pop();room.turn=room.board[index];room.board[index]=0;room.last=room.history.at(-1)??null;room.line=null;endUndo(room,'undo-accepted',{index,move:room.history.length+1});room.deadline=null;clock(room,true);}
+   else endUndo(room,'undo-declined');
+   publish(room);
+  }else if(m.type==='move'){
+   if(room.undoPending)return error(ws,'무르기 답변을 기다리는 동안 착수할 수 없습니다.','undo-pending');
    const i=m.index;if(!online(room)||room.winner||room.turn!==seat.color||!Number.isInteger(i)||i<0||i>=225||room.board[i])return error(ws,'지금은 그 자리에 착수할 수 없습니다.');
    const verdict=validateMove(room.board,i,room.turn,room.rule);
    if(!verdict.legal)return error(ws,forbiddenMessage(verdict.reason),verdict.reason);
@@ -207,6 +226,7 @@ wss.on('connection',ws=>{
 const heartbeat=setInterval(()=>{for(const ws of wss.clients){if(!ws.alive){ws.terminate();continue;}ws.alive=false;ws.ping();}},15000);
 const maintenance=setInterval(()=>{
  const now=Date.now();for(const room of rooms.values()){
+  expireUndo(room,now);
   const absent=room.players.filter(p=>!p.ws&&p.disconnectedAt&&now-p.disconnectedAt>=GRACE);
   if(absent.length&&!room.winner&&room.players.length===2){finish(room,absent.length===2?3:3-absent[0].color,'disconnect');publish(room);}
   if(room.deadline&&now>=room.deadline&&!room.winner){finish(room,3-room.turn,'timeout');publish(room);}

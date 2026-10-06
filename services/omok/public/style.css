@@ -258,3 +258,13 @@ dialog p{font-size:13px;line-height:1.85;color:var(--muted);word-break:keep-all}
 #timeline-list .timeline-current{font-weight:600;color:var(--orange)}
 input{caret-color:var(--orange)}
 @media(max-width:520px){.player strong{font-size:13px}.player small,.player>span{font-size:11px}.secondary-actions button{font-size:12px}.room-links .text-button{font-size:13px}.last-move-note{font-size:10px}}
+
+.elapsed-display{margin:0;padding:0 24px 12px;color:var(--ink,#393d36);font-size:14px;font-variant-numeric:tabular-nums;text-align:right}
+.undo-request-panel{margin:0 24px 20px;padding:16px;background:#f1f3e9;border-radius:12px}
+.undo-request-panel p{margin:0 0 12px;font-size:14px;line-height:1.6;color:#46543c}
+.undo-request-panel>div{display:flex;flex-wrap:wrap;gap:8px}
+.undo-request-panel button{min-height:44px;padding:8px 14px;border:1px solid #73856b;border-radius:7px;background:transparent;color:#394a30;font:inherit;cursor:pointer}
+.undo-request-panel button:disabled{opacity:.55;cursor:default}
+.transfer-details{margin-top:12px;padding-top:12px;border-top:1px solid #d8d8ce}
+.transfer-details label{display:block;margin-bottom:8px}
+.transfer-details input{width:100%;min-width:0}
