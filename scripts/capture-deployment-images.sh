@@ -24,11 +24,16 @@ capture backend jaywiki-payment-api jaywiki-payment-api
 capture backend jaywiki-shipping-api jaywiki-shipping-api
 capture backend jaywiki-partner-simulator jaywiki-partner-simulator
 capture frontend jaywiki-web jaywiki-web
+if kubectl -n frontend get deployment/jaywiki-omok >/dev/null 2>&1; then
+  capture frontend jaywiki-omok jaywiki-omok
+else
+  printf "frontend\tjaywiki-omok\tjaywiki-omok\t__absent__\n" >>"${STATE_FILE}"
+fi
 
 captured_count="$(wc -l <"${STATE_FILE}" | tr -d ' ')"
 # shipping-api 는 첫 배포에 아직 없다. 그 판은 4개로 잡히고 다음 판부터 5개다.
-if [ "${captured_count}" -lt 3 ] || [ "${captured_count}" -gt 5 ]; then
-  echo "expected 3 to 5 deployment images, captured ${captured_count}; aborting before deployment mutation" >&2
+if [ "${captured_count}" -lt 3 ] || [ "${captured_count}" -gt 6 ]; then
+  echo "expected 3 to 6 deployment images, captured ${captured_count}; aborting before deployment mutation" >&2
   exit 1
 fi
 echo "captured ${captured_count} deployment image(s) in ${STATE_FILE}"

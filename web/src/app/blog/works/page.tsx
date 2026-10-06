@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BlogRail } from '@/components/blog/BlogRail';
 import { BlogShell } from '@/components/blog/BlogShell';
+import { getBlogPosts } from '@/lib/blog';
 import { WORK_CATEGORIES, WORKS, worksByCategory } from '@/lib/worksCatalog';
 import { WorkCard } from './WorkCard';
 import styles from './page.module.css';
@@ -15,19 +16,20 @@ export const metadata: Metadata = {
 /**
  * 작업물 색인. 앱·저장소와 소개 글을 각자의 주소로 연결한다.
  */
-export default function WorksPage() {
+export default async function WorksPage() {
+  const posts = await getBlogPosts();
   return (
     <BlogShell rail={<BlogRail />} title="작업물">
       <div className={styles.page}>
         <div className={styles.intro}>
           <h1>작업물</h1>
           <p>
-            만들어 둔 작업물 {WORKS.length}개를 카테고리별로 모았습니다.
+            만들어 둔 작업물 {WORKS.length}개를 카테고리별로 모았습니다. 최근 소개 글 순입니다.
           </p>
         </div>
         <div className={styles.catalog}>
           {WORK_CATEGORIES.map((cat) => {
-            const works = worksByCategory(cat.slug);
+            const works = worksByCategory(cat.slug, posts);
             if (works.length === 0) return null;
             return (
               <section key={cat.slug} id={cat.slug}>

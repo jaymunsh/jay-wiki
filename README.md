@@ -48,7 +48,7 @@ private ops 배포 버튼 → miniPC runner → k3s 반영 → smoke test → �
 |---|---|
 | `web/` | Next.js 프런트엔드. 위키(`app/**`)와 블로그(`app/blog/**`)가 **한 앱**이고 `middleware.ts`가 host로 가른다 |
 | `spring/` | Spring Boot API. 위키·블로그 공용 |
-| `services/` | 시나리오용 별도 서비스 — `payment-api`(Saga 참여자), `partner-simulator`(외부 장애 재현). FastAPI |
+| `services/` | 시나리오용 FastAPI 서비스와 [OMOK](services/omok/README.md)(Node.js 오목 서버·게임 본체). OMOK는 `services/omok`에서 `npm ci` 후 `PORT=3100 npm run dev`로 실행 |
 | `infra/` | k3s 매니페스트(`k8s/`), OpenSearch 이미지, 로컬 구성 |
 | `scripts/` | 배포·백업·시드·발행 스크립트. 위키 원고는 `content/wiki/`에서 읽는다 |
 | `content/wiki/` | 위키 본문 원본과 manifest. 시드·export가 함께 사용 |

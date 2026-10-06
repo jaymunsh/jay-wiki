@@ -12,3 +12,13 @@ kubectl -n backend get secret jaywiki-secrets security-redis-auth cache-redis-au
 kubectl -n data get cronjob jaywiki-postgres-backup -o name >/dev/null
 kubectl -n frontend get middleware jaywiki-public-https-origin jaywiki-public-https-redirect -o name >/dev/null
 kubectl -n frontend get ingressroute jaywiki-public-http-redirect -o name >/dev/null
+# OMOK application and first-deployment rollback require these narrowly scoped grants.
+kubectl auth can-i create persistentvolumeclaims -n frontend | grep -qx yes
+kubectl auth can-i patch persistentvolumeclaims/jaywiki-omok-data -n frontend | grep -qx yes
+for resource in deployments services ingresses networkpolicies; do
+  kubectl auth can-i delete "${resource}/jaywiki-omok" -n frontend | grep -qx yes
+done
+if kubectl auth can-i delete persistentvolumeclaims/jaywiki-omok-data -n frontend | grep -qx yes; then
+  echo 'Application identity must not be able to delete OMOK persistent data' >&2
+  exit 1
+fi

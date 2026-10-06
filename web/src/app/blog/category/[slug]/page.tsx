@@ -77,7 +77,9 @@ export default async function BlogCategoryPage({
         </div>
         <h1>{category.name}</h1>
         {category.description && <p>{category.description}</p>}
-        <span className="count">{page.total}편</span>
+        <span className="count">
+          {page.total}편{category.slug === 'personal-projects' && ' · 수정일 최신순'}
+        </span>
       </div>
       <BlogPostList posts={page.items} />
       <BlogPagination

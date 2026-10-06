@@ -10,6 +10,7 @@ on:
       - "infra/k8s/**"
       - "infra/opensearch/**"
       - "scripts/**"
+      - "services/omok/**"
       - "services/payment-api/**"
       - "services/shipping-api/**"
       - "services/partner-simulator/**"
@@ -28,6 +29,7 @@ env:
   PAYMENT_IMAGE: ghcr.io/jaymunsh/jay-wiki-source-payment-api
   SHIPPING_IMAGE: ghcr.io/jaymunsh/jay-wiki-source-shipping-api
   PARTNER_IMAGE: ghcr.io/jaymunsh/jay-wiki-source-partner-simulator
+  OMOK_IMAGE: ghcr.io/jaymunsh/jay-wiki-source-omok
   OPENSEARCH_IMAGE: ghcr.io/jaymunsh/jay-wiki-source-opensearch
 
 permissions:
@@ -97,6 +99,13 @@ jobs:
       - name: Build web
         working-directory: web
         run: npm run build
+
+      - name: Verify OMOK
+        working-directory: services/omok
+        run: |
+          npm ci
+          npm test
+          npm audit --omit=dev --audit-level=high
 
       # 시드 안에서 끝나는 검사만 돈다. 운영 대조(유령 글·탭)는 배포로만 지워지는 상태라
       # 배포 전 검사에 넣으면 배포 자체를 막는다 — 그건 docs/deploy-runbook.md 의 사람 절차다.
@@ -177,6 +186,7 @@ jobs:
       shipping-image: ${{ steps.images.outputs.shipping-image }}
       partner-image: ${{ steps.images.outputs.partner-image }}
       opensearch-image: ${{ steps.images.outputs.opensearch-image }}
+      omok-image: ${{ steps.images.outputs.omok-image }}
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -189,6 +199,7 @@ jobs:
           echo "payment-image=${PAYMENT_IMAGE}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           echo "shipping-image=${SHIPPING_IMAGE}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           echo "partner-image=${PARTNER_IMAGE}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "omok-image=${OMOK_IMAGE}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           echo "opensearch-image=${OPENSEARCH_IMAGE}:3.7.0-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
@@ -262,3 +273,11 @@ jobs:
           tags: |
             ${{ env.OPENSEARCH_IMAGE }}:3.7.0-${{ github.sha }}
             ${{ env.OPENSEARCH_IMAGE }}:3.7.0-main
+
+      - name: Build and push OMOK
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: services/omok
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.OMOK_IMAGE }}:${{ github.sha }}

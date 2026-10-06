@@ -376,6 +376,90 @@
       "verbs": [
         "get"
       ]
+    },
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "persistentvolumeclaims"
+      ],
+      "verbs": [
+        "create"
+      ]
+    },
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "persistentvolumeclaims"
+      ],
+      "resourceNames": [
+        "jaywiki-omok-data"
+      ],
+      "verbs": [
+        "get",
+        "patch",
+        "update"
+      ]
+    },
+    {
+      "apiGroups": [
+        "apps"
+      ],
+      "resources": [
+        "deployments"
+      ],
+      "resourceNames": [
+        "jaywiki-omok"
+      ],
+      "verbs": [
+        "delete"
+      ]
+    },
+    {
+      "apiGroups": [
+        ""
+      ],
+      "resources": [
+        "services"
+      ],
+      "resourceNames": [
+        "jaywiki-omok"
+      ],
+      "verbs": [
+        "delete"
+      ]
+    },
+    {
+      "apiGroups": [
+        "networking.k8s.io"
+      ],
+      "resources": [
+        "ingresses",
+        "networkpolicies"
+      ],
+      "resourceNames": [
+        "jaywiki-omok"
+      ],
+      "verbs": [
+        "get",
+        "patch",
+        "update",
+        "delete"
+      ]
+    },
+    {
+      "apiGroups": [
+        "networking.k8s.io"
+      ],
+      "resources": [
+        "networkpolicies"
+      ],
+      "verbs": [
+        "create"
+      ]
     }
   ]
 }

@@ -1,0 +1,13 @@
+import {chromium} from '@playwright/test';
+import {readFile} from 'node:fs/promises';
+const logo=await readFile(new URL('../public/favicon.svg',import.meta.url),'base64');
+const lines=Array.from({length:15},(_,i)=>{const v=40+i*30;return `<path d="M40 ${v}H460M${v} 40V460"/>`;}).join('');
+const stones=[[7,7,1],[8,7,2],[8,8,2],[9,9,1],[6,6,1]].map(([x,y,c])=>`<circle cx="${40+x*30}" cy="${40+y*30}" r="13" fill="url(#${c===1?'black':'white'})" filter="url(#shadow)"/>`).join('');
+const browser=await chromium.launch({channel:'chrome',headless:true});
+try{
+ const page=await browser.newPage({viewport:{width:1200,height:630},deviceScaleFactor:1});
+ await page.setContent(`<!doctype html><html lang="ko"><meta charset="utf-8"><style>*{box-sizing:border-box}body{margin:0;width:1200px;height:630px;background:#f6f5f0;color:#26332a;display:flex;align-items:center;justify-content:space-between;padding:66px;font-family:'Noto Sans KR','Apple SD Gothic Neo',sans-serif}.copy{width:500px}.brand{display:flex;align-items:center;gap:16px;font-size:86px;font-weight:700;letter-spacing:-3px}.brand img{width:82px}.brand em{color:#bf4c29;font-style:normal}.title{font-size:42px;font-weight:600;margin:32px 0 12px;letter-spacing:-1px}.desc{font-size:23px;color:#59664f;line-height:1.8;margin:0}.modes{font-size:21px;margin-top:38px;color:#536747}.board{width:470px;height:470px;background:linear-gradient(125deg,#e1be84,#d9b276 65%,#cca467);border-radius:10px;box-shadow:0 7px 0 #a77d49,0 26px 32px #66523530;transform:perspective(1400px) rotateX(9deg)}</style><div class="copy"><div class="brand"><img alt="" src="data:image/svg+xml;base64,${logo}"><span>omok<em>.</em></span></div><p class="title">한 수의 여유, 웹 오목.</p><p class="desc">생각은 깊게. 한 수는 가볍게.<br>설치 없이, 열다섯 줄 위의 작은 승부.</p><p class="modes">봇 대전 · 둘이 대전 · 온라인 대전</p></div><svg class="board" viewBox="0 0 500 500"><defs><radialGradient id="black" cx="30%" cy="20%"><stop stop-color="#73796b"/><stop offset="1" stop-color="#171a17"/></radialGradient><radialGradient id="white" cx="30%" cy="20%"><stop stop-color="#fff"/><stop offset="1" stop-color="#c5cbbb"/></radialGradient><filter id="shadow" x="-30%" y="-30%" width="170%" height="170%"><feDropShadow dx="2" dy="3" stdDeviation="2" flood-opacity=".3"/></filter></defs><g stroke="#73592d" stroke-opacity=".5" stroke-width="1">${lines}</g>${[[3,3],[3,11],[7,7],[11,3],[11,11]].map(([x,y])=>`<circle cx="${40+x*30}" cy="${40+y*30}" r="2.6" fill="#77572f"/>`).join('')}${stones}</svg>`);
+ await page.evaluate(()=>document.fonts.ready);
+ await page.screenshot({path:new URL('../public/og-image.png',import.meta.url).pathname});
+ console.log('Generated public/og-image.png (1200×630) from the OMOK logo and board geometry.');
+}finally{await browser.close();}

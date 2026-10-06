@@ -227,3 +227,19 @@ jobs:
         env:
           SHIPPING_DB_DSN: postgresql://portfolio:changeme@127.0.0.1:5432/shipping_test
         run: uv run pytest
+
+  omok:
+    name: OMOK game and server tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: services/omok
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm test
+      - run: npm audit --audit-level=high

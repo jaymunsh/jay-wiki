@@ -39,6 +39,8 @@ spec:
               value: Asia/Seoul
             - name: NODE_ENV
               value: production
+            - name: OMOK_PUBLIC_URL
+              value: https://game.leneu.cloud/omok/
             - name: API_INTERNAL_BASE
               value: http://jaywiki.backend.svc.cluster.local:8080
             - name: PROMETHEUS_INTERNAL_BASE
