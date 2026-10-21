@@ -26,8 +26,8 @@ GitHub-hosted runner에서 검사하고 전체 SHA의 이미지 7개를 GHCR에 
 | 문서 갱신 / 인계 | 문서와 링크 확인. 앱 재배포·글 발행을 시작하지 않는다 |
 
 절차는 [공개 배포 안내](docs/deploy-runbook.md)를 따른다. 같은 로컬 작업 공간에서는
-`leneu/ops-manual/docs/daily-operations.md`와
-`leneu/ops-manual/skills/jay-wiki-production-deploy/SKILL.md`가
+`private/docs/daily-operations.md`와
+`private/skills/jay-wiki-production-deploy/SKILL.md`가
 운영 실행의 정본이다. 오래된 `deploy.yml` 자동 배포 설명이나 보관 checkout을 사용하지 않는다.
 이미 사용자가 요청한 운영 반영은 같은 권한을 재차 묻지 않되, 과거 인계 기록 자체를 새 작업의
 배포 권한으로 해석하지 않는다.

@@ -5,7 +5,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, extname, join, relative, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
-const ignoredDirectories = new Set(['.git', '.next', 'archive', 'leneu', 'node_modules', 'test-results']);
+const ignoredDirectories = new Set(['.git', '.next', 'archive', 'leneu', 'node_modules', 'private', 'test-results']);
 
 function collectMarkdown(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
