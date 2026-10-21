@@ -30,3 +30,24 @@ scheduled security workflow also enforces the expiry. Remove the statement
 when moving to a fixed framework version; recheck these preconditions before
 enabling any MVC view rendering. A Spring Boot major migration needs its own
 compatibility verification and is not represented here as completed.
+
+# Current application assessment: CVE-2026-47890 and CVE-2026-47892
+
+Assessed on 2026-10-22 under the same review deadline. Both advisories list
+6.2.0 - 6.2.19 as affected; the public fix is 7.0.9 and 6.2.20 is Enterprise
+Support only. Spring Boot 4 migration is not represented here as completed.
+
+- [CVE-2026-47890](https://spring.io/security/cve-2026-47890) requires sending
+  view fragments over Server-Sent Events. No application handler returns
+  `SseEmitter`, `ResponseBodyEmitter`, a reactive `Publisher` or
+  `FragmentsRendering`, none produces `text/event-stream`, and handlers write
+  response bodies rather than views.
+- [CVE-2026-47892](https://spring.io/security/cve-2026-47892) requires functional
+  endpoints with header predicates. The context registers no servlet or reactive
+  `RouterFunction`; every `RouterFunctionMapping` is empty.
+
+WebFlux is on the classpath only for the outbound `WebClient`.
+`MvcSseRouterReachabilityTest` verifies both preconditions against the actual
+context. Adding SSE, view fragments or functional endpoints requires a new
+assessment before merging. The validator accepts exactly these three statements
+with their own product scope and evidence.
