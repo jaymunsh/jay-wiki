@@ -1,6 +1,9 @@
 # Current application assessment: CVE-2026-47884
 
-Reviewed on 2026-10-06; reassessment required before 2026-10-20 00:00 UTC.
+Reviewed on 2026-10-06 and reassessed on 2026-10-22; reassessment required before
+2026-11-05 00:00 UTC. The 2026-10-22 reassessment found no change under `spring/src/main`
+or `spring/build.gradle` since the original review, no public 6.2.x fix on Maven Central
+(latest 6.2.19, Boot 3.5.16) and a passing `MvcXsltReachabilityTest`.
 
 The packaged Spring Framework 6.2.19 remains an affected library version. This
 assessment does not patch the library or apply to another application. The

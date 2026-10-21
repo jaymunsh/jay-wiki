@@ -15,7 +15,10 @@ glob dependency chain. No application routes or authentication rules change.
   receives repository-controlled patterns, not public HTTP input. Production
   `npm audit --omit=dev --audit-level=high` reports zero vulnerabilities.
 - Decision: retain the finding and allow only this advisory and its development-only
-  ancestors until **2026-10-19 00:00 UTC**. Owner: jay-wiki maintenance.
+  ancestors until **2026-11-05 00:00 UTC**. Owner: jay-wiki maintenance.
+- Reassessed 2026-10-22: braces is still 3.0.3 with no patched release, the chain is
+  unchanged (`@next/eslint-plugin-next@16.4.2` still pins fast-glob 3.3.1) and
+  `npm audit --omit=dev --audit-level=high` still reports zero. Extended by 14 days.
 - Limits: a production dependency, new advisory, changed braces version, malformed
   audit report, unknown dependency chain, critical finding or expired exception
   still fails CI. Full npm audit JSON is retained for 30 days.

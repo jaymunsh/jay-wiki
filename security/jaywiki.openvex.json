@@ -2,9 +2,9 @@
   "@context": "https://openvex.dev/ns/v0.2.0",
   "@id": "https://github.com/jaymunsh/jay-wiki/security/jaywiki-xslt-20261006",
   "author": "jay-wiki maintainers",
-  "timestamp": "2026-10-06T11:45:00Z",
-  "version": 1,
-  "x-jaywiki-review-before": "2026-10-20T00:00:00Z",
+  "timestamp": "2026-10-22T00:00:00Z",
+  "version": 2,
+  "x-jaywiki-review-before": "2026-11-05T00:00:00Z",
   "statements": [
     {
       "vulnerability": {"name": "CVE-2026-47884"},
