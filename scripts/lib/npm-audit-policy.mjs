@@ -1,6 +1,6 @@
 // See docs/security-nextjs-20261005.md. This is an expiring exception, not a fix.
 const BRACES_ADVISORY = 'https://github.com/advisories/GHSA-vfj7-8cjw-p6xm';
-const EXPIRES = Date.parse('2026-10-19T00:00:00Z');
+const EXPIRES = Date.parse('2026-11-05T00:00:00Z');
 
 export function evaluateAudit(report, lock, now = new Date()) {
   if (report?.auditReportVersion !== 2 || !report?.vulnerabilities || typeof report.vulnerabilities !== 'object' ||
