@@ -14,6 +14,7 @@ miniPC 한 대의 k3s에 jay-wiki를 올리는 데 필요한 매니페스트와 
 | `k8s/observability/*-values.yaml` | `helm upgrade -i` | Prometheus, Grafana, Alertmanager, Loki, Tempo, OTel Collector, Promtail |
 | `k8s/observability/alertmanager-telegram-values.yaml` | **위 파일과 함께** `-f` 두 번 | 텔레그램 알림. 혼자 올리면 안 된다 (아래 참고) |
 | `k8s/backup/postgres-backup.yaml` | `kubectl apply` | 일 1회 `pg_dump` + sha256 CronJob |
+| `minipc/` | 사람이 miniPC 에 root 로 설치 | 매일 05:00 Google Drive 암호화 사본 + healthchecks ping (아래 참고) |
 | `opensearch/Dockerfile` | GitHub Actions | nori 형태소 분석기를 넣은 커스텀 이미지 |
 | `local/postgres-init.sql` | docker-compose | 로컬 개발용 초기화 |
 
@@ -53,8 +54,7 @@ kubectl apply -f infra/k8s/backup/postgres-backup.yaml
   이 파일들만 `kubectl apply` 하면 존재하지 않는 `:local` 태그로 되돌아간다.
 - **backend는 HPA가 평시 2, 최대 3 replicas를 유지하고 나머지 application workload는 기본 1 replica다.**
   모두 같은 miniPC 한 대에서 돌기 때문에 replica 증가는 노드 장애 고가용성을 뜻하지 않는다. PVC도 k3s
-  `local-path`(단일 디스크)다. PostgreSQL 백업은 개발 머신으로 내보내 복원까지 검증했지만 두 장비가 같은
-  장소에 있어 화재·도난 같은 동시 손실은 막지 못한다.
+  `local-path`(단일 디스크)다. 디스크나 장소를 통째로 잃는 경우는 아래의 Drive 사본이 막는다.
 
 ## 알아둘 것
 
@@ -116,7 +116,25 @@ kubectl apply -f infra/k8s/backup/postgres-backup.yaml
 - 배포 파이프라인(`.github/workflows/deploy.yml`)은 `k8s/observability/**` 를 건드리지 않는다.
   정해진 매니페스트만 `kubectl apply` 하므로 Helm values 는 사람이 올린다.
 - `k8s/backup/postgres-backup.yaml`의 백업 PVC는 **같은 miniPC 디스크**에 있다.
-  실수 복구에는 쓸 수 있지만 디스크 장애에는 대응하지 못한다.
+  실수 복구에는 쓸 수 있지만 디스크 장애에는 대응하지 못한다. 그래서 밖으로 한 벌 더 보낸다.
+- **miniPC 밖 사본은 miniPC 가 직접 Google Drive 에 올린다.** (2026-10-20부터. 그전의 Mac launchd
+  작업은 macOS 권한에 막혀 9월 10일부터 한 번도 못 돌았고, 실패 알림도 그 스크립트 안에 있어 같이 죽었다.)
+  `jaywiki-drive-backup.timer`가 05:00 KST 에 03:17 CronJob 덤프 셋(sha256 대조), MinIO 볼륨 폴더,
+  `kubectl get ... -o json` 스냅숏을 묶어 `rclone crypt`로 `backup:jaywiki/daily`에 올린다.
+  daily 는 3일, 1일에는 `monthly/`에도 두고 계속 남긴다. 올리기가 끝나야 healthchecks
+  `jay-wiki-backup`(jay-wiki 프로젝트, 1일 + 2시간)에 ping 한다 — 끊기면 healthchecks 가 알린다.
+  - 설치: `minipc/drive-backup.sh` → `/usr/local/sbin/jaywiki-drive-backup`, 유닛 둘 → `/etc/systemd/system/`.
+    설정은 `/etc/leneu-backup/`(root 0600): `rclone.conf`는 Oracle 의 anotar 백업과 같은 Drive 토큰·crypt
+    비밀번호(원본은 비밀번호 관리자), `hc-ping-key`는 **jay-wiki 프로젝트의** ping key 다
+  - 바로 올리기 `sudo systemctl start jaywiki-drive-backup.service`, 기록 `journalctl -u jaywiki-drive-backup.service`,
+    목록 `sudo rclone --config /etc/leneu-backup/rclone.conf lsl backup:jaywiki`
+  - 복원: `rclone copy backup:jaywiki/daily/jaywiki-YYYYMMDD.tar.gz <빈 폴더>` → `tar -xzf`.
+    덤프는 `pg_restore`, MinIO 는 **운영과 같은 MinIO 이미지**로 그 폴더를 띄운다(원본 형식이라 버전에 묶인다)
+  - rclone 기본 클라이언트 ID 는 전 세계 공용이라 붐비면 `403 rateLimitExceeded`로 막힌다(2026-10-20 실측,
+    재시도 22분 뒤 30분 제한에 걸림). 다음 날 다시 돌고 ping 이 빠지므로 알림으로 드러난다.
+    자주 나면 Google Cloud 에 자기 OAuth 클라이언트를 만들어 토큰을 다시 받는다(동의 화면은 프로덕션으로)
+  - `scripts/run-offsite-backup.sh`는 Mac 에서 손으로 한 벌 받을 때만 쓴다. 터널 로그인이 풀렸으면
+    `REMOTE_HOST=jaymunsh@192.168.0.82`(LAN)로 돈다
 - 복원은 `scripts/rehearse-postgres-restore.sh`로 리허설한다. 원본 DB는 읽기만 하고,
   임시 DB에 복원해 row count를 비교한 뒤 지운다.
 - 백업 CronJob의 `pg_dump` 클라이언트와 운영 PostgreSQL 서버는 모두 18 계열이다.
