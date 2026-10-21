@@ -1,19 +1,19 @@
 # Leneu Benchmark 유지관리 워크북
 
 작성·코드 확인: 2026-09-15 KST
-상태: **원본 실행과 v0.4 채점은 LocalLLM에서 관리하고, visualStudy는 `/benchmark` 공개 사본만 동기화하는 구조로 로컬 검증했다. 운영 반영은 별도 승인과 검증이 필요하다.**
+상태: **원본 실행과 v0.4 채점은 LocalLLM에서 관리하고, jay-wiki는 `/benchmark` 공개 사본만 동기화하는 구조로 로컬 검증했다. 운영 반영은 별도 승인과 검증이 필요하다.**
 
 ## 0. 후속 작업자가 먼저 알아야 할 경계
 
-Leneu Benchmark의 정본은 visualStudy가 아니다. 모델 응시, 원본 산출물, 독립 채점과 탐색기 원본은 아래 경로에 있다.
+Leneu Benchmark의 정본은 jay-wiki가 아니다. 모델 응시, 원본 산출물, 독립 채점과 탐색기 원본은 아래 경로에 있다.
 
 ```text
 <LOCAL_LLM_WORKSPACE>/leneu-benchmark/
 ```
 
-visualStudy의 `web/public/benchmark/`는 정본에서 생성·선별한 파일을 복사한 공개 사본이다. 이 폴더를 직접 고치면 다음 동기화 때 전체가 삭제되고 원본으로 다시 작성된다. 응시·채점·탐색기 수정은 정본에서 한 뒤 동기화한다.
+jay-wiki의 `web/public/benchmark/`는 정본에서 생성·선별한 파일을 복사한 공개 사본이다. 이 폴더를 직접 고치면 다음 동기화 때 전체가 삭제되고 원본으로 다시 작성된다. 응시·채점·탐색기 수정은 정본에서 한 뒤 동기화한다.
 
-| 역할 | 정본 위치 | visualStudy의 역할 |
+| 역할 | 정본 위치 | jay-wiki의 역할 |
 |---|---|---|
 | 신규 모델 응시 | `LocalLLM/leneu-benchmark/runs/<model-slug>/<run-id>/` | 응시 원본을 만들지 않음 |
 | 독립 채점 | `LocalLLM/leneu-benchmark/reports/<model>/<run>/<review-id>/` | 채점 JSON을 만들거나 덮어쓰지 않음 |
@@ -92,9 +92,9 @@ node scripts/build-site-catalog.mjs
 
 새 모델은 카탈로그 생성기의 기본 표시값 `약 40분`, `자기 검증 제출`을 받을 수 있다. 이를 실측치로 해석하지 않는다. 공개 전에 생성기가 `manifest.json`과 `summary.json`의 관측값을 읽도록 개선하거나, 해당 표시를 미측정으로 정정한다. 모델 slug에 따른 현재 하드코딩을 새 모델마다 늘리는 방식은 피한다.
 
-### 2.4 visualStudy의 공개 사본을 갱신한다
+### 2.4 jay-wiki의 공개 사본을 갱신한다
 
-visualStudy 루트에서 실행한다.
+jay-wiki 루트에서 실행한다.
 
 ```sh
 cd <JAY_WIKI_WORKSPACE>
@@ -166,7 +166,7 @@ curl -fsSI http://blog.localhost:3000/benchmark/data/catalog.json
 - 신규 `runs/<model>/<run>/`의 응시 원본과 18개 과제 상태가 보존돼 있다.
 - 새 `reports/<model>/<run>/<review>/evaluation.json`이 v0.4 완전 집계 조건을 만족한다.
 - 정본 `benchmark-html/data/catalog.json`에 신규 실행과 올바른 채점 경로가 들어있다.
-- visualStudy 공개 사본이 정본 카탈로그와 선별된 산출물을 반영한다.
+- jay-wiki 공개 사본이 정본 카탈로그와 선별된 산출물을 반영한다.
 - 로컬 경로, 비밀값, 비공개 데이터가 공개 사본에 없다.
 - `/benchmark/`의 현황·아레나·인스펙터와 신규 산출물이 로컬에서 동작한다.
 - 로컬 확인을 운영 배포나 `blog.leneu.cloud` 반영으로 보고하지 않는다.

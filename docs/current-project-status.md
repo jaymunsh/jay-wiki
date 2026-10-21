@@ -1,12 +1,60 @@
 # jay-wiki 현재 프로젝트 상태
 
-기준일: 2026-09-07
+현재 안내 갱신일: 2026-10-07. 아래 ‘2026-09-07 과거 기록’은 그 당시의 스냅샷으로 보존한다.
+새 작업은 [AGENTS.md](../AGENTS.md), [CLAUDE.md](../CLAUDE.md), [배포 안내](deploy-runbook.md)를 먼저 읽는다.
 
-이 문서는 2026-09-07 시점의 상태 기록이다. 현재 공개 소스·비공개 운영 배포 절차는 [배포 안내](./deploy-runbook.md)를 우선한다.
+## 2026-10-07 반영 기준
 
-자세한 구축 과정은 `archive/진행상황.md`(추적 안 함), 단계별 구현은 `archive/workbook/README.md`(추적 안 함), 앞으로 공개할 글은 [wiki-editorial-plan.md](./wiki-editorial-plan.md), 외부 진입점은 [README.md](../README.md)를 본다.
+- 최근 기능·패치 통합 SHA: `602d69a06f535bae83d842c6326121930a3b972b`
+  ([PR #18](https://github.com/jaymunsh/jay-wiki/pull/18)). 이후 문서 전용 develop 커밋은 별도일 수 있다.
+- 해당 SHA [이미지 빌드](https://github.com/jaymunsh/jay-wiki/actions/runs/37506999823) 성공.
+  실제 운영 선택은 별도 private ops의 `release.json`을 대조한다. public main만 보고 운영 버전을 추정하지 않는다.
+- 공개 소스와 비공개 ops를 분리한 상태다. 보관 저장소의 옛 이력을 합쳐 push하지 않는다.
 
-## 2026-09-07 현재 운영 기준
+### 최근 동작
+
+- [OMOK](../services/omok/README.md): 닫힌 탭의 참가자 복구, 서버 시각의 대국 타임라인·복기,
+  상대 동의 무르기(마지막 한 수, 각자 3회), 온라인 총 경과 시간, 본인용 링크를 통한 기기 이동.
+  ‘방 나가기’는 종료, 일시적 연결 끊김은 2분 복귀 유예다.
+- `/works` 유틸리티의 작업물 보기는 GitHub 저장소로 연결한다. 오목은 별도 `/game/omok` 경로로 연결한다.
+- 개인 프로젝트 카테고리만 수정 활동순으로 정렬한다. 수정일이 발행일보다 1분 이상 뒤이면 수정일,
+  아니면 발행일을 사용한다. 동률은 발행일 → id 내림차순이며 DB에서 페이지를 자르기 전에 적용한다.
+  전체 글·다른 카테고리는 발행일순을 유지한다.
+- ai-trend-bot은 새 로봇 이미지와 2026-10-05 업데이트 절을 반영했다.
+- Force Online 글은 사용자 요청으로 숨겼다. 기존 파일이 있다는 이유로 재발행하지 않는다.
+
+### 검증과 보안
+
+- 직전 기능 작업의 Omok 단위·WebSocket 통합 테스트: **51개 통과**.
+  `undo-transfer-check.mjs`, `online-ux-check.mjs`, `reconnect-check.mjs`와 공개 HTTPS 브라우저 검사 통과.
+  독립 Chrome 컨텍스트·320px 화면 검증이며 실제 모바일 하드웨어·부하 시험은 포함하지 않는다.
+- Spring **311**, web **196**, 합계 **507**은 [생성된 검증 기록](test-summary.md)의 2026-10-06 기준이다.
+  Omok 51개를 이 합계에 덧붙여 생성 파일을 수동 수정하지 않는다.
+- lockfile 기준 Next.js **15.5.27**, React **19.2.7**, sharp **0.35.5**, Vitest **4.1.11**.
+  [패치 및 남은 예외](security-nextjs-20261005.md)를 확인한다.
+- braces 개발 의존성 예외는 **2026-10-19 00:00 UTC** 만료다.
+  Spring XSLT [OpenVEX 평가](../security/README.md)는 **2026-10-20 00:00 UTC** 전에 재검토한다.
+  Spring 라이브러리 패치 완료라는 뜻이 아니다.
+
+### 재개 첫 작업
+
+```sh
+git status --short --branch
+git log -3 --oneline
+node scripts/check-docs.mjs
+```
+
+현재 사용자의 범위와 변경 파일을 확인한 뒤 필요한 검사만 실행한다. 웹 dev와 build를 동시에
+실행하지 않는다. 로컬은 블로그 `http://blog.localhost:3000/works`, 오목 `http://localhost:3100/`,
+API `http://localhost:8080`을 사용한다. 포트가 열려 있는지 먼저 확인하고 이미 실행 중이면 중복 기동하지 않는다.
+운영 배포는 새 요청을 바탕으로 private ops의 현재 기록·runner 상태·7개 이미지·preflight를 확인한다.
+
+## 2026-09-07 과거 기록
+
+이 아래 수치·미해결 목록·배포 상태는 2026-09-07 당시 기록이다. 현재의 미완료 작업으로
+간주하지 말고 코드와 최신 운영 기록에서 재확인한다.
+
+### 2026-09-07 당시 운영 기준
 
 **운영에 반영된 마지막 커밋은 `6a1304d`(2026-09-04)다.** `develop`에 커밋 여섯 편이 배포 대기 중이고,
 그중 위키 글 한 편은 이미지 16장이 `web/public/`에 있어 배포해야 화면에 뜬다.

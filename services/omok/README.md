@@ -158,7 +158,7 @@ UI 캡처는 `artifacts/ui/`에 저장됩니다. 단일 프로세스 개발 서�
 
 ## jay-blog 연결
 
-블로그의 실제 공개 소스 checkout은 `visualStudy/leneu/public-snapshot/`입니다. `/works` 최하단 게임 목록의 OMOK는 `/game/omok` 연결 경로를 통해 **전용 HTTP/WebSocket 서버**를 새 탭으로 엽니다. 정적 파일만 블로그에 복사하면 온라인 기능이 동작하지 않습니다.
+블로그의 실제 공개 소스 checkout은 `Service/jay-wiki/`입니다. `/works` 최하단 게임 목록의 OMOK는 `/game/omok` 연결 경로를 통해 **전용 HTTP/WebSocket 서버**를 새 탭으로 엽니다. 정적 파일만 블로그에 복사하면 온라인 기능이 동작하지 않습니다.
 
 개발 환경에서는 기본적으로 `http://localhost:3100/?from=works`로 연결합니다. 오목 서버와 블로그 개발 서버를 함께 실행하세요. 공개 환경에서는 오목 서버를 HTTPS로 별도 배포한 다음 **블로그 서버의** `OMOK_PUBLIC_URL` 환경 변수에 실제 주소를 설정합니다. 예: `OMOK_PUBLIC_URL=https://실제-게임-도메인`. 설정되지 않았거나 유효한 HTTPS 주소가 아니면 공개 준비 중 안내를 표시하며 방문자를 localhost로 보내지 않습니다.
 

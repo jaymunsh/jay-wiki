@@ -266,7 +266,7 @@
       "summary": "pg_dump CronJob과 sha256에서 시작해, 사본을 miniPC 밖으로 내보내고 복원 2.2초·알림 45초를 실측하기까지의 기록.",
       "kind": "wiki",
       "tags": "postgres,backup,restore,kubernetes,alert",
-      "lastReview": "2026-08-16"
+      "lastReview": "2026-10-21"
     },
     {
       "slug": "wiki-image-asset-lifecycle",
@@ -311,9 +311,9 @@
       "parentId": "operations",
       "sortOrder": 6,
       "title": "PostgreSQL 백업을 miniPC 밖으로 복제하는 계획",
-      "summary": "목적지를 Cloudflare R2로 정했다가 개발 머신으로 바꿔 실행한 기록. 무엇을 얻고 무엇을 포기했는지까지.",
+      "summary": "목적지를 Cloudflare R2로 정했다가 개발 머신으로 바꿔 실행한 기록. 무엇을 얻고 무엇을 포기했는지까지. 2026-10-20에 miniPC가 직접 Google Drive로 올리는 방식으로 다시 바꿨다.",
       "kind": "adr",
-      "lastReview": "2026-08-16",
+      "lastReview": "2026-10-21",
       "tags": "postgres,backup,r2,cloudflare,disaster-recovery"
     },
     {
@@ -324,7 +324,7 @@
       "summary": "한 번도 돌아본 적 없는 것 넷을 하루에 몰아서 돌려본 기록. 둘은 첫 실행에 깨졌고, 그 실패에서 롤백이 처음 진짜로 돌았다.",
       "kind": "wiki",
       "tags": "backup,restore,alerting,rollback,deploy,verification",
-      "lastReview": "2026-08-16"
+      "lastReview": "2026-10-21"
     },
     {
       "slug": "minipc-command-runbook",
