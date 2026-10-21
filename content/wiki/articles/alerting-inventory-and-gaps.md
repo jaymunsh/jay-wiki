@@ -313,6 +313,7 @@ helm upgrade -i prom prometheus-community/prometheus --version 29.13.0 -n obs \
 
 - 셋째 ~~백업 실패 알림이 없다. PostgreSQL 백업 CronJob 이 실패해도 지표 규칙에 없다.~~
   - 2026-08-13 메움: JaywikiBackupJobFailed 와 JaywikiBackupNotRunning 둘을 넣고 같은 배포로 올렸다. kube-state-metrics 가 이미 떠 있어서(JaywikiPodRestartHigh 가 그 지표를 쓴다) 새로 붙인 것은 없다. 다만 실패 쪽 규칙은 실제로 한 번 실패하기 전까지 검증되지 않는다 — 위 「지표 규칙 열넷」 절에 이유를 적었다.
+  - 2026-10-20 덧붙임: 위 둘은 miniPC 안의 CronJob 만 본다. miniPC 밖 사본이 올라갔는지는 healthchecks.io 의 jay-wiki-backup check(1일 + 2시간)가 본다. miniPC 타이머가 Google Drive 업로드를 마친 뒤에만 ping 하고, 끊기면 메일과 텔레그램(@HealthchecksBot)으로 온다. Prometheus 밖의 판정자라 열다섯에는 세지 않는다.
 
 - 넷째 ~~콘텐츠 동기화 Job 실패 알림이 없다. 배포 알림이 배포 전체 실패로는 잡지만 Job 단위로는 아니다.~~
   - 2026-08-13 정정: 애초에 구멍이 아니었다. sync-wiki-content-k8s.sh 가 Job 을 만들고 실패하면 exit 1 을 내므로 배포가 실패하고, 롤백이 돌고, 텔레그램이 온다. 그 Job 은 배포 중에만 도니까 배포 밖에서 실패할 자리가 없다. 세면서 잘못 넣었다.

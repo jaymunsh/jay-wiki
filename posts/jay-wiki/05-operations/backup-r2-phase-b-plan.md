@@ -9,7 +9,7 @@ tags: postgres,backup,r2,cloudflare,disaster-recovery
 source: scripts/seed-portfolio-wiki.mjs
 ---
 - 로컬 PVC에만 있는 PostgreSQL 백업을 어디로, 어떻게 miniPC 밖에 복제할 것인가?
-- 처음에 정한 목적지는 Cloudflare R2였지만 결제 수단 등록을 하지 않기로 하고 개발 머신으로 바꿔 실행했다.
+- 처음에 정한 목적지는 Cloudflare R2였지만 결제 수단 등록을 하지 않기로 하고 개발 머신으로 바꿔 실행했고, 2026-10-20에는 miniPC가 직접 Google Drive로 올리는 방식으로 다시 바꿨다.
 - 2026-08-16에 첫 사본을 받아 그것만으로 복원 2.2초·오류 0을 확인했다. R2는 스크립트의 출력 경로만 바꾸면 되는 자리에 남겨 뒀다.
 
 ## 맥락 — 원본과 백업이 같은 디스크에 있다
@@ -114,3 +114,60 @@ flowchart TB
 
 **Secret은 여전히 백업 대상이 아니다.** 지금은 개발 머신의 로컬 파일 한 부뿐이다.
 성격이 다른 문제(암호화와 보관 장소)라 이 결정에 섞지 않았다.
+
+## 결말 — 2026-10-20, 사본은 miniPC 가 직접 Google Drive 로 보낸다
+
+이 글의 결정은 그 뒤로 두 번 더 움직였다. 위 본문은 2026-08-16 시점 그대로 두고, 무엇이 바뀌었는지를 여기에 덧붙인다.
+
+### 9월에 붙인 매일 사본은 41번 연속으로 시작도 못 했다
+
+2026-09-10 에 「사본은 반영할 때만 늘어난다」는 한계를 메우려고 개발 머신에 매일 04:30 launchd 작업을 붙였다. run-offsite-backup.sh 가 DB 셋, MinIO 객체와 설정, 클러스터 설정을 끌어와 age 로 암호화해 두는 구성이었다. Secret 도 이때 처음 사본에 들어갔다. 설정하던 날 손으로 돌린 네 번은 모두 성공했다.
+
+자동 실행은 한 번도 성공하지 못했다. macOS 개인정보 보호(TCC)가 launchd 의 /bin/bash 에 ~/Documents 접근을 주지 않아, 스크립트를 열기도 전에 Operation not permitted 로 끝났다(종료 코드 126). 9월 11일부터 10월 21일까지 41번 모두 그랬다.
+
+실패 알림(osascript)과 last-attempt.json 기록은 스크립트 안에 있었다. 스크립트가 시작조차 못 하니 알림도 기록도 없었고, last-attempt.json 은 40일 동안 9월 10일의 success 를 가리켰다. 2026-10-19 에 다른 서버의 백업을 정리하다가 launchctl list 의 종료 코드를 보고서야 알았다.
+
+### 백업은 서버에서 돌고, 끊기면 바깥이 알린다
+
+고친 원칙은 둘이다. 첫째, 백업은 서버에서 돈다. 들고 다니고 덮여 있는 날이 있는 노트북이 켜져 있어야 도는 백업은 백업이 아니다. 둘째, 성공 보고가 끊기면 바깥이 알린다. 실패한 쪽 안에 있는 실패 알림은 같이 죽는다. 알림 경로에 쓰던 [클러스터 밖 판정자](/wiki/watchdog-outside-the-cluster)를 백업에도 건 것이다.
+
+~~~mermaid
+flowchart TB
+    PG[(PostgreSQL 셋)] --> DUMP[pg_dump CronJob 매일 03:17]
+    DUMP --> PVC[(jaywiki-pg-backups PVC 7일)]
+    PVC --> TIMER[miniPC systemd 타이머 매일 05:00]
+    MINIO[(MinIO 볼륨)] --> TIMER
+    K8S[클러스터 설정 스냅숏] --> TIMER
+    TIMER --> DRIVE[(Google Drive rclone crypt)]
+    DRIVE --> PING[성공하면 healthchecks ping]
+    PING --> HC[하루 2시간 넘게 끊기면 메일과 텔레그램]
+~~~
+
+| 항목 | 2026-08-16 | 2026-10-20 |
+|---|---|---|
+| 목적지 | 개발 머신 | Google Drive. 내용은 rclone crypt 로 암호화한다 |
+| 누가 보내나 | 반영할 때 개발 머신이 끌어온다 | miniPC 의 root systemd 타이머가 직접 올린다 |
+| 담는 것 | dump 와 wiki-assets | dump 셋, MinIO 볼륨 전체, Secret 을 포함한 클러스터 설정 |
+| 보관 | 30일 | 매일 사본 3일, 매달 1일 사본은 계속 |
+| 사본 쪽 알림 | 없음 | healthchecks jay-wiki-backup, 1일 + 2시간 침묵에서 울린다 |
+| 같은 장소의 동시 손실 | 못 막는다 | 막는다 |
+
+### Drive 를 기각했던 이유는 감시를 밖에 두면서 풀렸다
+
+위 후보 표에서 Drive 를 기각한 이유는 「토큰이 만료되면 백업이 조용히 멈춘다」였다. 이번에는 그 「조용히」를 healthchecks 가 지운다. 토큰이 죽으면 ping 이 끊기고, 하루 두 시간 뒤 바깥이 알린다. 토큰은 k8s Secret 이 아니라 miniPC 의 /etc/leneu-backup 에 root 만 읽게 두었다.
+
+같은 계정의 다른 서버가 이미 쓰던 rclone 설정을 복사해서, 새 계정도 결제 수단도 늘지 않았다. R2 를 막았던 카드 등록 문제도 여기서는 생기지 않는다.
+
+### 사본만으로 되살아나는지 대조했다
+
+2026-10-20 첫 업로드 뒤 Drive 에서 다시 받아 풀었다. dump 셋의 sha256 이 CronJob 이 남긴 원본 해시와 모두 같았고, MinIO 파일 205개와 클러스터 리소스 497개가 들어 있었다. 다음 날 05:09 에는 타이머가 스스로 돌아 37MB 를 올리고 ping 을 남겼다.
+
+같은 날 Mac 의 launchd 작업은 내렸다. run-offsite-backup.sh 는 지우지 않고, 손으로 한 벌 받을 때만 쓴다.
+
+### 남은 한계 — 공용 클라이언트와 공유한 토큰
+
+- MinIO 볼륨은 쓰는 도중에 그대로 묶는다. 스냅샷이 아니고, 운영과 같은 MinIO 이미지로만 되살릴 수 있다
+- RPO 는 하루다. 03:17 에 뜬 dump 를 05:00 에 올린다
+- rclone 기본 클라이언트 ID 는 전 세계 사용자가 함께 쓴다. 붐비면 403 rateLimitExceeded 로 막히고, 2026-10-20 두 번째 수동 실행이 22분 재시도 끝에 30분 제한에 걸렸다. 자주 나면 자기 OAuth 클라이언트로 바꾼다
+- Drive 토큰과 crypt 비밀번호를 다른 서버의 백업과 같이 쓴다. 한쪽 서버의 root 를 잃으면 다른 쪽 사본도 지울 수 있다
+- 마지막 판정자는 healthchecks.io 무료 플랜 하나다
