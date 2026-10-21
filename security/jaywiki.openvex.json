@@ -1,17 +1,52 @@
 {
   "@context": "https://openvex.dev/ns/v0.2.0",
-  "@id": "https://github.com/jaymunsh/jay-wiki/security/jaywiki-xslt-20261006",
+  "@id": "https://github.com/jaymunsh/jay-wiki/security/jaywiki-spring-20261022",
   "author": "jay-wiki maintainers",
-  "timestamp": "2026-10-06T11:45:00Z",
-  "version": 1,
-  "x-jaywiki-review-before": "2026-10-20T00:00:00Z",
+  "timestamp": "2026-10-22T00:00:00Z",
+  "version": 2,
+  "x-jaywiki-review-before": "2026-11-05T00:00:00Z",
   "statements": [
     {
-      "vulnerability": {"name": "CVE-2026-47884"},
-      "products": [{"@id": "pkg:maven/org.springframework/spring-webmvc@6.2.19"}],
+      "vulnerability": {
+        "name": "CVE-2026-47884"
+      },
+      "products": [
+        {
+          "@id": "pkg:maven/org.springframework/spring-webmvc@6.2.19"
+        }
+      ],
       "status": "not_affected",
       "justification": "vulnerable_code_not_in_execute_path",
       "impact_statement": "Only the jay-wiki Spring application at this reviewed source is assessed: application handlers write response bodies; no XsltView or XsltViewResolver is configured; catch-all URL handlers serve static resources. MvcXsltReachabilityTest verifies the actual application context. Spring's required XSLT implicit-view execution path is absent. This does not patch Spring or declare the library safe in other applications. Reassess when MVC configuration, controller response contracts or the component version changes."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-47890"
+      },
+      "products": [
+        {
+          "@id": "pkg:maven/org.springframework/spring-webmvc@6.2.19"
+        },
+        {
+          "@id": "pkg:maven/org.springframework/spring-webflux@6.2.19"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Only the jay-wiki Spring application at this reviewed source is assessed: the advisory requires sending view fragments over Server-Sent Events. No application handler returns SseEmitter, ResponseBodyEmitter, a reactive Publisher or FragmentsRendering, none produces text/event-stream, and every handler writes a response body rather than a view. WebFlux is present only for the outbound WebClient. MvcSseRouterReachabilityTest verifies the actual application context. This does not patch Spring or declare the library safe in other applications. Reassess when MVC configuration, controller response contracts or the component version changes."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-47892"
+      },
+      "products": [
+        {
+          "@id": "pkg:maven/org.springframework/spring-webflux@6.2.19"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Only the jay-wiki Spring application at this reviewed source is assessed: the advisory requires functional endpoints with header predicates. The application context registers no servlet or reactive RouterFunction and every RouterFunctionMapping is empty; endpoints are annotated controllers. WebFlux is present only for the outbound WebClient. MvcSseRouterReachabilityTest verifies the actual application context. This does not patch Spring or declare the library safe in other applications. Reassess when MVC configuration, controller response contracts or the component version changes."
     }
   ]
 }
