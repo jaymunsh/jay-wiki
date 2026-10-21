@@ -11,12 +11,16 @@ miniPC 한 대의 k3s에서 직접 운영하는 풀스택 위키·블로그·관
 | 블로그 | **[blog.leneu.cloud](https://blog.leneu.cloud)** | `web/src/app/blog/**` |
 | 관리자 | **[admin.leneu.cloud](https://admin.leneu.cloud)** | 공개 경로를 `web/src/app/admin/**`로 연결 |
 
-한 앱이 `middleware.ts`에서 host를 보고 갈린다. 배포도 이미지도 하나다.
+위키·블로그·관리자는 같은 Next.js 웹 이미지에서 `middleware.ts`가 host를 보고 나눈다.
+오목은 별도 HTTP/WebSocket 서버와 이미지로 운영한다.
 
 기술 이름을 나열하는 대신, 실행하고 관측하고 기록할 수 있는 운영 장면을 남기는 것이 목표다.
 분산 트랜잭션은 실패를 주입해서 보상 흐름을 볼 수 있고, 검색은 같은 10만 건 코퍼스에서 세 방식을
-나란히 비교할 수 있다. application 배포는 캡처 이미지로, OpenSearch는 Helm atomic upgrade로
-복구하는 경로를 구현했다. 재부팅 복구는 리허설 2회를 마치고 무인 자동 재부팅까지 켰다.
+나란히 비교할 수 있다. application 배포는 캡처 이미지로 복구한다. 현재 OpenSearch는
+기존 `secure-search` StatefulSet의 이미지 rollout을 사용하며, 폐기한 무인증 Helm workload를
+다시 만들지 않는다. 재부팅 복구는 리허설 2회를 마치고 무인 자동 재부팅까지 켰다.
+
+현재 작업을 이어갈 때는 [에이전트 안내](AGENTS.md)와 [현재 소스 상태](docs/current-project-status.md)를 먼저 읽는다.
 
 ## 구조
 
@@ -40,7 +44,7 @@ public jay-wiki Actions → 검사·빌드 → GHCR에 SHA 이미지 보관
 private ops 배포 버튼 → miniPC runner → k3s 반영 → smoke test → 실패 시 복구
 ```
 
-외부에 공개되는 것은 Next.js web 하나뿐이다. Spring API와 데이터 서비스는 k3s 내부 Service DNS로만 닿는다.
+외부에는 Next.js web과 별도의 [오목 HTTP/WebSocket 서버](services/omok/README.md)가 공개된다. Spring API와 데이터 서비스는 k3s 내부 Service DNS로만 닿는다.
 
 ### 저장소 구성
 
@@ -105,40 +109,42 @@ private ops 배포 버튼 → miniPC runner → k3s 반영 → smoke test → �
 
 ## 로컬에서 띄우기
 
+먼저 3000·3100·8080 포트와 Docker 실행 상태를 확인한다. 이미 실행 중인 서버는 재사용한다.
+처음 데이터 계층을 준비할 때는 공개 저장소 루트에서 실행한다.
+
 ```bash
-# 데이터 계층 (PostgreSQL, Redis, Kafka, OpenSearch, MinIO)
 docker compose -f docker-compose.dev.yml up -d
-
-# 백엔드
-cd spring && SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
-
-# 프론트엔드
-cd web && npm ci && npm run dev
-
-# 위키 글 시드 (재실행해도 안전하다 — slug 기준 upsert)
-node scripts/seed-portfolio-wiki.mjs
 ```
+
+Spring·Next.js·오목은 각각 공개 저장소 루트에서 시작하는 **별도 터미널**에서 실행한다.
+명령과 주의사항은 [CLAUDE.md의 서버 띄우기](CLAUDE.md#서버-띄우기)를 따른다.
+블로그는 `http://blog.localhost:3000`, 오목은 `http://localhost:3100/`이다.
+Next dev와 build는 동시에 실행하지 않는다.
+
+위키 시드가 필요한 경우, Spring 기동을 확인한 후 별도 터미널에서 공개 저장소 루트 기준으로
+[시드 검증·반영 순서](CLAUDE.md#검증-기준선)를 수행한다.
 
 ## 글을 올리는 법
 
-**코드가 아니라 글만 고쳤다면 배포가 필요 없다.** 블로그와 위키가 서로 다른 문을 쓴다.
+블로그 한 편은 앱 이미지 배포와 별도로 발행한다. 아래 조회와 dry-run 결과를 검토하고,
+**현재 요청의 대상 파일만** 명시해 발행한다. 숨긴 Force Online은 제외한다.
 
 ```bash
-# 블로그 — 로컬과 운영을 대조해 편마다 방향을 정하고, 그림까지 옮긴다
-node scripts/blog-sync.mjs             # 무엇이 어느 방향으로 갈지 보여주기만 한다
-node scripts/blog-sync.mjs --write     # 실제로 맞춘다
+# 공개 저장소 루트에서: 대조와 한 편 dry-run
+node scripts/blog-sync.mjs
+node scripts/publish-blog-post.mjs posts/jay-blog/drafts/<slug>.md
 
-# 블로그 — 한 편만 올린다
+# 대상·운영 충돌·그림을 검토하고 해당 글 발행이 요청된 경우
 node scripts/publish-blog-post.mjs posts/jay-blog/drafts/<slug>.md --write
-
-# 위키 — 로컬 개발 서버의 http://localhost:3000/sync 또는 같은 일을 하는 터미널 명령
-node scripts/content-ops.mjs check          # 로컬과 운영의 차이만 본다
-node scripts/content-ops.mjs publish-wiki   # 로컬 → 운영 (TOTP)
 ```
 
-**위키 글은 배포까지 가야 화면이 바뀐다** — 배포가 시드를 실행한다. 블로그는 반대로 배포와 무관하고
-위 명령이 몇 초 만에 끝낸다. 그림은 MinIO 로 가므로 컨테이너 이미지에 안 구워진다.
-자세한 것은 [docs/deploy-runbook.md](docs/deploy-runbook.md) 에 있다.
+양방향 일괄 동기화는 개별 글 발행의 기본 절차가 아니다. 운영 관리자 편집과 로컬 원고가
+충돌하면 덮어쓰지 말고 먼저 해결한다. 그림은 MinIO로 발행하고 원본을 보존한다.
+실행 상세는 비공개 ops의 `skills/jay-wiki-content-publish/SKILL.md`를 따른다.
+
+위키의 기준 콘텐츠는 `content/wiki/`다. 공개 PR 검사·병합과 검증된 비공개 release의
+백업·콘텐츠 동기화로 운영에 반영한다. 공개 운영 `/sync`를 사용하지 않는다.
+[배포 안내](docs/deploy-runbook.md)와 비공개 ops의 일상 작업 안내를 따른다.
 
 ## 이 프로젝트가 지키는 규칙
 
