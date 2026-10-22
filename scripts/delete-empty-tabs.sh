@@ -7,7 +7,7 @@
 # 시드는 upsert 라 탭을 지우지 않는다. 시드의 tabs 배열에서 뺀 탭은 운영에 빈 채로 남고,
 # wikiCategories 에서도 뺐다면 acceptsUnmapped 인 LAB 그룹으로 새어 들어간다.
 #
-# 인증은 publish-blog-drafts.sh 와 같은 경계다. 비밀번호는 Keychain 에서 실행 순간에만
+# 관리자 API 를 쓴다. 비밀번호는 Keychain 에서 실행 순간에만
 # 읽고 TOTP 는 사람이 넣는다. 이 파일은 둘 다 저장하지 않는다.
 #
 # 가드: 글이 하나라도 든 탭은 지우지 않는다. 지운 탭은 돌아오지 않는다.
@@ -63,7 +63,7 @@ if [ -z "${password}" ]; then
   exit 1
 fi
 # stdin 이 터미널이 아니면 read 가 아무 말 없이 멈춘다(에이전트 셸에서 실제로 밟았다).
-# publish-blog-drafts.sh 와 같은 갈래를 둔다.
+# 터미널이면 숨김 입력, 아니면 macOS 대화창으로 받는다.
 if [ -t 0 ]; then
   read -r -s -p 'Current Google Authenticator TOTP: ' otp
   echo

@@ -140,6 +140,13 @@ class BoardIntegrationTest {
     }
 
     @Test
+    void 숫자_쿼리에_글자를_넣으면_400이다() {
+        // 경로 변수와 달리 쿼리 값은 보낸 쪽 잘못이다. 500 으로 떨어지면 알림이 울린다.
+        ResponseEntity<String> r = rest.getForEntity("/api/board/posts?page=abc", String.class);
+        assertThat(r.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
     void 비밀번호가_맞아야_본인삭제된다() {
         long id = createPost("비번 글", "본문", "secret");
 

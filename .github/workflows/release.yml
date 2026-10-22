@@ -106,10 +106,6 @@ jobs:
           npm test
           npm audit --omit=dev --audit-level=high
 
-      # Blog drafts use a bounded exec transfer bundle; wiki still uses a compressed ConfigMap.
-      - name: Check blog transfer bundle size
-        run: scripts/check-blog-draft-size.sh
-
       # 위키·블로그 글 검사는 PR CI(Documentation consistency)로 옮겼다. 위키는 이미지에
       # 들어가지 않고, 배포도 글을 쓰지 않는다 -- 글은 scripts/content-sync.mjs 로만 운영에 간다.
 

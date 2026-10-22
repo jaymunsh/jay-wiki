@@ -48,6 +48,10 @@ export const hashOf = (a) => createHash('sha256').update(JSON.stringify(FIELDS.m
  *   base: 마지막으로 맞춘 기준 { hash, updatedAt } 또는 null.
  * 'fetch' 는 「본문을 받아 와야 판단할 수 있다」는 뜻이다. 받은 뒤 prod.hash 를 채워 다시 부른다.
  */
+// push 응답은 「+09:00, 나노초」, 목록은 「Z, 마이크로초」로 같은 시각을 다르게 적는다. 문자열이 아니라 시각으로 비교한다.
+// ponytail: 밀리초까지만 본다. DB 가 마이크로초로 반올림해 밀리초 경계를 넘으면 기준만 한 번 더 적힌다(본문은 안 덮는다).
+export const sameTime = (a, b) => a === b || (a != null && b != null && Date.parse(a) === Date.parse(b));
+
 export function decide(local, prod, base) {
   if (!prod) return { dir: 'push', reason: '운영에 없다' };
   if (!local) return { dir: 'pull', reason: '로컬에 없다' };
@@ -58,7 +62,7 @@ export function decide(local, prod, base) {
       : { dir: 'conflict', reason: '기준이 없는데 내용이 다르다. 어느 쪽이 맞는지 사람이 정한다' };
   }
   const localChanged = local.hash !== base.hash;
-  const prodChanged = prod.updatedAt !== base.updatedAt;
+  const prodChanged = !sameTime(prod.updatedAt, base.updatedAt);
   if (!localChanged && !prodChanged) return { dir: 'same', reason: '둘 다 그대로다' };
   if (localChanged && !prodChanged) return { dir: 'push', reason: '로컬만 바뀌었다' };
   if (!prod.hash) return { dir: 'fetch' };
@@ -83,7 +87,9 @@ function selfCheck() {
   eq(decide({ hash: 'h1' }, { updatedAt: 't1' }, null).dir, 'fetch', '기준이 없으면 본문부터 받는다');
   eq(decide({ hash: 'h1' }, { updatedAt: 't1', hash: 'h1' }, null).dir, 'same', '기준이 없어도 같으면 기준을 적는다');
   eq(decide({ hash: 'h1' }, { updatedAt: 't1', hash: 'h9' }, null).dir, 'conflict', '기준이 없고 다르면 멈춘다');
-  console.log('자기검사 12개 통과');
+  eq(decide({ hash: 'h1' }, { updatedAt: '2026-10-22T12:40:44.098609Z' }, { hash: 'h1', updatedAt: '2026-10-22T21:40:44.098608704+09:00' }).dir,
+    'same', '올린 응답과 목록은 표기만 다르고 같은 시각이다');
+  console.log('자기검사 13개 통과');
 }
 
 async function get(path) {
@@ -138,7 +144,7 @@ async function main() {
     if (r.dir === 'same') {
       // 기준이 비었거나 낡았으면 새로 적는다. 다음 실행에서 본문을 다시 받지 않게 하려는 것이다.
       const b = state[slug];
-      if (!b || b.hash !== l.hash || b.updatedAt !== p.updatedAt) plan.rebase.push({ slug, hash: l.hash, updatedAt: p.updatedAt });
+      if (!b || b.hash !== l.hash || !sameTime(b.updatedAt, p.updatedAt)) plan.rebase.push({ slug, hash: l.hash, updatedAt: p.updatedAt });
       else plan.same.push(slug);
     } else plan[r.dir].push({ slug, reason: r.reason });
   }

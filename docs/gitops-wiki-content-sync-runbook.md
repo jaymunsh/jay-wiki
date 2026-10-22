@@ -1,8 +1,9 @@
 # GitOps 위키 콘텐츠 동기화 runbook
 
-> **2026-10-22부터 배포는 위키를 쓰지 않는다.** 이 문서의 배포 안 Job(`sync-wiki-content-k8s.sh`)은
-> 비공개 deploy에서 빠졌고, 위키는 `node scripts/content-sync.mjs`로 운영과 대조해 옮긴다.
-> 내부 토큰 문(`/internal/content-sync/**`)과 그 경계는 그대로 쓴다. 아래는 이전 방식의 기록이다.
+> **2026-10-22부터 배포는 위키를 쓰지 않는다.** 이 문서의 배포 안 Job(`sync-wiki-content-k8s.sh`)과
+> 수동 관리자 경로(`seed-production-wiki.sh`)는 지웠다. 위키는 `node scripts/content-sync.mjs`로 운영과 대조해
+> 옮긴다(ssh 터널로 같은 내부 문을 쓴다). 내부 토큰 문(`/internal/content-sync/**`)과 그 경계는 그대로다.
+> 아래 「정상 배포 순서」와 「수동 재실행」은 이전 방식의 기록이다.
 
 ## 목적
 

@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-# 관측 스택 Helm 릴리스를 저장소의 values 로 올린다. 배포 잡이 부른다.
+# 관측 스택 Helm 릴리스를 저장소의 values 로 올린다. 관리자가 miniPC 에서 직접 부른다.
 #
-# 왜 파이프라인에 넣었나: 사람이 기억해야 하는 절차는 언젠가 반드시 빠진다.
+# 2026-10-22 기준: 앱 배포(비공개 delivery.yml)는 이 스크립트를 부르지 않는다. 관측 스택은 관리자가
+# 적용하고 approve-deployment-bootstrap.sh 로 지문을 승인한다. 순서는 비공개 docs/deployment-manual.md
+# 「관측 스택 변경」에 있다. 아래 「파이프라인」 이야기는 공개 deploy.yml 시절의 기록이다.
+#
+# 왜 파이프라인에 넣었었나: 사람이 기억해야 하는 절차는 언젠가 반드시 빠진다.
 # 실제로 alertmanager values 를 빠뜨린 채 prom 을 올려 알림이 35일 죽었다
 # (silent-500-alert-gap). prom 은 values 두 장을 항상 같이 넘겨야 하는데,
 # 그 규칙을 여기 박아 두면 사람이 틀릴 자리가 없어진다.

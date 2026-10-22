@@ -99,6 +99,8 @@ class BlogApiIntegrationTest {
     @Test
     void 없는_글은_404_다() throws Exception {
         mvc.perform(get("/api/blog/posts/999999")).andExpect(status().isNotFound());
+        // 숫자 id 자리에 slug 를 넣으면 500 이 나서 알림이 울렸다(2026-10-22). 없는 글이라 404 다.
+        mvc.perform(get("/api/blog/posts/force-online-fps-optimization")).andExpect(status().isNotFound());
     }
 
     @Test

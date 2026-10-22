@@ -123,7 +123,8 @@ function existingCopy(slug) {
 }
 
 const post = await fetchPost();
-const outDir = givenOut ?? existingCopy(post.slug) ?? POST_HOME;
+// 처음 받는 글은 카테고리 폴더로 간다. 폴더 이름이 운영 categorySlug 와 같다.
+const outDir = givenOut ?? existingCopy(post.slug) ?? join(POST_HOME, post.categorySlug ?? '');
 const file = join(outDir, `${post.slug}.md`);
 const front = [
   '---',
