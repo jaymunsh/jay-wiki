@@ -58,4 +58,6 @@ data:
             # equal: [method, uri] 로 맞추는데, 지표 쪽 uri 가 Spring 의 라우트 패턴이다.
             # 사람에게 보여줄 실제 경로는 path 로 따로 싣는다.
             annotations:
+              title: "API 오류 로그"
               summary: "{{ $labels.status }} 오류 · {{ $labels.method }} {{ $labels.path }}"
+              action: "아래 「이 요청의 로그」에서 원인 줄을 확인한다"

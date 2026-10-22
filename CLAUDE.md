@@ -41,7 +41,7 @@ GitHub-hosted runner에서 검사하고 전체 SHA의 이미지 7개를 GHCR에 
 - 블로그는 `node scripts/blog-sync.mjs`로 대조하고 `publish-blog-post.mjs <초안>`으로 dry-run한다.
   대상 한 편을 검토한 뒤에만 `--write`로 발행한다. 운영 관리자 수정과 로컬 수정이 충돌하면 중단한다.
 - 블로그 그림은 MinIO에 발행하고 원본은 `posts/jay-blog/assets/`에 남긴다.
-- 자동 발행은 명시된 manifest와 비공개 운영 설정을 따른다. **Force Online은 숨김을 유지한다.**
+- 자동 발행은 명시된 manifest와 비공개 운영 설정을 따른다.
   과거의 ‘모든 초안 발행’ 요청을 근거로 새 초안을 자동 발행하지 않는다.
 
 ## 서버 띄우기

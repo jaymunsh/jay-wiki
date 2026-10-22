@@ -136,6 +136,11 @@ def build_config() -> dict:
     # 묶음이 열리기를 기다리는 시간만 줄인다. 검사 대상은 문구와 group_by 이고
     # 그 둘은 이 값에 영향받지 않는다. 운영값(10s)대로 두면 매번 10초를 센다.
     cfg["route"]["group_wait"] = "1s"
+    # 하위 라우트의 group_wait 도 줄인다. API 오류 라우트는 60초를 기다리는데, 그대로 두면
+    # 이 스크립트가 15초 만에 「안 왔다」로 판정한다.
+    for route in cfg["route"].get("routes", []):
+        if "group_wait" in route:
+            route["group_wait"] = "1s"
     return cfg
 
 

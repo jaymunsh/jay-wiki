@@ -4,7 +4,8 @@ on:
   pull_request:
   workflow_dispatch:
   schedule:
-    - cron: '23 21 * * 0'
+    # 이틀마다 06:23 KST. 결과는 비공개 ops 가 1시간 뒤 텔레그램으로 보낸다(scripts/notify-security-scan-telegram.py).
+    - cron: '23 21 */2 * *'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
