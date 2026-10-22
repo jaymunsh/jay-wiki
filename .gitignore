@@ -63,3 +63,4 @@ dist/
 
 # 비공개 운영 저장소 jay-wiki-ops-private 의 checkout 자리다. 별도 Git 이다.
 /private/
+posts/jay-blog/.sync-cache.json

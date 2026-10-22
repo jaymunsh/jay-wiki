@@ -35,8 +35,9 @@ GitHub에서 읽기 쉬운 `main` 태그도 만들지만 운영 배포의 식별
 
 ## 글 반영과 애플리케이션 배포
 
-블로그 글은 애플리케이션 배포와 별도의 콘텐츠 발행 절차를 사용한다. 위키 기준 콘텐츠는 source
-repository에서 검토하지만 운영 DB 반영은 private ops의 배포·백업 경계 안에서 수행한다.
+배포는 글을 쓰지 않는다. 위키와 블로그는 `node scripts/content-sync.mjs`로 운영과 대조해 옮긴다.
+배포는 끝에 그 차이를 읽어서 보여 주기만 한다. 위키 원본(`content/wiki/**`)만 바뀐 병합은
+이미지를 다시 만들지 않는다. 위키 검사는 PR CI가 한다.
 
 공개 저장소의 workflow에 private 저장소 호출 token, SSH key, kubeconfig 또는 self-hosted runner
 label을 추가하지 않는다. 운영 절차를 변경해야 한다면 private ops에서 별도로 검토한다.

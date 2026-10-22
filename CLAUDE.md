@@ -36,10 +36,13 @@ GitHub-hosted runner에서 검사하고 전체 SHA의 이미지 7개를 GHCR에 
 - 공개 workflow에 miniPC self-hosted runner, private dispatch token, SSH key나 kubeconfig를 추가하지 않는다.
 - 문서만 바뀐 main commit은 이미지 빌드의 경로 필터에 해당하지 않을 수 있다.
   소스 HEAD·문서 HEAD·운영 release SHA가 다르면 이유를 먼저 대조한다.
-- 위키 기준 원본은 `content/wiki/`다. 운영 DB 반영은 비공개 배포의 백업·동기화 단계에서 수행한다.
+- 글(위키·블로그)은 `node scripts/content-sync.mjs`로 대조한다. 배포는 글을 쓰지 않는다.
+  한쪽만 바뀐 글은 그쪽으로 맞추고, 둘 다 바뀌었으면 멈춘다. 둘 다 그대로인 글은 본문도 받지 않는다.
+  대상을 검토한 뒤 `--write <slug...>`로 그 글만 옮긴다. 인자 없는 `--write`는 쓰다 만 블로그 초안까지 올린다.
+  위키 기준 원본은 `content/wiki/`이고, 맞춘 기준은 `content/wiki/sync-state.json`에 남아 커밋한다.
   운영 `/sync`는 공개하지 않는다.
-- 블로그는 `node scripts/blog-sync.mjs`로 대조하고 `publish-blog-post.mjs <초안>`으로 dry-run한다.
-  대상 한 편을 검토한 뒤에만 `--write`로 발행한다. 운영 관리자 수정과 로컬 수정이 충돌하면 중단한다.
+- 블로그 한 편은 `publish-blog-post.mjs <초안>`으로 dry-run한 뒤 `--write`로 발행해도 된다(그림 업로드 포함).
+  발행 뒤 `pull-blog-post.mjs <운영id>`로 `posts/` 사본을 받아 함께 커밋한다 — 링크 검사가 그 사본으로 대조한다.
 - 블로그 그림은 MinIO에 발행하고 원본은 `posts/jay-blog/assets/`에 남긴다.
 - 자동 발행은 명시된 manifest와 비공개 운영 설정을 따른다.
   과거의 ‘모든 초안 발행’ 요청을 근거로 새 초안을 자동 발행하지 않는다.

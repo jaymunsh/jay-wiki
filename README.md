@@ -142,8 +142,9 @@ node scripts/publish-blog-post.mjs posts/jay-blog/drafts/<slug>.md --write
 충돌하면 덮어쓰지 말고 먼저 해결한다. 그림은 MinIO로 발행하고 원본을 보존한다.
 실행 상세는 비공개 ops의 `skills/jay-wiki-content-publish/SKILL.md`를 따른다.
 
-위키의 기준 콘텐츠는 `content/wiki/`다. 공개 PR 검사·병합과 검증된 비공개 release의
-백업·콘텐츠 동기화로 운영에 반영한다. 공개 운영 `/sync`를 사용하지 않는다.
+위키의 기준 콘텐츠는 `content/wiki/`다. 운영 반영은 앱 배포와 별개로 `node scripts/content-sync.mjs`가 한다.
+글마다 로컬과 운영을 대조해 한쪽만 바뀌었으면 그쪽으로 맞추고, 둘 다 바뀌었으면 멈춘다.
+관리 화면에서 고친 위키 글은 이 명령이 `content/wiki/`로 내려받는다. 공개 운영 `/sync`를 사용하지 않는다.
 [배포 안내](docs/deploy-runbook.md)와 비공개 ops의 일상 작업 안내를 따른다.
 
 ## 이 프로젝트가 지키는 규칙
