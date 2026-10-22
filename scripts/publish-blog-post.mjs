@@ -14,6 +14,7 @@
 //   3. 초안 본문의 그림 주소를 /api/wiki-assets/{id} 로 바꾼다
 //   4. 그림 파일을 posts/jay-blog/assets/ 로 옮긴다 -- web/public 밖이라 배포를 안 부른다
 //   5. publish-blog-drafts.mjs 에 넘겨 본문을 올린다
+//   6. 발행된 글을 posts/jay-blog/posts/<카테고리>/ 로 받아 둔다 (링크 검사가 이 사본으로 대조한다)
 import { execFileSync, spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
@@ -221,6 +222,16 @@ async function main() {
     // 자리만 틀린 것이라 더 헷갈린다. 그래서 로컬 서버가 떠 있으면 같은 본문으로 맞춰 둔다.
     if (write) await syncLocal();
   });
+
+  // 링크 검사(check-blog-links)는 운영이 아니라 posts/ 사본으로 id 를 대조한다. 사본을 안 받으면
+  // 맞는 링크도 PR 에서 실패한다. 손으로 하던 일이라 여기서 끝까지 한다. 공개 API 라 터널 밖이다.
+  if (write) {
+    for (const file of files) {
+      const child = spawn('node', ['scripts/pull-blog-post.mjs', basename(file, '.md')], { stdio: 'inherit' });
+      const code = await new Promise((resolve) => child.on('exit', resolve));
+      if (code !== 0) console.warn(`사본을 못 받았다: ${basename(file, '.md')}. pull-blog-post.mjs 를 손으로 돌린다.`);
+    }
+  }
 }
 
 main().catch((e) => {

@@ -42,7 +42,7 @@ GitHub-hosted runner에서 검사하고 전체 SHA의 이미지 7개를 GHCR에 
   위키 기준 원본은 `content/wiki/`이고, 맞춘 기준은 `content/wiki/sync-state.json`에 남아 커밋한다.
   운영 `/sync`는 공개하지 않는다.
 - 블로그 한 편은 `publish-blog-post.mjs <초안>`으로 dry-run한 뒤 `--write`로 발행해도 된다(그림 업로드 포함).
-  발행 뒤 `pull-blog-post.mjs <운영id>`로 `posts/` 사본을 받아 함께 커밋한다 — 링크 검사가 그 사본으로 대조한다.
+  `--write`가 발행 뒤 `posts/jay-blog/posts/<카테고리>/` 사본까지 받는다. 그 사본을 함께 커밋한다 — 링크 검사가 그 사본으로 대조한다.
 - 블로그 그림은 MinIO에 발행하고 원본은 `posts/jay-blog/assets/`에 남긴다.
 - 자동 발행은 명시된 manifest와 비공개 운영 설정을 따른다.
   과거의 ‘모든 초안 발행’ 요청을 근거로 새 초안을 자동 발행하지 않는다.
