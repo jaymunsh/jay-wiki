@@ -6,6 +6,7 @@ summary: 9월에 공개 저장소는 이미지까지만 만들고 운영 배포�
 toc: true
 publishedAt: 2026-10-22T08:30:00Z
 updatedAt: 2026-10-22T08:30:00Z
+syncHash: d8660c6a7657cfbde1300e074856eb6b04956df0a2a52a378afdfce3b6629e1b
 
 ---
 

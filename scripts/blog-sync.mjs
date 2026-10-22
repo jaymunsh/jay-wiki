@@ -19,14 +19,21 @@
 //
 // 덮기 전에 **바뀔 글의 운영 사본만** 받아 둔다. 전부 받으면 53편이라 매번 느리고,
 // 안 바뀌는 글의 사본은 되돌릴 때 쓸 일이 없다.
+//
+// 같은 글을 매번 다시 받지 않는다. 「같다」로 확인한 글은 그때의 초안 본문 해시와 운영 updatedAt 을
+// posts/jay-blog/.sync-cache.json 에 적어 두고, 다음에는 둘 다 그대로면 본문을 안 받는다.
+// 목록에 updatedAt 이 있어서, 아무것도 안 바뀐 날은 요청이 목록 한 번이다(43초 -> 1초대).
 import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
-import { mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 
 const REMOTE = (process.env.JAYWIKI_BLOG_API ?? 'https://portfolio.leneu.cloud/api/bff').replace(/\/+$/, '');
 const DRAFT_DIR = process.env.BLOG_DRAFT_DIR ?? 'posts/jay-blog/drafts';
+const STATE = process.env.BLOG_SYNC_STATE ?? 'posts/jay-blog/.sync-cache.json';
 const write = process.argv.includes('--write');
+// slug 를 주면 그 글만 본다. --write 가 쓰다 만 초안까지 올리는 일을 막는다.
+const only = new Set(process.argv.slice(2).filter((a) => !a.startsWith('--')));
 
 const digest = (s) => createHash('sha1').update(s ?? '').digest('hex');
 
@@ -114,12 +121,15 @@ async function main() {
   const rows = Array.isArray(listed) ? listed : (listed.items ?? listed.content);
   const prod = new Map(rows.map((p) => [p.slug, p]));
 
+  const state = existsSync(STATE) ? JSON.parse(readFileSync(STATE, 'utf8')) : {};
+  let stateChanged = false;
   const push = [];   // 로컬 -> 운영
   const pull = [];   // 운영 -> 로컬
   const same = [];
   const conflicts = [];
 
   for (const slug of new Set([...drafts.keys(), ...prod.keys()])) {
+    if (only.size && !only.has(slug)) continue;
     const d = drafts.get(slug);
     const p = prod.get(slug);
     if (!p) { push.push({ slug, draft: d, reason: '운영에 없다' }); continue; }
@@ -127,21 +137,34 @@ async function main() {
 
     // 초안의 updatedAt 은 「운영과 마지막으로 맞춘 시각」이다. 운영이 그보다 새 값을
     // 들고 있으면 그 뒤에 관리 화면에서 고쳤다는 뜻이라, 초안으로 덮으면 그 수정이 사라진다.
+    const base = state[slug];
+    if (base && base.hash === digest(d.body) && base.updatedAt === p.updatedAt) { same.push(slug); continue; }
     const full = await get(`/blog/posts/${p.id}`);
     const { dir, reason } = decide(d, full.content ?? full.body, full.updatedAt);
-    if (dir === 'same') same.push(slug);
+    if (dir === 'same') {
+      same.push(slug);
+      state[slug] = { hash: digest(d.body), updatedAt: p.updatedAt };
+      stateChanged = true;
+    }
     else if (dir === 'conflict') conflicts.push({ slug, reason });
     else if (dir === 'pull') pull.push({ slug, post: { ...p, ...full }, reason });
     else push.push({ slug, draft: d, reason });
   }
 
-  console.log(`같음 ${same.length} / 올릴 것 ${push.length} / 내릴 것 ${pull.length} / 충돌 ${conflicts.length}\n`);
+  console.log(`블로그  같음 ${same.length} / 올릴 것 ${push.length} / 내릴 것 ${pull.length} / 충돌 ${conflicts.length}\n`);
   for (const x of push) console.log(`  ↑ 올린다  ${x.slug}  — ${x.reason}`);
   for (const x of pull) console.log(`  ↓ 내린다  ${x.slug}  — ${x.reason}`);
   for (const x of conflicts) console.log(`  ! 충돌  ${x.slug}  — ${x.reason}`);
   if (conflicts.length) {
     if (write) throw new Error('충돌이 있어 아무 글도 동기화하지 않았다. 양쪽 사본을 먼저 비교한다.');
     return;
+  }
+  // 이 파일은 방향을 정하는 근거가 아니라 「다시 안 받아도 되는 글」의 캐시다(근거는 초안의 updatedAt).
+  // 그래서 git 에 넣지 않고, 보기만 하는 실행에서도 적는다.
+  if (stateChanged) {
+    const sorted = Object.fromEntries(Object.keys(state).sort().map((k) => [k, state[k]]));
+    writeFileSync(STATE, `${JSON.stringify(sorted, null, 2)}\n`);
+    console.log(`캐시 -> ${STATE}`);
   }
   if (push.length + pull.length === 0) { console.log('맞출 것이 없다.'); return; }
 

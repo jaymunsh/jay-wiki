@@ -1,5 +1,9 @@
 # GitOps 위키 콘텐츠 동기화 runbook
 
+> **2026-10-22부터 배포는 위키를 쓰지 않는다.** 이 문서의 배포 안 Job(`sync-wiki-content-k8s.sh`)은
+> 비공개 deploy에서 빠졌고, 위키는 `node scripts/content-sync.mjs`로 운영과 대조해 옮긴다.
+> 내부 토큰 문(`/internal/content-sync/**`)과 그 경계는 그대로 쓴다. 아래는 이전 방식의 기록이다.
+
 ## 목적
 
 `scripts/seed-portfolio-wiki.mjs`의 검토된 tab·article을 운영 PostgreSQL과 동기화한다. 관리자 로그인과 TOTP를 우회하지 않고,
@@ -41,7 +45,7 @@ GIT_SHA="$(git rev-parse HEAD)" scripts/sync-wiki-content-k8s.sh
 scripts/seed-production-wiki.sh
 ~~~
 
-수동 관리자 write는 계속 `scripts/seed-production-wiki.sh --write`와 현재 TOTP를 사용한다.
+수동 관리자 write(`seed-production-wiki.sh --write`)는 2026-10-22에 막았다. `content-sync`를 쓴다.
 
 ## token 회전
 

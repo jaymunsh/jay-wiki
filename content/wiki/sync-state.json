@@ -1,0 +1,358 @@
+{
+  "account-secret-least-privilege-boundary": {
+    "hash": "c656b08dac95b59ad7afa4c90849d6411b049063e86ec46fd5a175f016a621a5",
+    "updatedAt": "2026-08-20T21:47:35.307367Z"
+  },
+  "admin-user-role-boundary": {
+    "hash": "be89e623b84d68246fadf2113e21573f128fa012e37071a1eeed2e43061da510",
+    "updatedAt": "2026-08-20T21:47:37.90935Z"
+  },
+  "ai-agent-keychain-production-auth-boundary": {
+    "hash": "0cc2b4b7c636a56946d2fb3bc8e6b0482e518df25882417345506f2e3924de99",
+    "updatedAt": "2026-08-20T21:47:37.219326Z"
+  },
+  "ai-assisted-development-harness": {
+    "hash": "f85866b34a99a4349257e05bb6ce73e46aca3b9ca49e11e32666a348565f72dd",
+    "updatedAt": "2026-09-02T17:06:55.56712Z"
+  },
+  "alerting-inventory-and-gaps": {
+    "hash": "66fe6d97c280dbd2915475fcbc6348d6017e219ffebb091e368241e78024dd2c",
+    "updatedAt": "2026-10-22T06:37:24.013757Z"
+  },
+  "all-in-one-deploy-build": {
+    "hash": "3cd9783afbd4aa0a4d123275d900d61f555d213c0fc2bba26b8cf390ae0a3bed",
+    "updatedAt": "2026-09-02T17:06:54.433082Z"
+  },
+  "api-error-contract": {
+    "hash": "615eef4db0e925a80892129317c05f69fbf2a7830f66d15c494ea08393e3fbaf",
+    "updatedAt": "2026-08-20T21:47:37.987048Z"
+  },
+  "audit-before-incident-default-open": {
+    "hash": "60c226c7056943540c2cc36331ad86bea53b2aa8b35c7d265787dada656455a1",
+    "updatedAt": "2026-08-20T21:47:35.39754Z"
+  },
+  "backup-r2-phase-b-plan": {
+    "hash": "53d36d8fea12806fa837538604a3a0aefb8c79e1f9a6cddf578f6ea8dfdaa3fa",
+    "updatedAt": "2026-10-22T06:37:23.337395Z"
+  },
+  "backup-scope-drift": {
+    "hash": "389e96c463dadee6b30f78d69eafac9dec9a7e836c676cfe5c9fbeecff3abb27",
+    "updatedAt": "2026-10-22T06:37:24.312676Z"
+  },
+  "bff-was-already-the-gateway": {
+    "hash": "65b10f6214df57a399206f00e9fb8b9d7d2f4d2907148fb7f2cefe51f7c9e1ee",
+    "updatedAt": "2026-08-21T00:20:41.652196Z"
+  },
+  "cicd-ghcr-runner": {
+    "hash": "c45e19700702dbceda8cc2c0008a7f76b0821010e5756d8c3fd950395aebc483",
+    "updatedAt": "2026-08-20T21:47:35.550861Z"
+  },
+  "cloudflare-tunnel-config-postmortem": {
+    "hash": "405334dd9304acf9b7de9c7dec63bdaf86694995a0d129e8ff1fe71615aa89fa",
+    "updatedAt": "2026-08-20T21:47:37.674469Z"
+  },
+  "cloudflared-reload-cut-the-ssh-path": {
+    "hash": "d7a97b987828d4611d1721111a08fb923c2319b9e55bdf35b75648c4229f35bb",
+    "updatedAt": "2026-08-20T21:47:37.633495Z"
+  },
+  "content-origin-and-history-boundary": {
+    "hash": "0158e1b35e5fcc9d78f272a0a0ca547120c5de73a4f803628737791b7249720e",
+    "updatedAt": "2026-08-20T21:47:34.223085Z"
+  },
+  "db-schema-erd-map": {
+    "hash": "b86038e7ac1df37b73487b0335b41982011d8d09c4b7b71a9e6787fb018f2263",
+    "updatedAt": "2026-09-07T06:55:26.716711Z"
+  },
+  "deploy-automation-boundary": {
+    "hash": "e56ea5e01211f04bc8e4878a85819a7ccf692942127d01e45dd13efcf72a9455",
+    "updatedAt": "2026-08-20T21:47:36.220596Z"
+  },
+  "deploy-rules-and-harness": {
+    "hash": "e13223272bb6bea0669350873d32e1e3056dd7740c4e190595dd67aaf6c868cc",
+    "updatedAt": "2026-08-23T13:53:55.356967Z"
+  },
+  "development-delivery-evidence-loop": {
+    "hash": "fa34e943ae1483dceedd980c8d8066e434f8af95f58adf99ea6ca1cb3d64d2c8",
+    "updatedAt": "2026-08-20T21:47:37.001106Z"
+  },
+  "evidence-maturity-and-claim-boundary": {
+    "hash": "66f145e3f9f25f3f05bae7312152324be3a1462ab7602c4bd71c8737652b10bd",
+    "updatedAt": "2026-08-20T21:47:37.122708Z"
+  },
+  "frontend-payload-and-rendering-rules": {
+    "hash": "fbeb9a51028343e80602fd8e7e571252bf57d033c1bf1bf2203e325ad045c95e",
+    "updatedAt": "2026-08-21T00:20:39.390499Z"
+  },
+  "frontend-performance-measured": {
+    "hash": "70de324da2912824d6a9839736045c92bfaa0d71e0af3c3928c48f8c5d7ab4c5",
+    "updatedAt": "2026-08-20T21:47:35.123496Z"
+  },
+  "gitops-wiki-content-sync-boundary": {
+    "hash": "fa91814e63b654993407c215c85a508f847c16f87c87966df5c1671c1cabbf19",
+    "updatedAt": "2026-08-20T21:47:35.770647Z"
+  },
+  "grafana-reading-an-alert": {
+    "hash": "e86607cf72616ce1c7c6e69bd02933c3a4c5ba0866084aaad8cd79650842afd7",
+    "updatedAt": "2026-09-07T06:55:27.701134Z"
+  },
+  "helm-releases-and-boundary": {
+    "hash": "57a356a9400c6885150444a0868d29c1c9c65243f24ee3722e24f34ba2501689",
+    "updatedAt": "2026-08-21T00:20:40.897188Z"
+  },
+  "hpa-service-control": {
+    "hash": "7454958fe5483251293ee0ad98d2d81d01356c15baabc7006fe66625c4b5569c",
+    "updatedAt": "2026-08-25T12:28:34.46997Z"
+  },
+  "hypothesis-driven-debugging-loop": {
+    "hash": "015ead46f2668df2d3e967f9c1bbd7e92e127d6c5d12e86a8f7b1e6933368f5e",
+    "updatedAt": "2026-08-20T21:47:37.054361Z"
+  },
+  "idempotency-key-in-payment-row": {
+    "hash": "cefc7ffb2df769d0b36baaaaeb9e0988db882b66597cdd2659fc75a0944a3f9a",
+    "updatedAt": "2026-09-07T06:55:27.901448Z"
+  },
+  "image-that-never-pulled": {
+    "hash": "4cffc5bf455eeb56ec5fbe4b231593dac3ec95eb10cd55258aa265a9a88ee08b",
+    "updatedAt": "2026-08-21T00:20:41.158716Z"
+  },
+  "jaywiki-full-map": {
+    "hash": "89ad522989e23b6c88173e679c0627d1926a94882312e6e1cec37f190fc1f92a",
+    "updatedAt": "2026-08-23T13:53:54.399216Z"
+  },
+  "jaywiki-main-map": {
+    "hash": "c41e2bc39bd685b44f40f66e96843f271df1df8ff587085fffea30556a53e585",
+    "updatedAt": "2026-08-23T13:53:53.388448Z"
+  },
+  "k3s-manifest-boundaries": {
+    "hash": "1a0630e54a9cedd478cf8fb8d557dbfa57b16755ab39d15f08f205acf001d4fd",
+    "updatedAt": "2026-08-20T21:47:37.754835Z"
+  },
+  "kafka-dlq-rehearsal": {
+    "hash": "da38f1c76c78f6457a779e80883d750b77c81e9b13fc3fdbefe9c08052b2efe1",
+    "updatedAt": "2026-08-21T00:20:41.342574Z"
+  },
+  "kafka-that-never-crossed-a-process": {
+    "hash": "5a5bc0391ba8893beb24dc5aa590f65bc04264e20fe9b5d4dbb8c9724626ecf1",
+    "updatedAt": "2026-08-18T03:57:28.940292Z"
+  },
+  "markdown-security-and-admin-edit-boundary": {
+    "hash": "95b83e9d9b81f6c0653c18db354aa69d4bd42460b2b578a2dca5087d596f33ed",
+    "updatedAt": "2026-08-20T21:47:35.217736Z"
+  },
+  "minio-portfolio-assets": {
+    "hash": "12239231896a0e4ffceb980cb3eb7f47e373b2b848caa61dbe1d0486de22e96f",
+    "updatedAt": "2026-08-20T21:47:38.2013Z"
+  },
+  "minio-public-asset-governance": {
+    "hash": "4eaa4598998e86f23a836f67fbcb2c0a61f0579f61caa5e20071aeaf3a0f8d64",
+    "updatedAt": "2026-09-01T20:10:40.249218Z"
+  },
+  "minipc-boundary-decision": {
+    "hash": "3ae576dda10a2392567d9912e3a63acdb7f7a7d95f6403c8e7cc8cd5ce643db8",
+    "updatedAt": "2026-08-20T21:47:37.714547Z"
+  },
+  "minipc-command-runbook": {
+    "hash": "ab2615886ab599fe902d51af131770870be81ea502b8516ea67372da612e88c9",
+    "updatedAt": "2026-08-20T21:47:35.938961Z"
+  },
+  "minipc-hardware-capacity-design": {
+    "hash": "12f7537af26f852363ceb4d2662e9abc930a1d4e5c34e788fea3e5d6208f8881",
+    "updatedAt": "2026-08-20T21:47:33.562054Z"
+  },
+  "minipc-k3s-cloudflare": {
+    "hash": "ca59034163e0ef33288818db7e444444ce66938de036ff4d3790466b7d5ae6fb",
+    "updatedAt": "2026-08-20T21:47:33.933091Z"
+  },
+  "minipc-reboot-recovery-drill": {
+    "hash": "44d7d950d81ff76efe297196a4851d1a1d1a5d36a869914a52914b43e0ae6a35",
+    "updatedAt": "2026-08-21T00:20:41.036613Z"
+  },
+  "msa-data-ownership-split": {
+    "hash": "cecb511dcdcd612d92ad0c24b6fd6b58f7ad002dff2775edb65b3ecf4cdc416f",
+    "updatedAt": "2026-08-21T00:20:41.480846Z"
+  },
+  "never-exercised-code": {
+    "hash": "82ec9f20ab754b6e2e45b2c5f5c4494fcc0b1fea92869bf40bacffc5732723eb",
+    "updatedAt": "2026-10-22T06:37:23.954224Z"
+  },
+  "nextjs-frontend-redesign": {
+    "hash": "f66cde3956b3dc79ced68a6c6aaf72aff1d60b147d3600b878cd97b88162e966",
+    "updatedAt": "2026-08-23T13:53:55.049516Z"
+  },
+  "oauth-logout-session": {
+    "hash": "7b41bd9a7daf384af317c65be8d7ab85589ce9aac6d78a47c28a18f37bae3670",
+    "updatedAt": "2026-08-20T21:47:38.017273Z"
+  },
+  "oauth-public-origin-smoke": {
+    "hash": "31e1b5b0354f1da11fb0636fdbfd545bcea3a26617dcfa37548614dbef8203f9",
+    "updatedAt": "2026-08-21T00:20:41.092456Z"
+  },
+  "observability-loki-tempo-grafana": {
+    "hash": "2acb47da93bf421d8093909973b3ba8fb3ec4e18d9547923a3450d38b68b1898",
+    "updatedAt": "2026-08-20T21:47:35.495739Z"
+  },
+  "observability-telegram": {
+    "hash": "b14ff6f3e8329cbc7328e612b51c8719b35c427208d130f702e70f1548d53476",
+    "updatedAt": "2026-08-20T21:47:38.682085Z"
+  },
+  "open-source-license-content-governance": {
+    "hash": "9182b4de83447159aac7be62b5475aebe36d655bd8ec706bbed4061d036f3b79",
+    "updatedAt": "2026-08-20T21:47:36.795516Z"
+  },
+  "opensearch-nori-image": {
+    "hash": "fe6b9bc180c5795669220b8078692e064dc6986030269acd853fda637e47f836",
+    "updatedAt": "2026-08-20T21:47:38.123758Z"
+  },
+  "orchestration-map-walkthrough": {
+    "hash": "a466d228d3b54d1e518f8d1579428440eccabb61939e3ea1cf4aa771523ad967",
+    "updatedAt": "2026-08-20T21:47:32.206863Z"
+  },
+  "participant-down-compensation": {
+    "hash": "cd10957118afdc8b2aef0e1422c19d6d70cdfada762b616f1a6bcce631dd4e5b",
+    "updatedAt": "2026-08-20T21:47:39.070777Z"
+  },
+  "personal-service-legal-launch-boundary": {
+    "hash": "d8e35448ba71f8a1112405bcfdbf40973302c7c3769d8556533b3920f5c55472",
+    "updatedAt": "2026-08-20T21:47:36.904034Z"
+  },
+  "portfolio-retrospective-map": {
+    "hash": "28a53a65667f9321daee9a3b0655758adeb1cc4cf964cef4ca7f8b52110e207b",
+    "updatedAt": "2026-08-20T21:47:37.388318Z"
+  },
+  "postgres-backup-artifact-verification": {
+    "hash": "4ce50127a7febf2b064b0e0c87698720fc9bebc7c4be81933d571ba48f6a82ba",
+    "updatedAt": "2026-08-21T00:20:41.436987Z"
+  },
+  "postgres-backup-restore": {
+    "hash": "20dda761578f1a02c9c8b60e378973a88d87158ced37df4afebaf0549168cd7e",
+    "updatedAt": "2026-10-22T06:37:21.742319Z"
+  },
+  "postgres-db-wiki-revision": {
+    "hash": "c44f06dc6756a5665604a6594e63aeef6df3fc2636c88e4ea75580a39dff3610",
+    "updatedAt": "2026-08-20T21:47:34.033438Z"
+  },
+  "postgres-restore-drill-1": {
+    "hash": "c29233fa7ad79bea31d020efda8e8862f0b068f8de5a3aae8382f2fe10a8dd66",
+    "updatedAt": "2026-08-20T21:47:38.051211Z"
+  },
+  "production-content-sync-and-rollout": {
+    "hash": "329743e142ce3707fe898af41b00e3e4301a9735049c8447b9bf33399d66d7e0",
+    "updatedAt": "2026-08-20T21:47:38.47993Z"
+  },
+  "production-static-asset-recovery": {
+    "hash": "3dc7ec09d3a53d2ddf2ff948ca967dab7fbf84c4520940f7161c9b3a87eb0b2b",
+    "updatedAt": "2026-08-20T21:47:38.584558Z"
+  },
+  "reboot-cadence-and-storage-growth-boundary": {
+    "hash": "16f35ca0c588eb4b8145bc4950078ec4cd1ce9d301ade671e34984f8412e905d",
+    "updatedAt": "2026-08-21T00:20:40.518427Z"
+  },
+  "reboot-visibility-alerts": {
+    "hash": "511e7e5bfee2cc0e339968a516814040004ab187c5059e701dfa4c35b58be6eb",
+    "updatedAt": "2026-08-25T12:28:33.609373Z"
+  },
+  "redis-random-chat-queue": {
+    "hash": "b56f13fa4c517b0120d6f5e590264a2b17c76548136acaac61633ec3e147cbd2",
+    "updatedAt": "2026-08-20T21:47:36.684375Z"
+  },
+  "release-record-one-run": {
+    "hash": "4c085ced16fcea9d7132bdc95c8273339503ae6140adc0087ef450026926337d",
+    "updatedAt": "2026-08-20T21:47:38.388534Z"
+  },
+  "responsive-navigation-regression-check": {
+    "hash": "16440bb299eb7722f40b2fc97c22a122ea8dea290fd3512c2b85b19ef6ccf00c",
+    "updatedAt": "2026-08-20T21:47:38.627981Z"
+  },
+  "roadmap-after-content": {
+    "hash": "eeb1064f2cfc5e8eec46b3ab4f72358deb1aa82bff7575532d6714e56e2ec76d",
+    "updatedAt": "2026-10-22T06:37:24.222898Z"
+  },
+  "saga-kafka-outbox-order": {
+    "hash": "115bcd1eed9de54dc0666cda4dc69cccef4fcbddbab86a3fd7f89d6d47993caa",
+    "updatedAt": "2026-08-20T21:47:36.626262Z"
+  },
+  "saga-trace-service-graph-verification": {
+    "hash": "cd656b50f794a5706c958b528d95f36a37671cb9ebda2f4833339265ad968b4a",
+    "updatedAt": "2026-08-20T21:47:38.547083Z"
+  },
+  "scenario-badges-two-axes": {
+    "hash": "664bcd713ff1643d3a41cc58fc39e54763cd308f5940821992377e93c15c8b11",
+    "updatedAt": "2026-08-20T21:47:39.022428Z"
+  },
+  "schema-simplification": {
+    "hash": "ee3306038cbb10e455d4f7b566d16a065f4de70eab5d4db28a5c0fa7e81d71f5",
+    "updatedAt": "2026-08-20T21:47:34.324771Z"
+  },
+  "search-comparison-100k": {
+    "hash": "347eae8e216fbf6e3e6751ded0e650d3f01b57af91638e07e99cb91603d8959f",
+    "updatedAt": "2026-08-20T21:47:36.729536Z"
+  },
+  "search-comparison-results": {
+    "hash": "6c2fd8c4a9a9a9fdce9a2903de6aeaf49062415457eb0ccec0d17569d93b5165",
+    "updatedAt": "2026-08-20T21:47:38.089251Z"
+  },
+  "session-crossed-three-pods": {
+    "hash": "7157cbd2c7257e22a25307107f4c896a4d6ce827330754a0c1449f842ab7469e",
+    "updatedAt": "2026-08-21T00:20:41.246749Z"
+  },
+  "silent-500-alert-gap": {
+    "hash": "8d3e9c4d98d5f0c87b1964c07d1b96291ffddb93a0c79b5edfca7910de009775",
+    "updatedAt": "2026-08-20T21:47:37.526308Z"
+  },
+  "spring-bff-auth-boundary": {
+    "hash": "e30c5e128de09288090dc0088b3527711206bde58c7cf35a9d8e7473e27be469",
+    "updatedAt": "2026-08-20T21:47:34.726889Z"
+  },
+  "spring-fastapi-payment-contract": {
+    "hash": "366f0c5b753287a6ecb2486b62135849215f6f3e0b479eaefe3c7fbb01d15438",
+    "updatedAt": "2026-08-20T21:47:37.950844Z"
+  },
+  "troubleshooting-log": {
+    "hash": "49607ed548506ba6ceb5d7d0e8d86e98e063b4e6253291215628747bee8ba59e",
+    "updatedAt": "2026-08-21T00:20:40.986361Z"
+  },
+  "watchdog-outside-the-cluster": {
+    "hash": "93aa440fdc2859eb7cfeb7a5fb6e04c7e131de20cb363a20c50d768836284e86",
+    "updatedAt": "2026-08-20T21:47:36.569863Z"
+  },
+  "why-a-second-postgres-instance": {
+    "hash": "dabc8a7a43aa56017111c3ea423f342741377e5f8c8dd7f8b1a820c19ccaca3c",
+    "updatedAt": "2026-08-20T21:47:38.82068Z"
+  },
+  "why-only-five-services": {
+    "hash": "d9c5bc4b83daa7437deb1c7a8a0e75811ce8f281a83b6c8fade9f22f8e544013",
+    "updatedAt": "2026-08-20T21:47:38.915213Z"
+  },
+  "wiki-content-asset-retention-governance": {
+    "hash": "f3cd273f7e17720c34ed46dc70cb332725be8278526d64b8f368390255d9e34e",
+    "updatedAt": "2026-08-20T21:47:36.845618Z"
+  },
+  "wiki-fact-check-51-articles": {
+    "hash": "97d2a1b18c2db9f02fbc73ebfa9e64bf73e1553bb1252a8467e312e61efd8d4b",
+    "updatedAt": "2026-08-20T21:47:37.267871Z"
+  },
+  "wiki-image-asset-lifecycle": {
+    "hash": "445a7408e358ac2be681e2417d096ac6e7017e11a32df2d50a4f74eacf6b45bc",
+    "updatedAt": "2026-08-20T21:47:35.663548Z"
+  },
+  "wiki-information-architecture-rebuild": {
+    "hash": "bdd73493b9eab47d4851532c605ab9197e636d34e36b2a1df13f73f9b038ffe2",
+    "updatedAt": "2026-08-20T21:47:37.33966Z"
+  },
+  "wiki-navigation-and-responsive-stability": {
+    "hash": "a4ffeb224568fb1413781f3aebcec05de03c4c7270ca3f705c736b118b3eb51b",
+    "updatedAt": "2026-08-20T21:47:34.889213Z"
+  },
+  "wiki-writing-harness": {
+    "hash": "40edf063a5281634528a4542864ca371ac61616da0f20f9d098f6cdbd1f6f830",
+    "updatedAt": "2026-08-19T05:59:14.568038Z"
+  },
+  "wrong-address-routing": {
+    "hash": "d2a37b3b71a29d6ead04ab0e89c4b482a9b3a5281c7a7279586c938669e07c01",
+    "updatedAt": "2026-08-20T21:47:35.043498Z"
+  },
+  "zero-downtime-on-one-machine": {
+    "hash": "b6aab951138c26cc48324e6f5f38f0b6c6cf62fff11ed9b3bf95dc46660323f8",
+    "updatedAt": "2026-08-20T21:47:37.793301Z"
+  }
+}

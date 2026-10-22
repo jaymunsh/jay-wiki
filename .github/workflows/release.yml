@@ -5,7 +5,6 @@ on:
     branches:
       - main
     paths:
-      - "content/wiki/**"
       - ".github/workflows/release.yml"
       - "infra/k8s/**"
       - "infra/opensearch/**"
@@ -107,28 +106,12 @@ jobs:
           npm test
           npm audit --omit=dev --audit-level=high
 
-      # 시드 안에서 끝나는 검사만 돈다. 운영 대조(유령 글·탭)는 배포로만 지워지는 상태라
-      # 배포 전 검사에 넣으면 배포 자체를 막는다 — 그건 docs/deploy-runbook.md 의 사람 절차다.
-      - name: Check wiki seed consistency
-        run: node scripts/check-wiki-consistency.mjs --seed-only
-
-      - name: Check blog internal links
-        run: node scripts/check-blog-links.mjs
-
       # Blog drafts use a bounded exec transfer bundle; wiki still uses a compressed ConfigMap.
       - name: Check blog transfer bundle size
         run: scripts/check-blog-draft-size.sh
 
-      # 위키 시드도 같은 짐칸을 쓴다. 이쪽은 한 파일이 통째로 들어가 원문만 816KB 다.
-      - name: Check wiki seed fits in a ConfigMap
-        run: scripts/check-wiki-seed-size.sh
-
-      # export 는 시드에서 기계로 뽑는 파생물이다. 사람이 안 돌리면 조용히 낡는다 —
-      # 실제로 파서가 깨진 채 49편에서 20편이 빠져 있었고 아무도 몰랐다.
-      - name: Check wiki markdown export is current
-        run: |
-          node scripts/export-portfolio-wiki.mjs
-          git diff --exit-code -- posts/jay-wiki
+      # 위키·블로그 글 검사는 PR CI(Documentation consistency)로 옮겼다. 위키는 이미지에
+      # 들어가지 않고, 배포도 글을 쓰지 않는다 -- 글은 scripts/content-sync.mjs 로만 운영에 간다.
 
       - name: Set up uv
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7

@@ -4,7 +4,8 @@
 그래서 **훑는 부분은 모든 글이 같고, 파는 부분은 글의 종류를 따른다.**
 
 위키 본문 원본은 `content/wiki/articles/<slug>.md`, 메타데이터는 `content/wiki/manifest.json`이다.
-`scripts/seed-portfolio-wiki.mjs`가 이를 읽어 운영 PostgreSQL에 반영한다.
+로컬 DB에는 `scripts/seed-portfolio-wiki.mjs`가, 운영에는 `scripts/content-sync.mjs`가 반영한다.
+운영 관리 화면에서 고친 글은 `content-sync`가 이 파일로 내려받으므로, 다시 쓰기 전에 먼저 돌려 본다.
 
 ## 세 줄 요약 — 모든 글이 이 목록으로 시작한다
 
@@ -96,7 +97,7 @@ node scripts/check-wiki-paragraphs.mjs        # 300자 넘는 산문 문단을 �
 
 ```bash
 node scripts/seed-portfolio-wiki.mjs --dry-run   # 중복 slug·고아 글
-node scripts/check-wiki-consistency.mjs          # 운영과 시드의 어긋남
+node scripts/content-sync.mjs                    # 운영과 대조 (바뀐 글만 본문을 받는다)
 ```
 
 ```python
