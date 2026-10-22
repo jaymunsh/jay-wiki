@@ -22,6 +22,17 @@ alertmanager:
     # promtail·Loki·로그 형식까지 성해야 돈다. 둘 다 둔다.
     # 다만 같은 사고를 둘이 함께 잡았을 때는 상세한 쪽만 보낸다.
     # equal 에 status 까지 넣는다. 같은 경로에서 400 과 500 이 함께 나면 서로 다른 사고다.
+    # 밤 시간(KST 23:00~08:00). 참고 알림을 무음으로 돌리는 데 쓴다.
+    time_intervals:
+      - name: night-kst
+        time_intervals:
+          - times:
+              - start_time: "23:00"
+                end_time: "24:00"
+              - start_time: "00:00"
+                end_time: "08:00"
+            location: Asia/Seoul
+
     inhibit_rules:
       - source_matchers:
           - alertname="JaywikiApiErrorLogged"
@@ -64,9 +75,26 @@ alertmanager:
           matchers:
             - alertname="NodeUptimeLong"
           repeat_interval: 24h
+          mute_time_intervals: [night-kst]
+        # 지표 알림은 로그 알림보다 20초쯤 먼저 뜬다. 억제는 「보내는 순간 원인 알림이 떠 있나」로
+        # 판단해서, 먼저 나간 지표 알림은 못 접는다. 2026-10-22 에 요청 하나로 두 통이 왔다.
+        # 60초 기다리면 그사이 로그 알림이 떠서 지표 알림을 접는다. 로그가 못 잡은 오류만 이쪽으로 나간다.
         - receiver: telegram
           matchers:
-            - severity="warning"
+            - alertname=~"JaywikiApi(5xx|400)Observed"
+          group_wait: 60s
+        # 참고(info) 알림은 밤에 무음으로 보낸다. 04:00 자동 재부팅 같은 것이 새벽에 울리지 않게 한다.
+        # 첫 라우트가 밤에만 켜져 무음 수신자로 보내고, continue 로 다음 라우트에도 내려가지만
+        # 다음 라우트는 밤에 꺼져 있어 두 번 가지 않는다.
+        - receiver: telegram-quiet
+          matchers:
+            - severity="info"
+          active_time_intervals: [night-kst]
+          continue: true
+        - receiver: telegram
+          matchers:
+            - severity="info"
+          mute_time_intervals: [night-kst]
 
     receivers:
       - name: telegram
@@ -87,19 +115,48 @@ alertmanager:
             # 대신 줄마다 라벨이 있을 때만 그린다. 없는 값을 빈 칸으로 내보내지 않는다 —
             # 403 규칙은 status 라벨이 없어서 '에러코드: ' 뒤가 비어 있었다.
             # 예외 본문과 trace_id 는 지표 경로에 없다 — 로그 링크가 그 자리다.
-            message: |-
-              🚨 <b>[jay-wiki] {{ .GroupLabels.alertname }}</b>
+            # 첫 줄만 보고 급한지 안다: 🔴 critical 바로 · 🟡 warning 오늘 안에 · 🔵 info 참고.
+            # 기존 항목(시간·내용·네임스페이스·Pod·에러코드·에러경로·Trace·설명)은 하나도 빼지 않고
+            # 「무엇이 / 언제·어디서 / 설명 / 할 일」로 묶기만 했다. 규칙 이름은 맨 아래로 내렸다.
+            # 링크의 검색어에는 공백을 넣지 않는다. urlquery 가 공백을 + 로 바꾸고 그 + 가 &#43; 로 나간다.
+            # 링크의 & 는 &amp; 로 쓴다. parse_mode HTML 이라 날것의 & 는 텔레그램이 거절한다.
+            message: &jaywiki_message |-
+              {{ if eq .CommonLabels.severity "critical" }}🔴{{ else if eq .CommonLabels.severity "info" }}🔵{{ else }}🟡{{ end }} <b>{{ with .CommonAnnotations.title }}{{ . }}{{ else }}{{ .GroupLabels.alertname }}{{ end }}</b>{{ if gt (len .Alerts) 1 }} · {{ len .Alerts }}건{{ end }}
               {{ range .Alerts }}
-              • 시간: {{ .StartsAt.Local.Format "2006-01-02 15:04:05 MST" }}
               {{ with .Annotations.summary }}• 내용: {{ . }}
-              {{ end }}{{ with .Labels.namespace }}• 네임스페이스: <code>{{ . }}</code>
-              {{ end }}{{ with .Labels.pod }}• Pod: <code>{{ . }}</code>
-              {{ end }}{{ with .Labels.status }}• 에러코드: <code>{{ . }}</code>
+              {{ end }}{{ if or .Labels.status .Labels.uri }}
+              <b>무엇이</b>
+              {{ with .Labels.status }}• 에러코드: <code>{{ . }}</code>
               {{ end }}{{ if .Labels.uri }}• 에러경로: <code>{{ .Labels.method }} {{ if .Labels.path }}{{ .Labels.path }}{{ else }}{{ .Labels.uri }}{{ end }}</code>
+              {{ end }}{{ if and .Labels.path .Labels.uri }}{{ if ne .Labels.path .Labels.uri }}• 라우트: <code>{{ .Labels.uri }}</code>
+              {{ end }}{{ end }}{{ end }}
+              <b>언제·어디서</b>
+              • 시간: {{ .StartsAt.Local.Format "01/02 15:04:05" }}
+              {{ with .Labels.namespace }}• 네임스페이스: <code>{{ . }}</code>
+              {{ end }}{{ with .Labels.pod }}• Pod: <code>{{ . }}</code>
+              {{ end }}{{ with .Labels.job_name }}• Job: <code>{{ . }}</code>
               {{ end }}{{ with .Labels.trace_id }}• Trace: <code>{{ . }}</code>
-              {{ end }}{{ with .Annotations.description }}{{ . }}
-              {{ end }}🔗 <a href="https://grafana.leneu.cloud/explore">로그 상세 확인</a>
+              {{ end }}{{ with .Annotations.description }}
+              <b>설명</b>
+              {{ . }}
+              {{ end }}{{ with .Annotations.action }}
+              <b>할 일</b>
+              {{ . }}
               {{ end }}
+              {{ if .Labels.trace_id }}🔗 <a href="https://grafana.leneu.cloud/explore?schemaVersion=1&amp;panes={{ printf `{"a":{"datasource":"loki","queries":[{"refId":"A","expr":"{namespace=\"backend\"}|=\"%s\"","datasource":{"type":"loki","uid":"loki"}}],"range":{"from":"now-1h","to":"now"}}}` .Labels.trace_id | urlquery }}">이 요청의 로그</a> · <a href="https://grafana.leneu.cloud/explore?schemaVersion=1&amp;panes={{ printf `{"a":{"datasource":"tempo","queries":[{"refId":"A","queryType":"traceql","query":"%s","datasource":{"type":"tempo","uid":"tempo"}}],"range":{"from":"now-1h","to":"now"}}}` .Labels.trace_id | urlquery }}">trace</a>{{ else if .Labels.uri }}🔗 <a href="https://grafana.leneu.cloud/explore?schemaVersion=1&amp;panes={{ `{"a":{"datasource":"loki","queries":[{"refId":"A","expr":"{namespace=\"backend\"}|~\"unhandled.exception|unreadable.request.body\"","datasource":{"type":"loki","uid":"loki"}}],"range":{"from":"now-1h","to":"now"}}}` | urlquery }}">최근 오류 로그</a>{{ else }}🔗 <a href="https://grafana.leneu.cloud/explore">Grafana 열기</a>{{ end }}
+              {{ end }}
+              <i>{{ .GroupLabels.alertname }}</i>
+
+      # 참고(info) 알림의 밤 시간 수신자. 내용은 같고 소리만 끈다.
+      - name: telegram-quiet
+        telegram_configs:
+          - send_resolved: false
+            api_url: https://api.telegram.org
+            bot_token_file: /etc/alertmanager/secrets/telegram/bot-token
+            chat_id_file: /etc/alertmanager/secrets/telegram/chat-id
+            parse_mode: HTML
+            disable_notifications: true
+            message: *jaywiki_message
 
       # dead man's switch 의 바깥쪽. Watchdog 이 도착하는 것을 healthchecks.io 가 세고,
       # 끊기면 저쪽이 자기 채널로 알린다. 판정자가 이 클러스터 밖에 있어야 하는 이유는
