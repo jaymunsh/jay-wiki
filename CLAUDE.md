@@ -16,7 +16,7 @@
 GitHub-hosted runner에서 검사하고 전체 SHA의 이미지 7개를 GHCR에 만든 뒤 종료한다.
 운영은 별도 비공개 `jaymunsh/jay-wiki-ops-private`가 선택한 SHA로 수행한다.
 
-기본 브랜치는 `develop`이므로 운영용 소스 PR에는 `--base main`을 명시한다.
+GitHub 기본 브랜치는 `main`이다(예약 workflow도 main에서 돈다). 작업 브랜치는 `develop`이고, PR은 `--base main`을 명시한다.
 
 | 사용자 의도 | 실행 범위 |
 |---|---|

@@ -32,6 +32,7 @@ node scripts/export-portfolio-wiki.mjs                  # posts/jay-wiki 갱신.
 
 ## 운영 반영
 
-위키 원본은 공개 `main`의 `content/wiki`다. 지금은 비공개 운영 배포의 동기화 단계가
-release SHA의 원본을 운영 DB에 쓴다(`private/docs/daily-operations.md`). 공개 `main` 머지만으로는
-운영 화면이 바뀌지 않는다. 운영 반영은 사용자가 명시적으로 요청할 때만 한다.
+위키 원본은 `content/wiki`다. 배포는 글을 쓰지 않는다(2026-10-22). 운영에는
+`node scripts/content-sync.mjs`로 대조한 뒤 커밋하고 `--write <slug>`로 그 글만 옮긴다.
+덮기 전 운영 사본은 `.local-backups/wiki-sync-*`에 남고, 바뀐 `content/wiki/sync-state.json`을 커밋한다.
+운영 반영은 사용자가 명시적으로 요청할 때만 한다.
