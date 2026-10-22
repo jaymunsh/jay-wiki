@@ -6,8 +6,8 @@
  * 도구이고, 올린 뒤 화면에서 고친 내용은 파일로 되돌아오지 않는다. 같은 slug 를 다시 올리면
  * 화면에서 고친 것이 덮인다. 그게 곤란하면 관리자 화면에서 직접 고친다.
  *
- * 인증은 위키 seed 와 같은 경계를 쓴다. 비밀번호는 Keychain 에서 래퍼가 읽어 넘기고,
- * TOTP 는 사람이 그 자리에서 넣는다. 이 파일은 둘 다 저장하지 않는다.
+ * 운영에는 내부 토큰(JAYWIKI_INTERNAL_SYNC_TOKEN)으로만 쓴다. publish-blog-post.mjs 가 터널을 열고 넘긴다.
+ * 토큰이 없으면 로컬 관리자 로그인으로 로컬 서버에만 쓴다(미리보기). 운영 TOTP 경로는 2026-10-22 에 지웠다.
  *
  * 초안 머리말은 첫 `---` 위의 `key: value` 줄이다.
  *   title / slug / category / tags / summary / toc(선택, 기본 true)
@@ -19,12 +19,11 @@ import { cloudflareAccessHeaders } from './lib/cloudflare-access.mjs';
 const API_BASE = process.env.JAYWIKI_API_BASE ?? 'https://admin.leneu.cloud/api/bff';
 const USERNAME = process.env.JAYWIKI_ADMIN_USERNAME ?? 'admin';
 const PASSWORD = process.env.JAYWIKI_ADMIN_PASSWORD ?? '';
-const OTP = process.env.JAYWIKI_ADMIN_OTP ?? '';
 const DRAFT_DIR = process.env.BLOG_DRAFT_DIR ?? 'posts/jay-blog/drafts';
 // 클러스터 안에서 도는 판. 관리자 로그인 대신 토큰 하나를 쓰고, 무엇이 바뀌었는지는
 // 서버가 판단한다(BlogContentSyncService). 위키 시드가 쓰는 것과 같은 문이다.
 const INTERNAL_SYNC_TOKEN = process.env.JAYWIKI_INTERNAL_SYNC_TOKEN?.trim() ?? '';
-// /sync 의 「블로그 반영」은 로컬이 정본이다. 그러면 발행일도 로컬 것이 맞다 --
+// 로컬에서 먼저 본 초안이면 발행일도 로컬 것이 맞다 --
 // 로컬 화면에서 본 날짜가 그대로 나가야 한다. 공개 목록에 slug 와 publishedAt 이
 // 함께 있어서 인증 없이 읽는다. 안 주면 대상 서버의 기존 발행일을 그대로 둔다.
 const LOCAL_API_BASE = process.env.JAYWIKI_LOCAL_API_BASE?.trim() ?? '';
@@ -60,7 +59,7 @@ async function login() {
   const res = await fetch(`${API_BASE}/auth/admin-login`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', origin: new URL(API_BASE).origin, ...ACCESS_HEADERS },
-    body: JSON.stringify({ username: USERNAME, password: PASSWORD, ...(OTP ? { otp: OTP } : {}) }),
+    body: JSON.stringify({ username: USERNAME, password: PASSWORD }),
   });
   if (!res.ok) throw new Error(`admin login failed: ${res.status} ${await res.text()}`);
   const setCookie = res.headers.get('set-cookie');
@@ -335,13 +334,11 @@ async function main() {
   if (initializeBaselines && !INTERNAL_SYNC_TOKEN) {
     throw new Error('--initialize-baselines requires internal sync authentication; it never uses admin publication');
   }
-  // 로컬은 예외다. 초안을 화면에서 보려면 어딘가에 한 번 올려야 하는데, 그때마다 운영에
-  // 올릴 수는 없다. 로컬 관리자에는 2FA 가 없어서 TOTP 를 요구하면 미리보기 길이 막힌다.
-  // 판정은 주소로 한다 — pull-blog-post.mjs 의 --seed-local 과 같은 기준이다.
+  // 토큰 없이는 로컬에만 쓴다. 판정은 주소로 한다 — pull-blog-post.mjs 의 --seed-local 과 같은 기준이다.
   const local = /^https?:\/\/(?:admin\.)?(?:localhost|127\.0\.0\.1)(?::|\/|$)/.test(API_BASE);
   if (!INTERNAL_SYNC_TOKEN) {
-    if (!PASSWORD) throw new Error('JAYWIKI_ADMIN_PASSWORD 가 없다. scripts/publish-blog-drafts.sh 로 실행한다.');
-    if (!OTP && !local) throw new Error("TOTP 가 없다. scripts/publish-blog-drafts.sh 로 실행한다.");
+    if (!local) throw new Error('운영 발행은 scripts/publish-blog-post.mjs 로 한다(내부 토큰). 토큰 없이는 로컬에만 쓴다.');
+    if (!PASSWORD) throw new Error('JAYWIKI_ADMIN_PASSWORD 가 없다(로컬 관리자 비밀번호).');
   }
 
   const files = only.length

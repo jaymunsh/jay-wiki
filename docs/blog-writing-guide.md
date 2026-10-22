@@ -40,8 +40,6 @@ publishedAt: 2026-08-25T02:26:30.487314Z
 |---|---|
 | `blog-sync.mjs --write` | 내려받은 글은 `stamp-blog-dates.mjs` 로 머리말에 새긴다 |
 | `publish-blog-post.mjs --write` | 저장소 머리말의 값을 그대로 운영에 실어 보낸다 |
-| `/sync` 의 「블로그 반영」 (옛 경로) | 발행 뒤 `--stamp-dates` 가 머리말에 적는다 |
-| `publish-blog-drafts.sh` (옛 경로) | 로컬 API 의 발행일을 실어 보낸다 |
 | `sync-local-from-prod.sh blog` | 운영 발행일을 머리말에 새긴다 |
 | 아무 때나 손으로 | `node scripts/stamp-blog-dates.mjs --write` |
 
@@ -201,16 +199,16 @@ JAYWIKI_API_BASE=http://localhost:8080/api JAYWIKI_ADMIN_PASSWORD=admin1234 \
 
 끝에 `/<id>/<slug>` 를 찍어 준다. 주소는 `http://blog.localhost:3000/<id>/<slug>` 다.
 
-TOTP 는 로컬에서만 면제된다. 주소가 localhost 인지로 가르고, 그 밖에는 예전처럼 막는다
-(`publish-blog-drafts.mjs`). 로컬 관리자에는 2FA 가 없어서 요구하면 미리보기 길이 막힌다.
+내부 토큰 없이 부르면 로컬에만 쓴다. 주소가 localhost 가 아니면 멈춘다(`publish-blog-drafts.mjs`).
+운영 발행은 `publish-blog-post.mjs` 하나다.
 
 로컬을 운영 글로 채우려면 `scripts/sync-local-from-prod.sh blog` 다. 한 방향이고 조회수는 안 옮긴다.
 어긋난 글만 골라 양방향으로 맞추려면 `node scripts/blog-sync.mjs` 를 쓴다.
 
 ## 발행일은 어디서 오나
 
-**`/sync` 의 「블로그 반영」은 로컬 발행일을 그대로 실어 보낸다.** 로컬이 정본이라는
-방향과 맞춘 것이라, 로컬 화면에서 본 날짜가 운영에 그대로 뜬다. 발행 로그에 `(로컬)` 로 찍힌다.
+**`publish-blog-post.mjs` 는 로컬 발행일을 그대로 실어 보낸다.** 로컬 화면에서 본 날짜가
+운영에 그대로 뜬다. 발행 로그에 `(로컬)` 로 찍힌다.
 
 로컬을 못 읽으면(서버가 꺼져 있으면) 경고 한 줄을 내고 **운영의 기존 발행일을 그대로 둔다.**
 서버도 발행일을 안 받으면 이미 있는 값을 먼저 쓰고, 그것도 없을 때만 지금 시각을 넣는다
@@ -275,19 +273,10 @@ node scripts/publish-blog-post.mjs
 cloudflared access login https://ssh.leneu.cloud
 ```
 
-### 안 될 때의 옛 경로
+`ssh` 가 끝내 안 되면 발행을 미룬다. TOTP 로 관리 API 를 타던 예비 경로(`publish-blog-drafts.sh`)는
+2026-10-22 에 지웠다. 필요하면 git 이력에서 되살린다.
 
-`ssh` 가 끝내 안 되면 예전 길이 그대로 있다. **이쪽은 TOTP 를 묻고, 새 그림이 있으면 막힌다.**
-
-```bash
-./scripts/publish-blog-drafts.sh                       # dry-run. 무엇이 신규/갱신인지만 보여준다
-./scripts/publish-blog-drafts.sh --write               # 실제 발행
-./scripts/publish-blog-drafts.sh --write posts/jay-blog/drafts/one.md   # 특정 파일만
-```
-
-비밀번호는 macOS Keychain(`jay-wiki-production-admin`)에서 실행 순간에만 읽고, TOTP 는 사람이 그 자리에서 넣는다.
-**비밀번호와 TOTP 를 대화·문서·로그에 남기지 않는다.** 이쪽은 **dry-run 에도 TOTP 가 필요하다** —
-블로그는 목록 조회도 관리 API 뒤에 있다.
+발행이 끝나면 `posts/jay-blog/posts/<카테고리>/<slug>.md` 사본을 같은 명령이 받아 둔다. 함께 커밋한다.
 
 발행 뒤 확인할 것:
 

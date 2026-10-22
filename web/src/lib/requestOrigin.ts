@@ -14,8 +14,3 @@ export function hasAllowedOrigin(request: Request, requireOrigin = false): boole
   }
 }
 
-export function isLocalManagementRequest(request: Request): boolean {
-  if (!hasAllowedOrigin(request, true)) return false;
-  const host = new URL(request.headers.get('origin')!).hostname;
-  return ['localhost', 'blog.localhost', 'admin.localhost', '127.0.0.1', '[::1]'].includes(host);
-}

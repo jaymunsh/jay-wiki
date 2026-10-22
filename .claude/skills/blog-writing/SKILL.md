@@ -54,13 +54,8 @@ description: Use when writing or editing jay-blog posts - drafts live in posts/j
 ! cloudflared access login https://ssh.leneu.cloud
 ```
 
-### 안 될 때의 대체 경로
-
-`ssh` 가 끝내 안 되면 예전 길이 그대로 있다. **이쪽은 TOTP 를 묻고, 새 그림이 있으면 막힌다.**
-
-```
-! ./scripts/publish-blog-drafts.sh --write posts/jay-blog/drafts/<slug>.md
-```
+`ssh` 가 끝내 안 되면 발행을 미룬다. TOTP 예비 경로(`publish-blog-drafts.sh`)는 2026-10-22 에 지웠다.
+필요하면 git 이력에서 되살린다.
 
 ### 그림이 제자리에 있는지 본다
 

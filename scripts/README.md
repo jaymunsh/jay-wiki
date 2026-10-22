@@ -6,7 +6,7 @@
 |---|---|
 | CI 선택 | `ci-scope.py`, `test-ci-scope.py` |
 | 문서·콘텐츠 검증 | `check-docs.mjs`, `check-blog-markdown.mjs`, `check-blog-links.mjs`, `check-wiki-consistency.mjs` |
-| 위키 원고 변환 | `seed-portfolio-wiki.mjs`, `build-wiki-seed.mjs`, `export-portfolio-wiki.mjs` |
+| 위키 원고 변환 | `seed-portfolio-wiki.mjs`, `export-portfolio-wiki.mjs`, `wiki-sync.mjs` |
 | 블로그 발행·동기화 | `blog-sync.mjs`, `publish-blog-post.mjs`, `publish-blog-drafts.mjs` |
 | 벤치마크 공개 사본 | `sync-leneu-benchmark-public.py` |
 | 배포·복구 | `deploy-ghcr-images.sh`, `capture-deployment-images.sh`, `rollback-deployment.sh` |

@@ -12,9 +12,6 @@ node scripts/seed-portfolio-wiki.mjs --dry-run
 node scripts/seed-portfolio-wiki.mjs
 node scripts/check-wiki-consistency.mjs --seed-only
 node scripts/export-portfolio-wiki.mjs
-bash scripts/check-wiki-seed-size.sh
 ```
 
-배포는 `scripts/build-wiki-seed.mjs`로 원고와 실행 코드를 단일 임시 파일로 묶는다.
-그 파일만 기존 ConfigMap 경로로 보내므로 Node 런타임에서 별도 파일을 찾을 필요가 없다.
-600KB 압축 제한은 전체 원고를 포함한 결과에 적용한다.
+운영에는 배포가 아니라 `node scripts/content-sync.mjs --write <slug>`가 옮긴다.

@@ -40,7 +40,6 @@ GitHub-hosted runner에서 검사하고 전체 SHA의 이미지 7개를 GHCR에 
   한쪽만 바뀐 글은 그쪽으로 맞추고, 둘 다 바뀌었으면 멈춘다. 둘 다 그대로인 글은 본문도 받지 않는다.
   대상을 검토한 뒤 `--write <slug...>`로 그 글만 옮긴다. 인자 없는 `--write`는 쓰다 만 블로그 초안까지 올린다.
   위키 기준 원본은 `content/wiki/`이고, 맞춘 기준은 `content/wiki/sync-state.json`에 남아 커밋한다.
-  운영 `/sync`는 공개하지 않는다.
 - 블로그 한 편은 `publish-blog-post.mjs <초안>`으로 dry-run한 뒤 `--write`로 발행해도 된다(그림 업로드 포함).
   `--write`가 발행 뒤 `posts/jay-blog/posts/<카테고리>/` 사본까지 받는다. 그 사본을 함께 커밋한다 — 링크 검사가 그 사본으로 대조한다.
 - 블로그 그림은 MinIO에 발행하고 원본은 `posts/jay-blog/assets/`에 남긴다.
