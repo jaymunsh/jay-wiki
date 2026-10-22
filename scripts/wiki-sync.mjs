@@ -18,9 +18,10 @@
 //
 // 탭과 첫 화면 대표 글은 지금처럼 저장소가 정본이다. 다르면 저장소 쪽으로 올린다.
 // 지우는 일은 하지 않는다. 운영에만 남은 글은 내려받는다.
+// 올리기 전에 덮일 글의 운영 사본을 .local-backups/wiki-sync-<시각>/ 에 받아 둔다. 내린 글은 git 이 되돌린다.
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { BASE as TUNNEL, withProdTunnel } from './lib/prod-tunnel.mjs';
 
 const REMOTE = (process.env.JAYWIKI_BLOG_API ?? 'https://portfolio.leneu.cloud/api/bff').replace(/\/+$/, '');
@@ -191,6 +192,16 @@ async function main() {
   // 올린다: 터널로 클러스터 안의 내부 문에 쓴다. 토큰은 이 프로세스 메모리에만 있다.
   if (plan.push.length || tabPush.length || featuredPush) {
     assertCommitted();
+    // 덮기 전에 덮일 글의 운영 사본만 받아 둔다(blog-sync 와 같은 규칙). 새로 만드는 글은 잃을 것이 없다.
+    const risky = plan.push.filter((x) => prod.has(x.slug));
+    if (risky.length || tabPush.length || featuredPush) {
+      const dir = `.local-backups/wiki-sync-${new Date().toISOString().replace(/[:.]/g, '-')}`;
+      mkdirSync(dir, { recursive: true });
+      const saved = [];
+      for (const x of risky) saved.push(full.get(x.slug) ?? await get(`/articles/${encodeURIComponent(x.slug)}`));
+      writeJson(`${dir}/wiki.json`, { articles: saved, tabs: prodTabs.map(({ articles, ...t }) => t), featured: prodFeatured });
+      console.log(`  덮기 전 운영 사본 ${saved.length}편 -> ${dir}`);
+    }
     const editor = `content-sync:${execFileSync('git', ['rev-parse', '--short=12', 'HEAD'], { encoding: 'utf8' }).trim()}`;
     await withProdTunnel(async (token) => {
       const post = async (method, path, body) => {
