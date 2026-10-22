@@ -16,8 +16,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.HandlerMapping;
 
 import java.net.URI;
@@ -151,6 +153,24 @@ public class GlobalExceptionHandler {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "요청 본문을 읽을 수 없습니다.");
         pd.setTitle("Bad Request");
         pd.setType(URI.create("https://jaywiki/errors/unreadable-body"));
+        return pd;
+    }
+
+    /**
+     * 경로·쿼리 값의 형식이 틀렸다(예: /api/blog/posts/force-online-fps-optimization) → 404 / 400.
+     *
+     * 이 예외는 ErrorResponse 가 아니라 아래 500 처리로 떨어졌고, 숫자 id 자리에 slug 를 넣은
+     * 요청 하나가 텔레그램 알림 두 통(5xx 지표, 오류 로그)을 울렸다(2026-10-22).
+     * 경로 변수가 형식부터 틀리면 그 주소에 리소스가 없는 것이라 404 다. 404 는 알림에서 빠진다.
+     * 쿼리 파라미터는 보낸 쪽 잘못이라 400 이다.
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ProblemDetail handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        boolean pathVariable = e.getParameter().hasParameterAnnotation(PathVariable.class);
+        HttpStatus status = pathVariable ? HttpStatus.NOT_FOUND : HttpStatus.BAD_REQUEST;
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(status, "'" + e.getName() + "' 값의 형식이 맞지 않습니다.");
+        pd.setTitle(pathVariable ? "Not Found" : "Bad Request");
+        pd.setType(URI.create(pathVariable ? "https://jaywiki/errors/not-found" : "https://jaywiki/errors/bad-request"));
         return pd;
     }
 
