@@ -6,6 +6,7 @@ tags: scion,git,source-control,monorepo,anthropic,agent-scale,version-control,re
 toc: true
 publishedAt: 2026-10-14T03:00:00Z
 updatedAt: 2026-10-22T03:00:00Z
+syncHash: 6efbb9227485fdc592af574494975e6c2db59476c98b9706b220032923df690e
 
 ---
 

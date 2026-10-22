@@ -6,6 +6,7 @@ tags: claude,haiku-5-5,anthropic,llm,benchmark,api-pricing,subagent,small-model,
 toc: true
 publishedAt: 2026-10-08T01:00:00Z
 updatedAt: 2026-10-22T03:00:00Z
+syncHash: 59bd999009050167c412e03ffb3603bc0740697fa6c5273df06591d2009f8c0b
 
 ---
 

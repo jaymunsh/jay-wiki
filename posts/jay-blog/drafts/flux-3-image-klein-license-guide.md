@@ -6,6 +6,7 @@ tags: flux,flux-3,klein,black-forest-labs,image-generation,open-weights,license,
 toc: true
 publishedAt: 2026-10-15T06:00:00Z
 updatedAt: 2026-10-22T03:00:00Z
+syncHash: fc0c4ac0e14e67bf6341f5f00afc1be022675f3feeca74ffd78fe91376334d10
 
 ---
 

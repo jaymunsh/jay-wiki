@@ -6,6 +6,7 @@ tags: deepseek,v4-1-flash,v4-1-flash-1017,llm,benchmark,api-pricing,open-weights
 toc: true
 publishedAt: 2026-10-19T03:00:00Z
 updatedAt: 2026-10-22T03:00:00Z
+syncHash: ceca414cf7bbc556ef5da0831338865c5a9b2deeb07f692f2379b54de53b7e66
 
 ---
 

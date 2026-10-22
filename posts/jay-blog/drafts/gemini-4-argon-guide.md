@@ -6,6 +6,7 @@ tags: gemini,gemini-4-argon,google,llm,benchmark,api-pricing,long-context,fronti
 toc: true
 publishedAt: 2026-10-13T03:00:00Z
 updatedAt: 2026-10-22T03:00:00Z
+syncHash: 7265828c4a64085a9b839d1eaa32f39ce2b160923dd05105411f4b7dabc5e830
 
 ---
 

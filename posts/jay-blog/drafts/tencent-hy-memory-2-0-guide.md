@@ -6,6 +6,7 @@ tags: tencent,hunyuan,hy-memory,agent-memory,mem0,memos,long-term-memory,open-we
 toc: true
 publishedAt: 2026-10-20T03:00:00Z
 updatedAt: 2026-10-22T03:00:00Z
+syncHash: 198d03406b6958389418f61691784adff048ae196ba8c8cc8d14302e2b5689c8
 
 ---
 

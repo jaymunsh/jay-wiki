@@ -6,6 +6,7 @@ tags: google,harness2,agent-harness,self-improving-agent,opencode,codex,gemini,g
 toc: true
 publishedAt: 2026-10-20T06:00:00Z
 updatedAt: 2026-10-22T03:00:00Z
+syncHash: 175b0179499b1489581962c185998e5de2dea26f891d5704bafcd7c23040cb63
 
 ---
 
