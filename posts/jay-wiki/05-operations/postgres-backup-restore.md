@@ -9,7 +9,7 @@ tags: postgres,backup,restore,kubernetes,alert
 source: scripts/seed-portfolio-wiki.mjs
 ---
 - PostgreSQL 백업을 매일 만들고, 그 파일이 정말 복원되는지, 그 기계가 죽어도 남는지 어떻게 확인하나?
-- 백업 대상은 재생성 불가능한 것만으로 좁혔고(PostgreSQL과 MinIO 이미지 버킷), 사본을 운영에 글을 반영하는 순간마다 개발 머신으로 내보내기로 했다.
+- 백업 대상은 재생성 불가능한 것만으로 좁혔고(PostgreSQL과 MinIO 이미지 버킷), 사본을 운영에 글을 반영하는 순간마다 개발 머신으로 내보내기로 했다. 2026-10-20부터는 miniPC가 매일 Google Drive로 직접 보낸다.
 - 밖으로 나온 사본만으로 복원이 2.2초에 오류 0으로 끝났고(tb_article 70·tb_post 100007), 백업 실패 알림은 일부러 실패시킨 Job으로 45초 만에 텔레그램에 도착하는 것을 확인했다.
 
 백업 파일이 생겼다는 사실만으로는 충분하지 않다.
@@ -142,3 +142,14 @@ CronJob 이 잡고, 그것은 miniPC 안에 있다.
 [백업을 miniPC 밖으로 복제하는 계획](/wiki/backup-r2-phase-b-plan)에 적었다.
 
 wiki-assets tar 는 파일 그대로가 아니라 MinIO 내부 레이아웃이다. 같은 MinIO 로만 되돌릴 수 있다.
+
+## 2026-10-20 갱신 — 사본은 이제 miniPC 가 매일 밖으로 보낸다
+
+위 남은 한계 둘, 「사본은 반영할 때만 늘어난다」와 「같은 장소에 있다」는 이날 닫았다. miniPC 의 systemd 타이머가 매일 05:00 에 03:17 dump 셋, MinIO 볼륨, 클러스터 설정을 묶어 Google Drive 에 암호화해 올린다. 올리기가 끝나야 healthchecks 에 ping 하므로, 사본이 끊기면 하루 두 시간 뒤 바깥이 알린다.
+
+| 데이터 | miniPC 안 | 밖 사본 (2026-10-20부터) |
+|---|---|---|
+| 위키·블로그 본문 | 24시간 | Drive, 24시간 |
+| 게시판·댓글·계정 | 24시간 | Drive, 24시간 |
+
+그 사이 9월에 붙였던 매일 개발 머신 사본은 macOS 권한에 막혀 41번 연속으로 시작도 못 했고, 실패 알림도 그 스크립트 안에 있어 같이 죽었다. 경위와 남은 한계는 [백업을 miniPC 밖으로 복제하는 계획](/wiki/backup-r2-phase-b-plan)의 결말에 적었다.

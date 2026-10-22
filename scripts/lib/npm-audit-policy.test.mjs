@@ -36,8 +36,8 @@ test('blocks another advisory on the same dependency', () => {
   const f = fixture(); f.report.vulnerabilities.braces.via.push({ url: 'https://github.com/advisories/GHSA-new' });
   assert.deepEqual(run(f).blocked, ['braces', 'tool']);
 });
-test('expires the exception on October 19 even when the dependency is unchanged', () => {
-  const f = fixture(); f.now = new Date('2026-10-19T00:00:00Z');
+test('expires the exception on November 5 even when the dependency is unchanged', () => {
+  const f = fixture(); f.now = new Date('2026-11-05T00:00:00Z');
   assert.deepEqual(run(f).blocked, ['braces', 'tool']);
 });
 test('blocks changed or missing installed versions', () => {

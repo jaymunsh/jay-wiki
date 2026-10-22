@@ -11,45 +11,61 @@
 
 ## 브랜치와 배포 — 먼저 읽는다
 
-**`main` 에 들어가는 순간 miniPC 운영에 배포된다.** `deploy.yml` 이 push 를 받아 테스트·빌드·rollout 까지
-사람 없이 간다. 그래서 작업은 전부 `develop` 에 모으고, **배포는 `develop` → `main` 을 머지하는 행동으로만** 한다.
+이 checkout은 공개 `jaymunsh/jay-wiki`다. 개발은 `develop`, 검토한 변경은 PR로 `main`에
+반영한다. **공개 main 병합은 운영 배포가 아니다.** `.github/workflows/release.yml`은
+GitHub-hosted runner에서 검사하고 전체 SHA의 이미지 7개를 GHCR에 만든 뒤 종료한다.
+운영은 별도 비공개 `jaymunsh/jay-wiki-ops-private`가 선택한 SHA로 수행한다.
 
-기본 브랜치는 `develop` 이다. `gh pr create` 는 base 를 develop 으로 자동 지정한다.
+기본 브랜치는 `develop`이므로 운영용 소스 PR에는 `--base main`을 명시한다.
 
-| 사용자가 이렇게 말하면 | 이렇게 한다 |
+| 사용자 의도 | 실행 범위 |
 |---|---|
-| **취합해줘** / 모아줘 / develop 에 올려줘 | 작업 브랜치 → `develop` PR 을 만들고 머지 |
-| **서버에 반영해줘** / 배포해줘 / 운영에 올려줘 | `develop` → `main` PR 을 만들고 머지 (**이게 배포다**) |
-| **글만 올려줘** / 글만 반영해줘 | 배포가 아니다. 블로그는 `node scripts/blog-sync.mjs --write`(양방향) 또는 `publish-blog-post.mjs <초안> --write`(한 편), 위키는 `/sync` 또는 `content-ops.mjs publish-*` |
+| 취합 / develop에 모으기 | 변경 검토·테스트 후 공개 develop에 통합 |
+| 운영 반영 / 배포 | main PR 검사·병합 → 성공한 SHA 이미지 7개 확인 → 비공개 ops release 선택 → preflight → deploy → 공개 smoke |
+| 글만 반영 | 운영 DB와 대조한 개별 콘텐츠 발행. 앱 이미지 배포와 별개 |
+| 문서 갱신 / 인계 | 문서와 링크 확인. 앱 재배포·글 발행을 시작하지 않는다 |
 
-**둘 중 어느 쪽이든 `deploying` 스킬을 먼저 연다** → `docs/deploy-runbook.md`. 배포 전 확인,
-파이프라인 밖이라 사람이 따로 올려야 하는 것, 배포 후 검증 명령이 거기에 있다.
+절차는 [공개 배포 안내](docs/deploy-runbook.md)를 따른다. 같은 로컬 작업 공간에서는
+`private/docs/daily-operations.md`와
+`private/skills/jay-wiki-production-deploy/SKILL.md`가
+운영 실행의 정본이다. 오래된 `deploy.yml` 자동 배포 설명이나 보관 checkout을 사용하지 않는다.
+이미 사용자가 요청한 운영 반영은 같은 권한을 재차 묻지 않되, 과거 인계 기록 자체를 새 작업의
+배포 권한으로 해석하지 않는다.
 
-- **새 작업은 `develop` 에서 딴다.** `main` 에서 따지 않는다.
-- **`main` 을 base 로 쓸 때는 `--base main` 을 명시하고, 그게 배포라는 것을 먼저 사용자에게 확인한다.**
-- **`main` 에 직접 push 하지 않는다.** 무료 플랜 + 비공개 저장소라 브랜치 보호를 걸 수 없다
-  (`gh api .../branches/main/protection` → 403). 구조가 아니라 규율로만 지켜진다.
-- 배포에는 경로 필터가 있다. `web/**`, `spring/**`, `infra/k8s/**`, `infra/opensearch/**`,
-  `scripts/**`, `content/wiki/**`, `services/**`, `.github/workflows/deploy.yml` 이 바뀔 때만 돈다.
-  `docs/` 나 `posts/` 만 고친 커밋은 `main` 에 가도 배포가 안 걸린다.
-- **위키 글도 두 번 머지해야 운영에 반영된다.** 배포가 시드를 자동 실행하므로 `develop` 까지만 가면
-  화면이 안 바뀐다.
-- **자동 발행은 `posts/jay-blog/publish-manifest.txt`에 명시한 초안만 대상으로 한다.** 목록은 기본적으로 비어 있다. 운영 기준 해시를 대조하고 발행할 파일을 선택한 뒤 목록에 넣는다.
-  발행 뒤의 본문·그림 주소·반환된 syncHash를 저장소에 남긴다. Job 임시 디렉터리의 변경은 저장소로 돌아오지 않으므로 다음 발행 전 기준을 다시 대조한다.
-- **글만 고쳤다면 배포를 안 해도 된다.** 블로그는 `blog-sync.mjs` 가 로컬과 운영을 대조해
-  편마다 방향을 정하고 그림까지 옮긴다. 한 편만 올릴 때는 `publish-blog-post.mjs` 다
-  (2026-09-02부터. GitHub Actions 도 TOTP 도 안 쓰고 `ssh miniPC` 로 내부 문을 쓴다).
-  그림은 MinIO 로 가고 원본은 `posts/jay-blog/assets/` 에 남는다 — `web/public` 이 아니라
-  컨테이너에 안 구워지므로 배포를 안 부른다. 위키는 여전히 `/sync` 판이다(TOTP 필요).
-  **운영 관리 화면에서 고친 글은 초안이 덮지 않는다** — `blog-sync` 가 그때는 내리는 쪽으로 간다.
-  로컬과 운영이 모두 바뀌면 충돌로 중단한다. 파일 수정 시각만으로 운영 덮어쓰기를 허용하지 않는다.
+- 새 작업은 develop 기준으로 한다. main에 직접 push하지 않는다.
+- 공개 workflow에 miniPC self-hosted runner, private dispatch token, SSH key나 kubeconfig를 추가하지 않는다.
+- 문서만 바뀐 main commit은 이미지 빌드의 경로 필터에 해당하지 않을 수 있다.
+  소스 HEAD·문서 HEAD·운영 release SHA가 다르면 이유를 먼저 대조한다.
+- 위키 기준 원본은 `content/wiki/`다. 운영 DB 반영은 비공개 배포의 백업·동기화 단계에서 수행한다.
+  운영 `/sync`는 공개하지 않는다.
+- 블로그는 `node scripts/blog-sync.mjs`로 대조하고 `publish-blog-post.mjs <초안>`으로 dry-run한다.
+  대상 한 편을 검토한 뒤에만 `--write`로 발행한다. 운영 관리자 수정과 로컬 수정이 충돌하면 중단한다.
+- 블로그 그림은 MinIO에 발행하고 원본은 `posts/jay-blog/assets/`에 남긴다.
+- 자동 발행은 명시된 manifest와 비공개 운영 설정을 따른다. **Force Online은 숨김을 유지한다.**
+  과거의 ‘모든 초안 발행’ 요청을 근거로 새 초안을 자동 발행하지 않는다.
 
 ## 서버 띄우기
 
+먼저 3000·3100·8080 포트의 기존 프로세스를 확인한다. 실행 중이면 재사용한다.
+Docker의 `pf-postgres`, `pf-redis`, `pf-opensearch`, `pf-kafka`, `pf-minio`도 확인한다.
+아래 명령은 각각 **공개 저장소 루트에서 시작하는 별도 터미널**에서 실행한다.
+
 ```bash
-docker ps                      # pf-postgres, pf-redis, pf-opensearch 가 떠 있어야 한다
-cd spring && SPRING_PROFILES_ACTIVE=local APP_KAFKA_DEMO_ENABLED=true ./gradlew bootRun
-cd web && npm run dev
+# 터미널 1: Spring
+cd spring
+SPRING_PROFILES_ACTIVE=local APP_KAFKA_DEMO_ENABLED=true ./gradlew bootRun
+```
+
+```bash
+# 터미널 2: Next.js
+cd web
+npm run dev
+```
+
+```bash
+# 터미널 3: 오목
+cd services/omok
+PORT=3100 PUBLIC_ORIGIN=http://localhost:3100 npm run dev
 ```
 
 **dev 서버를 여러 개 띄우지 않는다.** 겹쳐 돌면 삭제된 `.next` 를 서빙해 CSS 가 통째로 빠진 것처럼 보인다.

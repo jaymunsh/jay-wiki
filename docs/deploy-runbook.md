@@ -22,7 +22,7 @@ self-hosted runner에 작업을 전달한다. 운영 자격증명, runner 등록
 1. 검토한 변경을 공개 `develop`에 모으고 pull request로 `main`에 반영한다. 이전 비공개
    `develop`의 이력을 합치거나 초안·운영 자료를 통째로 복사하지 않는다.
 2. CI와 Security workflow가 성공했는지 확인한다.
-3. `Build release images`가 같은 commit SHA의 이미지 여섯 개를 만들었는지 확인한다.
+3. `Build release images`가 같은 commit SHA의 오목을 포함한 이미지 일곱 개를 만들었는지 확인한다.
 4. 운영 반영이 필요하면 해당 전체 SHA를 private 운영 담당자에게 전달한다.
 
 GitHub에서 읽기 쉬운 `main` 태그도 만들지만 운영 배포의 식별자로 사용하지 않는다. 운영은 항상
