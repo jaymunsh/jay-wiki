@@ -5,6 +5,7 @@ tags: macos,swift,swiftui,developer-tools,ports,external-storage,orca
 summary: Orca에서 여러 개발 세션을 다루며 만든 macOS 유틸리티. 포트를 점유한 프로세스, 네트워크 상태, USB·Thunderbolt와 외장 볼륨을 한곳에서 확인하고 종료와 eject의 실패 과정을 정리했다.
 toc: true
 publishedAt: 2026-10-01T18:32:17.678857+09:00
+updatedAt: 2026-10-05T08:04:37.945204Z
 syncHash: a85ddb1c7a53a672264759fe00c4b653a20e3e1fca2dd086aa2f7cdeb0b66ca4
 
 ---

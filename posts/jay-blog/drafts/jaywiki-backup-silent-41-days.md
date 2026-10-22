@@ -4,6 +4,8 @@ category: 개발 노트
 tags: backup,launchd,macos,tcc,rclone,google-drive,healthchecks,dead-mans-switch,operations,devlog
 summary: 9월에 맥북에 등록한 매일 백업이 macOS 권한에 막혀 41번 연속 시작도 못 했고, 실패 알림도 그 스크립트 안에 있어 함께 죽어 있었다. 백업을 miniPC가 직접 Google Drive로 보내고 성공 신호를 바깥에서 세는 구조로 옮긴 과정과, 같은 일을 막으려고 바꾼 습관을 정리한다.
 toc: true
+syncHash: 81209b7bfe6151032ff1dc531c6a6e2eff850823602652d4225d9dd78c24877d
+publishedAt: 2026-10-21T10:23:57.659748Z
 
 ---
 
