@@ -30,6 +30,8 @@ workflow_dispatch 로 손으로 돌릴 수도 있고, 이때 data_releases 입�
 
 여기서 나오는 규칙 하나 — **위키 글은 두 번 머지해야 화면이 바뀐다.** 배포가 시드를 실행하므로 develop 까지만 가면 운영에 안 나간다.
 
+- 2026-10-22 정정: 이 절의 전제가 바뀌었다. 공개 main 병합은 이미지만 만들고(release.yml), 운영 배포는 비공개 ops 저장소가 고른 SHA 로 따로 돈다. 배포는 더 이상 위키 시드도 블로그 발행도 하지 않는다. 글은 scripts/content-sync.mjs 가 운영과 3방향 대조한 뒤 --write <slug> 로 고른 글만 옮기고, 맞춘 기준을 content/wiki/sync-state.json 에 남긴다. 그래서 위키 글은 머지가 아니라 content-sync 한 번에 화면이 바뀐다. 위키 검사·export diff·블로그 링크 검사는 PR 의 ci.yml 로 옮겨 병합 전에 걸린다. 아래 deploy.yml 단계 목록은 그 전환 이전 기록이다.
+
 - 예전 서술 ~~블로그 글은 원래 배포와 무관하다. 사람이 발행 스크립트를 돌린다~~
   - 2026-08-16 정정: 블로그 초안도 배포가 올린다. 위키 콘텐츠 싱크 바로 다음 단계에서 publish-blog-drafts-k8s.sh 가 돈다. 백업에서 글을 되돌리는 리허설을 마친 뒤에야 켰다(BLOG_PUBLISH_AUTO). 그 결정의 경위는 deploy-automation-boundary 에 있다.
 
