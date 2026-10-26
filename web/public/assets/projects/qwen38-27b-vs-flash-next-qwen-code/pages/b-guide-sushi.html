@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>늦가을, 간사이 — 오사카 · 교토 · 나라</title>
+<meta name="description" content="2026년 늦가을 오사카·교토·나라 여행 안내서. 단풍 명소, 가을 야간 조명 캘린더, 철도 이동, 먹거리, 실용 정보.">
+<style>
+  /* ============ tokens ============ */
+  :root{
+    --washi:#f3efe4;
+    --sumi:#241e1a;
+    --momiji:#b23a25;
+    --aoi:#40587c;
+    --ginnan:#d9a13a;
+    --yoru:#171b2b;
+    --line:rgba(36,30,26,.16);
+    --line-soft:rgba(36,30,26,.08);
+    --muted:rgba(36,30,26,.62);
+    --display:"AppleMyungjo","Myeongjo","Batang","BatangChe","Georgia",serif;
+    --body:"Apple SD Gothic Neo","Malgun Gothic","맑은 고딕","Noto Sans KR",sans-serif;
+    --accent:var(--sumi);
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:auto}
+  @media (prefers-reduced-motion: no-preference){
+    html{scroll-behavior:smooth}
+  }
+  body{
+    margin:0;
+    font-family:var(--body);
+    font-size:16px;
+    line-height:1.75;
+    color:var(--sumi);
+    background:var(--washi);
+    -webkit-font-smoothing:antialiased;
+  }
+  img{display:block;max-width:100%}
+  a{color:inherit}
+  h1,h2,h3{font-family:var(--display);font-weight:400;margin:0}
+  p{margin:0}
+  :focus-visible{outline:2px solid var(--momiji);outline-offset:3px;border-radius:2px}
+
+  .wrap{max-width:1120px;margin-inline:auto;padding-inline:24px}
+  .skip{position:absolute;left:-9999px;top:0;background:var(--sumi);color:var(--washi);padding:10px 16px;z-index:99}
+  .skip:focus{left:8px;top:8px}
+
+  /* ============ nav ============ */
+  .nav{
+    position:sticky;top:0;z-index:50;
+    background:rgba(243,239,228,.94);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{
+    max-width:1120px;margin-inline:auto;padding:0 24px;
+    display:flex;align-items:center;gap:24px;height:52px;
+  }
+  .nav-brand{font-family:var(--display);font-size:1.15rem;letter-spacing:.04em;white-space:nowrap;text-decoration:none}
+  .nav-brand em{font-style:normal;color:var(--momiji)}
+  .nav-links{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav-links::-webkit-scrollbar{display:none}
+  .nav-links a{
+    text-decoration:none;font-size:.85rem;padding:6px 10px;white-space:nowrap;
+    color:var(--muted);border-bottom:2px solid transparent;
+  }
+  .nav-links a:hover{color:var(--sumi)}
+  .nav-links a.current{color:var(--sumi);border-bottom-color:var(--accent,var(--momiji))}
+
+  /* ============ hero ============ */
+  .hero{
+    position:relative;min-height:540px;height:92svh;max-height:920px;
+    display:flex;align-items:flex-end;overflow:hidden;
+    background:var(--yoru);
+  }
+  .hero-img{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 38%;
+  }
+  .hero-scrim{
+    position:absolute;inset:0;
+    background:
+      linear-gradient(to top,rgba(18,14,12,.82) 0,rgba(18,14,12,.25) 42%,rgba(18,14,12,.18) 70%,rgba(18,14,12,.4) 100%),
+      linear-gradient(to left,rgba(18,14,12,.5) 0,rgba(18,14,12,0) 45%);
+  }
+  .hero-title{
+    position:absolute;right:max(20px,5vw);top:50%;transform:translateY(-52%);
+    writing-mode:vertical-rl;text-orientation:mixed;
+    font-size:clamp(2.5rem,7.5vh,4.4rem);line-height:1.25;letter-spacing:.12em;
+    color:#f6f1e6;text-shadow:0 2px 24px rgba(0,0,0,.45);
+  }
+  .hero-sub{
+    position:absolute;right:calc(max(20px,5vw) + clamp(3.8rem,9.5vh,5.6rem));top:50%;transform:translateY(-52%);
+    writing-mode:vertical-rl;
+    font-size:clamp(.95rem,2.2vh,1.2rem);letter-spacing:.5em;
+    color:var(--ginnan);text-shadow:0 1px 12px rgba(0,0,0,.5);
+  }
+  .hero-meta{
+    position:relative;z-index:2;width:100%;
+    max-width:1120px;margin-inline:auto;padding:0 24px 22px;
+    display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 28px;color:#efe9db;
+  }
+  .hero-dates{font-family:var(--display);font-size:1.3rem;letter-spacing:.05em}
+  .hero-fact{font-size:.88rem;color:rgba(239,233,219,.85)}
+  .hero-fact b{color:var(--ginnan);font-weight:400}
+  .hero-credit{
+    position:absolute;z-index:2;left:24px;bottom:calc(22px + 3.6rem);
+    font-size:.72rem;color:rgba(239,233,219,.6);
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .hero-title,.hero-sub,.hero-meta{opacity:0;animation:heroIn .9s ease-out forwards}
+    .hero-sub{animation-delay:.25s}
+    .hero-meta{animation-delay:.45s}
+    @keyframes heroIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .hero-title{animation-name:heroInV}
+    .hero-sub{animation-name:heroInV}
+    @keyframes heroInV{from{opacity:0;transform:translate(0,-52%) translateY(14px)}to{opacity:1;transform:translate(0,-52%)}}
+  }
+  @media (max-width:640px){
+    .hero{min-height:480px}
+    .hero-title{right:16px}
+    .hero-sub{right:calc(16px + 3.6rem)}
+    .hero-credit{bottom:auto;top:14px;left:14px}
+  }
+
+  /* ============ sections ============ */
+  section{padding-block:76px}
+  @media (max-width:640px){section{padding-block:56px}}
+  .sec-head{margin-bottom:36px;max-width:640px}
+  .sec-title{font-size:clamp(1.7rem,3.6vw,2.4rem);letter-spacing:.02em;line-height:1.35}
+  .sec-rule{display:flex;gap:6px;margin-top:14px}
+  .sec-rule i{display:block;height:3px;width:44px;background:var(--accent)}
+  .sec-rule i+i{width:14px;background:var(--ginnan)}
+  .sec-intro{margin-top:16px;color:var(--muted);font-size:.98rem}
+
+  /* ============ overview ============ */
+  .cities{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:44px}
+  @media (max-width:820px){.cities{grid-template-columns:1fr}}
+  .city-card{
+    background:#fbf8f0;border:1px solid var(--line);border-top:3px solid var(--cc);
+    padding:22px 22px 18px;
+  }
+  .city-card h3{font-size:1.5rem;margin-bottom:2px}
+  .city-card .city-tag{font-size:.82rem;color:var(--cc);font-weight:600}
+  .city-card .city-note{font-size:.9rem;color:var(--muted);margin-top:10px}
+  .city-stats{display:flex;gap:18px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line-soft)}
+  .city-stat{font-size:.78rem;color:var(--muted)}
+  .city-stat b{display:block;font-family:var(--display);font-size:1.15rem;font-weight:400;color:var(--sumi);letter-spacing:.02em}
+
+  .rail-table{width:100%;border-collapse:collapse;font-size:.92rem}
+  .rail-table caption{caption-side:top;text-align:left;font-family:var(--display);font-size:1.2rem;padding-bottom:12px}
+  .rail-table th,.rail-table td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line-soft)}
+  .rail-table th{font-size:.8rem;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line)}
+  .rail-table td.num{white-space:nowrap}
+  .rail-table .fare{color:var(--momiji)}
+  .table-scroll{overflow-x:auto}
+  .table-note{font-size:.78rem;color:var(--muted);margin-top:10px}
+
+  /* ============ lighting (night) ============ */
+  .night-sec{background:var(--yoru);color:#e9e4d8;--accent:var(--ginnan)}
+  .night-sec .sec-title{color:#f4efe3}
+  .night-sec .sec-intro{color:rgba(233,228,216,.7)}
+  .light-legend{display:flex;flex-wrap:wrap;gap:10px 22px;margin-bottom:22px;font-size:.85rem}
+  .light-legend span{display:inline-flex;align-items:center;gap:8px;color:rgba(233,228,216,.85)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--dc);flex:none}
+  .cal{
+    display:flex;gap:6px;overflow-x:auto;padding:6px 2px 14px;
+    scrollbar-width:thin;
+  }
+  .cal-btn{
+    flex:none;width:52px;padding:8px 0 7px;
+    background:transparent;border:1px solid rgba(233,228,216,.22);border-radius:4px;
+    color:#e9e4d8;font-family:var(--body);font-size:.78rem;cursor:pointer;line-height:1.3;
+  }
+  .cal-btn .d{display:block;font-family:var(--display);font-size:1.15rem}
+  .cal-btn .w{display:block;font-size:.68rem;color:rgba(233,228,216,.55)}
+  .cal-btn.holiday{border-color:rgba(217,161,58,.55)}
+  .cal-btn.holiday .w{color:var(--ginnan)}
+  .cal-btn .dots{display:flex;gap:3px;justify-content:center;height:9px;margin-top:4px}
+  .cal-btn .dots i{width:7px;height:7px;border-radius:50%;background:var(--dc)}
+  .cal-btn[aria-pressed="true"]{background:rgba(233,228,216,.14);border-color:#e9e4d8}
+  .cal-btn:hover{border-color:rgba(233,228,216,.6)}
+  .light-detail{
+    margin-top:10px;border:1px solid rgba(233,228,216,.2);border-radius:6px;
+    padding:22px 24px;background:rgba(233,228,216,.05);min-height:150px;
+  }
+  .light-detail h3{font-size:1.25rem;color:#f4efe3}
+  .light-daytype{font-size:.8rem;color:var(--ginnan);margin-top:2px}
+  .light-list{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:14px}
+  .light-list li{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start}
+  .light-list .l-name{font-family:var(--display);font-size:1.15rem;white-space:nowrap}
+  .light-list .l-name .dot{display:inline-block;vertical-align:baseline;margin-right:8px}
+  .light-list .l-info{font-size:.88rem;color:rgba(233,228,216,.85)}
+  .light-list .l-info b{font-weight:600;color:#f4efe3}
+  .light-empty{margin-top:16px;font-size:.9rem;color:rgba(233,228,216,.6)}
+  .foliage-note{
+    margin-top:34px;padding-top:22px;border-top:1px solid rgba(233,228,216,.18);
+    font-size:.88rem;color:rgba(233,228,216,.75);
+  }
+  .foliage-note b{color:var(--ginnan);font-weight:600}
+
+  /* ============ city sections ============ */
+  .city-sec{--accent:var(--cc)}
+  .city-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:start}
+  .city-grid.flip{grid-template-columns:.95fr 1.05fr}
+  @media (max-width:880px){
+    .city-grid,.city-grid.flip{grid-template-columns:1fr;gap:32px}
+  }
+  .collage{display:grid;gap:10px}
+  .collage.c-a{grid-template-columns:3fr 2fr}
+  .collage figure{margin:0}
+  .collage img{width:100%;height:100%;object-fit:cover;border-radius:4px}
+  .collage figcaption{font-size:.72rem;color:var(--muted);margin-top:5px;line-height:1.5}
+  .spots{list-style:none;margin:0;padding:0}
+  .spots li{padding:13px 0 13px 14px;border-top:1px solid var(--line-soft);border-left:2px solid transparent}
+  .spots li:first-child{border-top:none}
+  .spots .s-name{font-weight:600;font-size:.98rem}
+  .spots .s-meta{display:block;font-size:.84rem;color:var(--muted);margin-top:2px}
+  .spots .s-meta .fee{color:var(--cc)}
+  .spots .s-warn{color:var(--momiji)}
+  .city-extra{margin-top:18px;font-size:.88rem;color:var(--muted);padding:14px 16px;background:#fbf8f0;border:1px solid var(--line-soft);border-radius:6px}
+
+  /* kyoto walking route — a real sequence */
+  .route{list-style:none;margin:18px 0 0;padding:0}
+  .route li{position:relative;padding:0 0 22px 26px}
+  .route li::before{content:"";position:absolute;left:5px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--cc)}
+  .route li:not(:last-child)::after{content:"";position:absolute;left:9px;top:19px;bottom:2px;width:1px;background:var(--line)}
+  .route li span{display:block}
+  .route .r-name{font-weight:600;font-size:.94rem}
+  .route .r-walk{font-size:.8rem;color:var(--muted)}
+
+  /* osaka night block */
+  .night-block{
+    margin-top:56px;background:var(--yoru);color:#e9e4d8;border-radius:8px;
+    padding:40px 36px;display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center;
+  }
+  @media (max-width:820px){.night-block{grid-template-columns:1fr;padding:28px 22px}}
+  .night-block h3{font-family:var(--display);font-size:1.5rem;color:#f4efe3;margin-bottom:12px}
+  .night-block p{font-size:.92rem;color:rgba(233,228,216,.8)}
+  .night-block p b{color:var(--ginnan);font-weight:600}
+  .night-photos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .night-photos figure{margin:0}
+  .night-photos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px}
+  .night-photos figcaption{font-size:.68rem;color:rgba(233,228,216,.55);margin-top:5px;line-height:1.5}
+
+  /* ============ transit ============ */
+  .transit-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:36px}
+  @media (max-width:720px){.transit-photos{grid-template-columns:1fr 1fr}}
+  @media (max-width:480px){.transit-photos{grid-template-columns:1fr}}
+  .transit-photos figure{margin:0}
+  .transit-photos img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:4px}
+  .transit-photos figcaption{font-size:.72rem;color:var(--muted);margin-top:5px;line-height:1.5}
+  .passes{margin-top:36px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media (max-width:820px){.passes{grid-template-columns:1fr}}
+  .pass{border:1px solid var(--line);background:#fbf8f0;padding:18px;border-radius:6px}
+  .pass h3{font-size:1.1rem}
+  .pass .p-price{font-family:var(--display);font-size:1.35rem;color:var(--momiji);margin-top:4px}
+  .pass p{font-size:.85rem;color:var(--muted);margin-top:8px}
+
+  /* ============ food ============ */
+  .food-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  @media (max-width:880px){.food-grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:520px){.food-grid{grid-template-columns:1fr}}
+  .food-grid figure{margin:0}
+  .food-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px}
+  .food-grid figcaption{margin-top:10px}
+  .food-grid figcaption span{display:block}
+  .food-grid .f-name{font-weight:600;font-size:.95rem}
+  .food-grid .f-meta{font-size:.82rem;color:var(--muted)}
+  .food-grid .f-meta .fee{color:var(--momiji)}
+  .food-grid .f-credit{font-size:.7rem;color:rgba(36,30,26,.45);margin-top:3px}
+
+  /* ============ tips ============ */
+  .tips{display:grid;grid-template-columns:repeat(2,1fr);gap:0 40px;list-style:none;padding:0;margin:0}
+  @media (max-width:720px){.tips{grid-template-columns:1fr}}
+  .tips li{padding:14px 0;border-top:1px solid var(--line-soft);font-size:.92rem;display:grid;grid-template-columns:auto 1fr;gap:12px}
+  .tips .t-key{font-weight:600;white-space:nowrap}
+  .tips .t-val{color:var(--muted)}
+  .tips .t-val b{color:var(--sumi);font-weight:600}
+
+  /* ============ credits ============ */
+  .credits-sec{border-top:1px solid var(--line);padding-block:56px}
+  .credits-sec h2{font-size:1.4rem;margin-bottom:8px}
+  .credits-sec .sec-note{font-size:.85rem;color:var(--muted);margin-bottom:22px}
+  .credits{list-style:none;margin:0;padding:0;columns:2;column-gap:40px;font-size:.78rem;color:var(--muted)}
+  @media (max-width:720px){.credits{columns:1}}
+  .credits li{break-inside:avoid;padding:6px 0;border-bottom:1px solid var(--line-soft)}
+  .credits a{color:var(--aoi);text-decoration:none}
+  .credits a:hover{text-decoration:underline}
+
+  footer{padding:36px 0 48px;font-size:.78rem;color:var(--muted)}
+  footer .wrap{display:grid;gap:6px}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+
+<nav class="nav" aria-label="섹션 이동">
+  <div class="nav-inner">
+    <a class="nav-brand" href="#top">늦가을, <em>간사이</em></a>
+    <div class="nav-links">
+      <a href="#overview">한눈에</a>
+      <a href="#lighting">가을 조명</a>
+      <a href="#osaka">오사카</a>
+      <a href="#kyoto">교토</a>
+      <a href="#nara">나라</a>
+      <a href="#transit">교통</a>
+      <a href="#food">먹거리</a>
+      <a href="#tips">실용</a>
+      <a href="#credits">출처</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <img class="hero-img" src="source/images/kiyomizu-autumn.jpg" alt="11월 교토 기요미즈데라 본당과 붉게 물든 단풍" width="1920" height="1181" fetchpriority="high">
+  <div class="hero-scrim"></div>
+  <p class="hero-credit">기요미즈데라, 11월 · Martin Falbisoner / CC BY-SA 4.0</p>
+  <p class="hero-sub">오사카 · 교토 · 나라</p>
+  <h1 class="hero-title">늦가을, 간사이</h1>
+  <div class="hero-meta">
+    <span class="hero-dates">2026. 11. 19 – 12. 13</span>
+    <span class="hero-fact">세 도시 <b>철도 30~60분</b></span>
+    <span class="hero-fact">11월 하순 일몰 <b>16:50</b></span>
+    <span class="hero-fact">교토 사찰 <b>3곳 야간 조명</b></span>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============ overview ============ -->
+  <section id="overview">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 class="sec-title">한 도시에 묵고, 세 도시를 다닙니다</h2>
+        <div class="sec-rule"><i></i><i></i></div>
+        <p class="sec-intro">간사이는 일본 서쪽의 오사카·교토·나라를 묶어 부르는 이름입니다. 도시 사이가 철도로 30~60분이라 한 곳에 짐을 풀고 당일로 오가며 봅니다. 11월 하순은 단풍이 가장 진한 때이자, 일몰이 오후 5시 이전으로 당겨지는 때 — 낮의 명소와 밤의 조명을 함께 계획해야 합니다.</p>
+      </div>
+
+      <div class="cities">
+        <article class="city-card" style="--cc:var(--momiji)">
+          <h3>오사카</h3>
+          <span class="city-tag">네온과 길거리 음식</span>
+          <p class="city-note">난바를 거점으로 도톤보리·구로몬 시장·신세카이. 에스컬레이터는 오른쪽에 서는 도시.</p>
+          <div class="city-stats">
+            <span class="city-stat"><b>17.8℃</b>11월 평균 최고</span>
+            <span class="city-stat"><b>10.2℃</b>평균 최저</span>
+          </div>
+        </article>
+        <article class="city-card" style="--cc:var(--aoi)">
+          <h3>교토</h3>
+          <span class="city-tag">사찰과 단풍</span>
+          <p class="city-note">후시미이나리·기요미즈데라·히가시야마. 가을 야간 조명 3곳이 모두 교토에 있습니다.</p>
+          <div class="city-stats">
+            <span class="city-stat"><b>16.9℃</b>11월 평균 최고</span>
+            <span class="city-stat"><b>7.9℃</b>평균 최저</span>
+          </div>
+        </article>
+        <article class="city-card" style="--cc:var(--ginnan)">
+          <h3>나라</h3>
+          <span class="city-tag">사슴과 공원</span>
+          <p class="city-note">긴테쓰나라역에서 도보 5분이면 나라 공원. 대불전까지 한 바퀴 3~4시간.</p>
+          <div class="city-stats">
+            <span class="city-stat"><b>16.5℃</b>11월 평균 최고</span>
+            <span class="city-stat"><b>6.5℃</b>평균 최저</span>
+          </div>
+        </article>
+      </div>
+
+      <div class="table-scroll">
+        <table class="rail-table">
+          <caption>도시 간 이동, 이만큼 가깝습니다</caption>
+          <thead><tr><th>구간</th><th>대표 철도</th><th>소요</th><th>요금(편도·성인)</th></tr></thead>
+          <tbody>
+            <tr><td>간사이공항 → 오사카 난바</td><td>난카이 라피트</td><td class="num">약 34~38분</td><td class="num fare">1,490엔</td></tr>
+            <tr><td>오사카(요도야바시) → 교토(기온시조)</td><td>게이한 특급</td><td class="num">약 50분</td><td class="num fare">430엔</td></tr>
+            <tr><td>오사카역 → 교토역</td><td>JR 신쾌속</td><td class="num">약 29분</td><td class="num fare">580엔</td></tr>
+            <tr><td>오사카난바 → 긴테쓰나라</td><td>긴테쓰 쾌속급행</td><td class="num">약 40분</td><td class="num fare">680엔</td></tr>
+            <tr><td>교토역 → 긴테쓰나라</td><td>긴테쓰 급행</td><td class="num">약 45분</td><td class="num fare">760엔</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">요금은 조사 기준값(일부 추정·예시 포함)입니다. 100엔 = 920원 기준.</p>
+    </div>
+  </section>
+
+  <!-- ============ lighting ============ -->
+  <section id="lighting" class="night-sec">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 class="sec-title">밤에 열리는 세 개의 절</h2>
+        <div class="sec-rule"><i></i><i></i></div>
+        <p class="sec-intro">늦가을 교토의 백미는 야간 특별 관람입니다. 날짜를 고르면 그날 불이 켜지는 곳을 알려줍니다.</p>
+      </div>
+
+      <div class="light-legend" aria-hidden="true">
+        <span><i class="dot" style="--dc:#e3b04b"></i>고다이지</span>
+        <span><i class="dot" style="--dc:#d0583f"></i>에이칸도</span>
+        <span><i class="dot" style="--dc:#cfd6e6"></i>기요미즈데라</span>
+      </div>
+
+      <div class="cal" id="cal" role="group" aria-label="2026년 11월 19일~12월 13일 날짜 선택"></div>
+
+      <div class="light-detail" id="lightDetail" aria-live="polite"></div>
+
+      <p class="foliage-note">
+        <b>단풍 절정</b> — 히가시야마·도후쿠지·에이칸도 일대는 11월 중하순이 전통적인 절정기입니다. 일본기상주식회사 기준 교토 단풍 절정 예상은 12월 11일 무렵, 은행나무는 11월 27일 무렵(추정). 아라시야마는 11월 24일 무렵(웨더뉴스, 추정)으로 출처마다 다릅니다. 단풍철 주말·연휴에는 교토 주요 명소가 매우 붐빕니다.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ osaka ============ -->
+  <section id="osaka" class="city-sec" style="--cc:var(--momiji)">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 class="sec-title">오사카 — 낮의 성, 밤의 간판</h2>
+        <div class="sec-rule"><i></i><i></i></div>
+        <p class="sec-intro">난바·신사이바시를 미나미(남쪽), 우메다를 기타(북쪽)로 부릅니다. 공항에서 난바까지는 난카이 라피트로 34~38분.</p>
+      </div>
+
+      <div class="city-grid">
+        <div class="collage c-a">
+          <figure>
+            <img src="source/images/osaka-castle-autumn.jpg" alt="단풍에 둘러싸인 오사카성" width="1920" height="1272" loading="lazy" style="aspect-ratio:16/11">
+            <figcaption>가을의 오사카성 · 勇寿憲 / CC BY-SA 3.0</figcaption>
+          </figure>
+          <figure>
+            <img src="source/images/shinsekai.jpg" alt="신세카이 거리와 쓰텐카쿠 타워" width="1920" height="1440" loading="lazy" style="aspect-ratio:16/11">
+            <figcaption>신세카이와 쓰텐카쿠 · Sakai Yayoi / CC0</figcaption>
+          </figure>
+          <figure style="grid-column:1/-1">
+            <img src="source/images/kuromon.jpg" alt="구로몬 시장 입구의 활기" width="1920" height="3419" loading="lazy" style="aspect-ratio:16/6">
+            <figcaption>구로몬 시장 · Mr.ちゅらさん / CC BY-SA 4.0</figcaption>
+          </figure>
+        </div>
+
+        <div>
+          <ul class="spots">
+            <li><span class="s-name">도톤보리 · 에비스바시</span><span class="s-meta">난바 도보 5분 · 상시 · 무료 · 글리코 간판, <b class="s-warn">17시 이후 가장 붐빔</b></span></li>
+            <li><span class="s-name">오사카성 천수각</span><span class="s-meta">다니마치욘초메역 도보 20분 · 09:00~18:00(입장 17:30) · <span class="fee">1,200엔</span> · 공원 산책은 무료</span></li>
+            <li><span class="s-name">신세카이 · 쓰텐카쿠</span><span class="s-meta">전망대 10:00~20:00 · <span class="fee">1,200엔</span> · 쿠시카츠 거리</span></li>
+            <li><span class="s-name">우메다 스카이빌딩 공중정원</span><span class="s-meta">09:30~22:30 · <span class="fee">2,000엔</span> · 지상 173m 옥외 회랑</span></li>
+            <li><span class="s-name">구로몬 시장</span><span class="s-meta">대개 09~17시 · 무료 · 오전이 활기, <b class="s-warn">현금 위주</b></span></li>
+            <li><span class="s-name">신사이바시스지 상점가</span><span class="s-meta">도톤보리에서 아케이드로 도보 15분 · 대개 11~21시</span></li>
+          </ul>
+          <p class="city-extra">비 오는 날 실내 선택지: 가이유칸 수족관(2,700엔, 난바에서 지하철 30분), 난바 파크스·우메다 지하상가.</p>
+        </div>
+      </div>
+
+      <div class="night-block">
+        <div>
+          <h3>해가 지면 간판이 켜집니다</h3>
+          <p>11월 하순 일몰은 <b>16:50</b>. 어둠이 먼저 내리고, 도톤보리의 네온과 우메다의 야경이 그 뒤를 잇습니다. 공중정원 야간 입장 마감은 <b>22:00</b>, 이 날의 마무리로 남깁니다.</p>
+        </div>
+        <div class="night-photos">
+          <figure>
+            <img src="source/images/dotonbori-night.jpg" alt="밤의 도톤보리 운가와 간판들" width="1920" height="2349" loading="lazy">
+            <figcaption>도톤보리, 밤 · Martin Falbisoner / CC BY-SA 4.0</figcaption>
+          </figure>
+          <figure>
+            <img src="source/images/umeda-night-view.jpg" alt="우메다 스카이빌딩에서 본 오사카 야경" width="1920" height="1080" loading="lazy">
+            <figcaption>우메다 야경 · 掬茶 / CC BY-SA 4.0</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ kyoto ============ -->
+  <section id="kyoto" class="city-sec" style="--cc:var(--aoi)">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 class="sec-title">교토 — 단풍을 걸어서 잇습니다</h2>
+        <div class="sec-rule"><i></i><i></i></div>
+        <p class="sec-intro">단풍철 교토 버스는 크게 막힙니다. 히가시야마의 명소들은 도보로 이어지니, 게이한 철도로 강변을 따라 접근하는 편이 빠릅니다.</p>
+      </div>
+
+      <div class="city-grid flip">
+        <div>
+          <ul class="spots">
+            <li><span class="s-name">후시미이나리 신사</span><span class="s-meta">게이한 후시미이나리역 도보 3분 · 24시간 · 무료 · <b class="s-warn">09시 이후 급격히 붐빔</b>, 요쓰쓰지 왕복 약 1.5시간</span></li>
+            <li><span class="s-name">기요미즈데라</span><span class="s-meta">기요미즈고조역에서 도보 25분(오르막) · <span class="fee">500엔</span> · 11/21~30 야간 특별 관람</span></li>
+            <li><span class="s-name">도후쿠지</span><span class="s-meta">게이한 도후쿠지역 · 11월 08:30~16:00 · <span class="fee">쓰텐쿄 1,000엔</span> · 교토 손꼽히는 단풍 명소, 단풍철 다리 위 촬영 금지</span></li>
+            <li><span class="s-name">기온 하나미코지</span><span class="s-meta">무료 · <b class="s-warn">사유 골목 촬영 금지</b>, 게이코·마이코 무단 촬영 금지</span></li>
+            <li><span class="s-name">니시키 시장</span><span class="s-meta">대개 10~17시 · 무료 · <b class="s-warn">걸으며 먹기 금지</b>, 수요일 휴무 점포 많음</span></li>
+            <li><span class="s-name">아라시야마 대나무 숲</span><span class="s-meta">교토역에서 JR 15분+도보 10분 · 상시 · 무료 · 오전 일찍이 한산</span></li>
+          </ul>
+          <p class="city-extra">게이한 특급은 후시미이나리에 서지 않습니다. 단바바시 등에서 보통 열차로 갈아타야 합니다(추정).</p>
+        </div>
+
+        <div class="collage c-a">
+          <figure>
+            <img src="source/images/fushimi-inari.jpg" alt="후시미이나리 신사의 도리이와 등롱이 이어지는 참배길" width="1920" height="1280" loading="lazy" style="aspect-ratio:16/11">
+            <figcaption>후시미이나리 · Basile Morin / CC BY-SA 4.0</figcaption>
+          </figure>
+          <figure>
+            <img src="source/images/kodaiji.jpg" alt="단풍에 둘러싸인 고다이지 정원 연못" width="1920" height="1280" loading="lazy" style="aspect-ratio:16/11">
+            <figcaption>고다이지 · lumoplank / CC0</figcaption>
+          </figure>
+          <figure>
+            <img src="source/images/sannenzaka.jpg" alt="산넨자카 돌계단 골목" width="1920" height="1280" loading="lazy" style="aspect-ratio:16/10">
+            <figcaption>산넨자카 · Andrea Schaffer / CC BY 2.0</figcaption>
+          </figure>
+          <figure>
+            <img src="source/images/gion.jpg" alt="기온 하나미코지의 목조 가옥 거리" width="1920" height="1440" loading="lazy" style="aspect-ratio:16/10">
+            <figcaption>기온 하나미코지 · HAGAT hOMSZE / CC0</figcaption>
+          </figure>
+          <figure>
+            <img src="source/images/nishiki.jpg" alt="니시키 시장 골목" width="1920" height="2560" loading="lazy" style="aspect-ratio:16/10">
+            <figcaption>니시키 시장 · Pitan / CC BY-SA 3.0</figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <div class="city-grid" style="margin-top:44px">
+        <div>
+          <h3 style="font-size:1.3rem">히가시야마 도보 동선</h3>
+          <p class="sec-intro" style="margin-top:8px">기요미즈데라에서 출발해 산책로로 이어지는 실제 이동 시간 기준의 한 코스. 저녁 무렵 걸으면 고다이지 야간 조명(17:00 입장 시작)으로 마무리됩니다.</p>
+        </div>
+        <ol class="route">
+          <li><span class="r-name">기요미즈데라</span><span class="r-walk">본당 무대에서 시내 단풍 전망</span></li>
+          <li><span class="r-walk">도보 5분</span><span class="r-name">산넨자카 · 니넨자카</span><span class="r-walk">돌계단, 기념품·찻집(상점 대개 09~18시)</span></li>
+          <li><span class="r-walk">도보 10분 (네네노미치)</span><span class="r-name">고다이지</span><span class="r-walk">주간 600엔 / 야간 800엔 · 정원 프로젝션 매핑 10/23~12/13</span></li>
+          <li><span class="r-walk">도보 10분</span><span class="r-name">야사카 신사 · 마루야마 공원</span><span class="r-walk">24시간 · 무료</span></li>
+          <li><span class="r-walk">도보 5분</span><span class="r-name">기온 하나미코지</span><span class="r-walk">시조대교를 건너면 폰토초 식당가</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ nara ============ -->
+  <section id="nara" class="city-sec" style="--cc:var(--ginnan)">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 class="sec-title">나라 — 공원이 곧 관광지의 지도</h2>
+        <div class="sec-rule"><i></i><i></i></div>
+        <p class="sec-intro">긴테쓰나라역에서 동쪽으로 나라 공원이 펼쳐지고, 주요 명소는 모두 공원 안에 있습니다. 도보 한 바퀴 3~4시간. 아침엔 교토보다 1.4℃ 낮으니 겉옷은 필수입니다.</p>
+      </div>
+
+      <div class="city-grid">
+        <div class="collage c-a">
+          <figure>
+            <img src="source/images/nara-deer-autumn.jpg" alt="단풍잎 아래 나라 공원의 사슴" width="1920" height="1280" loading="lazy" style="aspect-ratio:16/11">
+            <figcaption>나라 공원 사슴 · Marek Ślusarczyk (Tupungato) / CC BY 3.0</figcaption>
+          </figure>
+          <figure>
+            <img src="source/images/todaiji.jpg" alt="도다이지 대불전 남쪽 외관" width="1920" height="1331" loading="lazy" style="aspect-ratio:16/11">
+            <figcaption>도다이지 대불전 · Zairon / CC BY 4.0</figcaption>
+          </figure>
+          <figure>
+            <img src="source/images/kasuga-taisha.jpg" alt="가스가타이샤 본전의 청동 등롱" width="1920" height="1322" loading="lazy" style="aspect-ratio:16/10">
+            <figcaption>가스가타이샤 · Zairon / CC BY 4.0</figcaption>
+          </figure>
+          <figure>
+            <img src="source/images/nara-autumn.jpg" alt="11월 나라 공원 단풍" width="1920" height="2559" loading="lazy" style="aspect-ratio:16/10">
+            <figcaption>11월의 나라 공원 · Martin Falbisoner / CC BY-SA 4.0</figcaption>
+          </figure>
+          <figure>
+            <img src="source/images/shika-senbei.jpg" alt="사슴 센베이 포장" width="1920" height="1440" loading="lazy" style="aspect-ratio:16/10">
+            <figcaption>사슴 센베이, 사진 속 가격은 2017년 값 · TR15336300101 / CC BY-SA 4.0</figcaption>
+          </figure>
+        </div>
+
+        <div>
+          <ul class="spots">
+            <li><span class="s-name">나라 공원 (사슴)</span><span class="s-meta">긴테쓰나라역 도보 5분~ · 상시 · 무료 · 센베이 <span class="fee">200엔</span> · <b class="s-warn">사슴은 야생동물, 센베이를 들고 있으면 몰려듭니다</b></span></li>
+            <li><span class="s-name">도다이지 대불전</span><span class="s-meta">도보 20분 · 11~3월 08:00~17:00 · <span class="fee">800엔</span> · 세계 최대급 목조 건물, <b>개문 직후가 한산</b></span></li>
+            <li><span class="s-name">니가쓰도</span><span class="s-meta">도다이지에서 도보 10분(오르막) · 상시 · 무료 · 무대에서 나라 시내 전망</span></li>
+            <li><span class="s-name">가스가타이샤</span><span class="s-meta">도보 30분(숲길) · 경내 06:30~17:00 · 경내 무료 / 본전 특별 참배 <span class="fee">700엔</span> · 석등롱 참배길</span></li>
+            <li><span class="s-name">고후쿠지</span><span class="s-meta">도보 5분 · 오층탑, 국보관 <span class="fee">900엔</span></span></li>
+            <li><span class="s-name">나라마치</span><span class="s-meta">도보 15분 · 옛 상가 골목과 카페(대개 10~17시)</span></li>
+          </ul>
+          <p class="city-extra">돌아갈 때 짐이 많으면: 도다이지·가스가타이샤에서 긴테쓰나라역까지 나라 순환버스 5~10분, 250엔(1일 08:00~19:00, 10~15분 배차).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ transit ============ -->
+  <section id="transit">
+    <div class="wrap">
+      <div class="sec-head" style="--accent:var(--aoi)">
+        <h2 class="sec-title">공항에서 첫 역까지, 그다음 도시까지</h2>
+        <div class="sec-rule"><i></i><i></i></div>
+        <p class="sec-intro">간사이공항 도착·출발은 대부분 제1터미널(T1). 인천 출발 2시간 30분 전, 간사이 출발 2시간 전 도착을 권합니다. 2026-11-01부터 면세 방식이 바뀌어 공항에서 세관 확인 시간이 더 걸리니 출국일은 더 여유 있게 오세요.</p>
+      </div>
+
+      <div class="table-scroll">
+        <table class="rail-table">
+          <caption>이 여행에서 쓸 주요 노선</caption>
+          <thead><tr><th>구간</th><th>수단</th><th>소요</th><th>요금</th><th>메모</th></tr></thead>
+          <tbody>
+            <tr><td>간사이공항 → 난바</td><td>난카이 라피트</td><td class="num">34~38분</td><td class="num fare">1,490엔</td><td>전석 지정, 30분 배차 · 막차 22:50</td></tr>
+            <tr><td>간사이공항 → 난바</td><td>난카이 공항급행</td><td class="num">약 45분</td><td class="num fare">970엔</td><td>자유석, 출퇴근 시간 혼잡</td></tr>
+            <tr><td>간사이공항 → 교토역</td><td>JR 하루카</td><td class="num">약 80분</td><td class="num fare">2,900엔</td><td>교토 직행</td></tr>
+            <tr><td>난바 → 긴테쓰나라</td><td>긴테쓰 쾌속급행</td><td class="num">약 40분</td><td class="num fare">680엔</td><td>예약 불필요, 시간당 약 4편</td></tr>
+            <tr><td>요도야바시 → 기온시조</td><td>게이한 특급</td><td class="num">약 50분</td><td class="num fare">430엔</td><td>교토 히가시야마 명소 가까이 정차</td></tr>
+            <tr><td>난바 ↔ 우메다</td><td>오사카 메트로 미도스지선</td><td class="num">약 8분</td><td class="num fare">240엔</td><td>배차 3~5분</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">소요·요금·배차는 안내서 기준값(추정·예시 포함)입니다.</p>
+
+      <div class="transit-photos">
+        <figure>
+          <img src="source/images/rapit.jpg" alt="남색 난카이 라피트 열차" width="1920" height="1440" loading="lazy">
+          <figcaption>난카이 라피트 · Ogiyoshisan / CC BY-SA 3.0</figcaption>
+        </figure>
+        <figure>
+          <img src="source/images/keihan.jpg" alt="게이한 8000계 특급 열차" width="1280" height="720" loading="lazy">
+          <figcaption>게이한 특급 · Tennen-Gas / CC BY-SA 3.0</figcaption>
+        </figure>
+        <figure>
+          <img src="source/images/kintetsu-nara.jpg" alt="긴테쓰나라역 입구" width="1920" height="1280" loading="lazy">
+          <figcaption>긴테쓰나라역 · Degueulasse / CC BY 3.0</figcaption>
+        </figure>
+      </div>
+
+      <div class="passes">
+        <div class="pass">
+          <h3>ICOCA</h3>
+          <p class="p-price">2,000엔</p>
+          <p>보증금 500엔 포함. JR·지하철·사철·버스·편의점. 간사이공항 JR 매표소에서 외국인용 카드를 여권 제시로 1인 1장 판매합니다.</p>
+        </div>
+        <div class="pass">
+          <h3>교토·오사카 관광 패스 1일</h3>
+          <p class="p-price">1,650엔</p>
+          <p>게이한 전선(오쓰선 제외). 후시미이나리·기요미즈고조·기온시조를 자유롭게 오갈 날에. 단기 체류 외국인만.</p>
+        </div>
+        <div class="pass">
+          <h3>오사카 주유 패스 1일</h3>
+          <p class="p-price">3,500엔</p>
+          <p>오사카 메트로·시내버스 + 시설 무료입장. 오사카성 천수각·쓰텐카쿠 포함(추정), 우메다 공중정원은 15시 이전 무료.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ food ============ -->
+  <section id="food">
+    <div class="wrap">
+      <div class="sec-head" style="--accent:var(--momiji)">
+        <h2 class="sec-title">먹어야 여행입니다</h2>
+        <div class="sec-rule"><i></i><i></i></div>
+        <p class="sec-intro">작은 가게와 노점은 현금만 받는 곳이 많습니다. 쿠시카츠 공용 소스는 두 번 찍으면 안 됩니다.</p>
+      </div>
+
+      <div class="food-grid">
+        <figure>
+          <img src="source/images/okonomiyaki.jpg" alt="철판 위에서 구워낸 오코노미야키" width="1920" height="1080" loading="lazy">
+          <figcaption>
+            <span class="f-name">오코노미야키</span>
+            <span class="f-meta">오사카 · 치보/미즈노 도톤보리 · 1인 <span class="fee">1,500~2,200엔</span></span>
+            <span class="f-credit">Joli Rumi / CC BY-SA 4.0</span>
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="source/images/takoyaki.jpg" alt="접시에 담긴 타코야키" width="1920" height="2880" loading="lazy">
+          <figcaption>
+            <span class="f-name">타코야키</span>
+            <span class="f-meta">오사카 · 와나카 등 · 8개 <span class="fee">약 650엔</span></span>
+            <span class="f-credit">City Foodsters / CC BY 2.0</span>
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="source/images/kushikatsu.jpg" alt="신세카이 쿠시카츠 꼬치" width="1920" height="1440" loading="lazy">
+          <figcaption>
+            <span class="f-name">쿠시카츠</span>
+            <span class="f-meta">신세카이 · 다루마 본점 · 꼬치당 <span class="fee">100~250엔</span>, 1인 2,000~3,000엔</span>
+            <span class="f-credit">Ajay Suresh / CC BY 2.0</span>
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="source/images/yudofu.jpg" alt="유도후 정식 상차림" width="1920" height="1426" loading="lazy">
+          <figcaption>
+            <span class="f-name">유도후 정식</span>
+            <span class="f-meta">교토 · 기요미즈/난젠지 주변 · 1인 <span class="fee">3,000~4,000엔</span></span>
+            <span class="f-credit">ZhengZhou / CC BY-SA 4.0</span>
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="source/images/kakinoha-sushi.jpg" alt="감잎으로 포장한 가키노하스시" width="1763" height="2880" loading="lazy">
+          <figcaption>
+            <span class="f-name">가키노하스시</span>
+            <span class="f-meta">나라 · 히라소 나라점 · 세트 <span class="fee">약 1,600엔</span>, 기념품으로도</span>
+            <span class="f-credit">Kyu3a / CC BY-SA 4.0</span>
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="source/images/kuromon.jpg" alt="구로몬 시장 수산물을 파는 점포" width="1920" height="3419" loading="lazy" style="object-position:center 30%">
+          <figcaption>
+            <span class="f-name">구로몬 시장 먹거리</span>
+            <span class="f-meta">오사카 · 닛폰바시 · 구운 가리비 <span class="fee">800엔</span>, 성게 1,500엔~</span>
+            <span class="f-credit">Mr.ちゅらさん / CC BY-SA 4.0</span>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ tips ============ -->
+  <section id="tips">
+    <div class="wrap">
+      <div class="sec-head" style="--accent:var(--ginnan)">
+        <h2 class="sec-title">알고 가면 편한 것들</h2>
+        <div class="sec-rule"><i></i><i></i></div>
+      </div>
+      <ul class="tips">
+        <li><span class="t-key">면세 바뀜</span><span class="t-val">2026-11-01부터 <b>가게에서 10%를 내고 공항에서 환급</b>. 세관 확인 시간이 필요해 출국일 공항 도착은 평소보다 여유 있게.</span></li>
+        <li><span class="t-key">현금</span><span class="t-val">시장·노점·작은 식당은 현금 위주. <b>편의점 ATM에서 해외 카드로 엔화 인출</b>이 됩니다.</span></li>
+        <li><span class="t-key">보조 배터리</span><span class="t-val"><b>기내 반입만 가능</b>(위탁 수하물 금지).</span></li>
+        <li><span class="t-key">콘센트</span><span class="t-val">100V A형(납작한 11자). 한국 제품은 돼지코 어댑터가 필요합니다.</span></li>
+        <li><span class="t-key">에스컬레이터</span><span class="t-val">오사카는 <b>오른쪽</b>에 서고 왼쪽을 비웁니다(도쿄와 반대). 교토는 혼재.</span></li>
+        <li><span class="t-key">쓰레기</span><span class="t-val">길거리 쓰레기통이 거의 없습니다. 편의점·역 쓰레기통을 이용하세요.</span></li>
+        <li><span class="t-key">촬영·먹기 예절</span><span class="t-val">니시키 시장 등 걸으며 먹기 금지 거리, 기온 사유 골목과 절·신사 일부는 촬영 제한 구역입니다.</span></li>
+        <li><span class="t-key">숙박세</span><span class="t-val">오사카부·교토시가 별도(1인 1박 요금 구간별 200~10,000엔). 체크인 보통 15시, 대부분 그 전후 짐 보관 가능.</span></li>
+        <li><span class="t-key">짐 보관</span><span class="t-val">주요 역 코인 로커 소형 400~500엔, 대형 700~900엔 / 1일.</span></li>
+        <li><span class="t-key">비상 연락</span><span class="t-val">경찰 <b>110</b> / 구급·화재 <b>119</b>. 분실·도난은 파출소(고반)에서 신고서를 발급받으면 보험 청구에 쓸 수 있습니다.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ credits ============ -->
+  <section id="credits" class="credits-sec">
+    <div class="wrap">
+      <h2>사진 출처</h2>
+      <p class="sec-note">이 페이지의 모든 사진은 Wikimedia Commons에서 받았으며, 각 라이선스(CC BY, CC BY-SA, CC0)에 따라 저작자와 라이선스를 표기합니다. 재사용 시에도 저작자와 라이선스 표기가 필요합니다.</p>
+      <ul class="credits">
+        <li>기요미즈데라, 11월 — <a href="https://commons.wikimedia.org/wiki/File:Kiyomizu-dera,_Kyoto,_November_2016_-01.jpg" target="_blank" rel="noopener">Martin Falbisoner</a>, CC BY-SA 4.0</li>
+        <li>가을의 오사카성 — <a href="https://commons.wikimedia.org/wiki/File:%E7%A7%8B%E3%81%AE%E5%A4%A7%E9%98%AA%E5%9F%8E_-_panoramio.jpg" target="_blank" rel="noopener">勇寿憲</a>, CC BY-SA 3.0</li>
+        <li>신세카이와 쓰텐카쿠 — <a href="https://commons.wikimedia.org/wiki/File:Shinsekai_and_Tsutenkaku_Tower.jpg" target="_blank" rel="noopener">Sakai Yayoi</a>, CC0</li>
+        <li>구로몬 시장 — <a href="https://commons.wikimedia.org/wiki/File:Osaka_Kuromon_Ichiba_Market_2017-12_(1).jpg" target="_blank" rel="noopener">Mr.ちゅらさん</a>, CC BY-SA 4.0</li>
+        <li>도톤보리, 밤 — <a href="https://commons.wikimedia.org/wiki/File:Dotonbori,_Osaka,_at_night,_November_2016.jpg" target="_blank" rel="noopener">Martin Falbisoner</a>, CC BY-SA 4.0</li>
+        <li>우메다 스카이빌딩 야경 — <a href="https://commons.wikimedia.org/wiki/File:Night_view_from_Umeda_Sky_Building_(south_side)_20250830.jpg" target="_blank" rel="noopener">掬茶</a>, CC BY-SA 4.0</li>
+        <li>후시미이나리 — <a href="https://commons.wikimedia.org/wiki/File:Torii_path_with_lantern_at_Fushimi_Inari_Taisha_Shrine,_Kyoto,_Japan.jpg" target="_blank" rel="noopener">Basile Morin</a>, CC BY-SA 4.0</li>
+        <li>고다이지 — <a href="https://commons.wikimedia.org/wiki/File:Kodai-ji,_Kyoto_-_Kodaiji7301.jpg" target="_blank" rel="noopener">lumoplank</a>, CC0</li>
+        <li>산넨자카 — <a href="https://commons.wikimedia.org/wiki/File:Sannenzaka_street,_Kyoto_(3811257874).jpg" target="_blank" rel="noopener">Andrea Schaffer</a>, CC BY 2.0</li>
+        <li>기온 하나미코지 — <a href="https://commons.wikimedia.org/wiki/File:JP_%E6%97%A5%E6%9C%AC_Japan_%E4%BA%AC%E9%83%BD_Kyoto_Higashiyama-ku_Gion_%E8%8A%B1%E8%A6%8B%E5%B0%8F%E8%B7%AF%E9%80%9A_Hanamikoji_Dori_10am_morning_June_2026_N13P_21.jpg" target="_blank" rel="noopener">HAGAT hOMSZE</a>, CC0</li>
+        <li>니시키 시장 — <a href="https://commons.wikimedia.org/wiki/File:Nishiki_ichiba_kyoto.jpg" target="_blank" rel="noopener">Pitan</a>, CC BY-SA 3.0</li>
+        <li>나라 공원 사슴 — <a href="https://commons.wikimedia.org/wiki/File:003_Nara_deer_in_Japan_-_deer_of_Nara_Park_under_autumn_leaves.jpg" target="_blank" rel="noopener">Marek Ślusarczyk (Tupungato)</a>, CC BY 3.0</li>
+        <li>도다이지 대불전 — <a href="https://commons.wikimedia.org/wiki/File:Nara_Todai-ji_Daibutsuden_Exterior_South_Side_12.jpg" target="_blank" rel="noopener">Zairon</a>, CC BY 4.0</li>
+        <li>가스가타이샤 — <a href="https://commons.wikimedia.org/wiki/File:Nara_Kasuga-taisha_Main_Sanctuary_Lanterns_1.jpg" target="_blank" rel="noopener">Zairon</a>, CC BY 4.0</li>
+        <li>11월의 나라 공원 — <a href="https://commons.wikimedia.org/wiki/File:Nara_Park,_November_2016.jpg" target="_blank" rel="noopener">Martin Falbisoner</a>, CC BY-SA 4.0</li>
+        <li>사슴 센베이 — <a href="https://commons.wikimedia.org/wiki/File:Shika_senbei_2017.jpg" target="_blank" rel="noopener">TR15336300101</a>, CC BY-SA 4.0</li>
+        <li>난카이 라피트 — <a href="https://commons.wikimedia.org/wiki/File:Nankai_50000_Rapit_in_Imamiyaebisu_Station_DSCN3249_20120831.JPG" target="_blank" rel="noopener">Ogiyoshisan</a>, CC BY-SA 3.0</li>
+        <li>게이한 특급 — <a href="https://commons.wikimedia.org/wiki/File:Keihan_8000_Series_EMU_015.JPG" target="_blank" rel="noopener">Tennen-Gas</a>, CC BY-SA 3.0</li>
+        <li>긴테쓰나라역 — <a href="https://commons.wikimedia.org/wiki/File:Kintetsu_Nara_station_20140902.jpg" target="_blank" rel="noopener">Degueulasse</a>, CC BY 3.0</li>
+        <li>오코노미야키 — <a href="https://commons.wikimedia.org/wiki/File:Okonomiyaki_-a_Japanese_savory_pancake_in_Osaka,_Japan.jpg" target="_blank" rel="noopener">Joli Rumi</a>, CC BY-SA 4.0</li>
+        <li>타코야키 — <a href="https://commons.wikimedia.org/wiki/File:Honkeohtako%27s_takoyaki,_Osaka;_December_2013_(04).jpg" target="_blank" rel="noopener">City Foodsters</a>, CC BY 2.0</li>
+        <li>쿠시카츠 — <a href="https://commons.wikimedia.org/wiki/File:Kushikatsu_-_Shinsekai_(28289215848).jpg" target="_blank" rel="noopener">Ajay Suresh</a>, CC BY 2.0</li>
+        <li>유도후 정식 — <a href="https://commons.wikimedia.org/wiki/File:Yudofu_meal_set_in_Kyoto.jpg" target="_blank" rel="noopener">ZhengZhou</a>, CC BY-SA 4.0</li>
+        <li>가키노하스시 — <a href="https://commons.wikimedia.org/wiki/File:Kakinoha-zushi_-_2.jpg" target="_blank" rel="noopener">Kyu3a</a>, CC BY-SA 4.0</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>간사이 여행 안내서(조사일 2026-10-25) 기반 · 실시간 정보가 아니며, 요금·시각 중 일부는 추정·예시 기준값입니다.</p>
+    <p>환율 기준 100엔 = 920원(예시) · 사진은 Wikimedia Commons, 각 라이선스 표기.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- autumn lighting calendar ---------- */
+  var LIGHTS = [
+    { name:"고다이지", color:"#e3b04b",
+      start:new Date(2026,9,23), end:new Date(2026,11,13),
+      hours:"입장 17:00~21:30 · 22:00 폐문", fee:"800엔",
+      period:"10/23 ~ 12/13", note:"정원 프로젝션 매핑" },
+    { name:"에이칸도", color:"#d0583f",
+      start:new Date(2026,10,20), end:new Date(2026,11,6),
+      hours:"입장 17:30~20:30 · 21:00 종료", fee:"1,000엔",
+      period:"11/20 ~ 12/6", note:"\u201C단풍의 에이칸도\u201D" },
+    { name:"기요미즈데라", color:"#cfd6e6",
+      start:new Date(2026,10,21), end:new Date(2026,10,30),
+      hours:"~21:00 입장 · 21:30 폐문", fee:"500엔",
+      period:"11/21 ~ 11/30", note:"예약 불필요" }
+  ];
+  var DAY_TAGS = {
+    "2026-11-21":"일본 3연휴 시작",
+    "2026-11-22":"일본 3연휴",
+    "2026-11-23":"3연휴 · 근로감사의 날(공휴일)"
+  };
+  var WD = ["일","월","화","수","목","금","토"];
+  var cal = document.getElementById("cal");
+  var detail = document.getElementById("lightDetail");
+  var from = new Date(2026,10,19), to = new Date(2026,11,13);
+
+  function key(d){
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+  function activeOn(d){
+    return LIGHTS.filter(function(l){ return d>=l.start && d<=l.end; });
+  }
+  var buttons = [];
+  for(var d = new Date(from); d <= to; d.setDate(d.getDate()+1)){
+    (function(date){
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "cal-btn";
+      var wd = date.getDay();
+      var k = key(date);
+      if(DAY_TAGS[k] || wd===0 || wd===6) btn.classList.add("holiday");
+      btn.setAttribute("aria-label",
+        (date.getMonth()+1)+"월 "+date.getDate()+"일 "+WD[wd]+
+        (DAY_TAGS[k]? " ("+DAY_TAGS[k]+")" : "")+
+        " — 야간 조명 "+activeOn(date).length+"곳");
+      var dots = activeOn(date).map(function(l){
+        return '<i style="--dc:'+l.color+'"></i>';
+      }).join("");
+      btn.innerHTML =
+        '<span class="w">'+WD[wd]+'</span>'+
+        '<span class="d">'+date.getDate()+'</span>'+
+        '<span class="dots">'+dots+'</span>';
+      btn.addEventListener("click", function(){ select(date, btn); });
+      cal.appendChild(btn);
+      buttons.push({btn:btn, date:date});
+    })(new Date(d));
+  }
+
+  function select(date, btn){
+    buttons.forEach(function(b){ b.btn.setAttribute("aria-pressed", b.btn===btn ? "true":"false"); });
+    var k = key(date);
+    var act = activeOn(date);
+    var label = "11월";
+    if(date.getMonth()===11) label = "12월";
+    var html = "<h3>"+label+" "+date.getDate()+"일 ("+WD[date.getDay()]+")</h3>";
+    if(DAY_TAGS[k]) html += '<p class="light-daytype">'+DAY_TAGS[k]+' — 교토 주요 명소가 매우 붐비는 날입니다</p>';
+    if(act.length){
+      html += '<ul class="light-list">';
+      act.forEach(function(l){
+        html += '<li>'+
+          '<span class="l-name"><i class="dot" style="--dc:'+l.color+'"></i>'+l.name+'</span>'+
+          '<span class="l-info"><b>'+l.hours+'</b> · 입장료 <b>'+l.fee+'</b> · 운영기간 '+l.period+' · '+l.note+'</span>'+
+          '</li>';
+      });
+      html += '</ul>';
+    }else{
+      html += '<p class="light-empty">이 날에는 야간 조명이 없습니다. 낮의 절과 정원을 보세요 — 고다이지는 주간 600엔입니다.</p>';
+    }
+    detail.innerHTML = html;
+    if(!reduceMotion){
+      btn.scrollIntoView({behavior:"smooth", inline:"center", block:"nearest"});
+    }
+  }
+
+  /* default: 11/22 — all three lights run */
+  var initial = buttons.filter(function(b){ return b.date.getDate()===22 && b.date.getMonth()===10; })[0];
+  if(initial) select(initial.date, initial.btn);
+
+  /* ---------- nav current-section highlight ---------- */
+  var links = Array.prototype.slice.call(document.querySelectorAll(".nav-links a"));
+  var byId = {};
+  links.forEach(function(a){ byId[a.getAttribute("href").slice(1)] = a; });
+  if("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          links.forEach(function(a){ a.classList.remove("current"); });
+          var a = byId[e.target.id];
+          if(a) a.classList.add("current");
+        }
+      });
+    }, {rootMargin:"-40% 0px -55% 0px"});
+    Object.keys(byId).forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) io.observe(el);
+    });
+  }
+})();
+</script>
+</body>
+</html>
