@@ -36,6 +36,12 @@ dependencies {
         implementation('org.bouncycastle:bcprov-jdk18on:1.85.2') {
             because 'CVE-2026-8763 and CVE-2026-13506 fixes; MinIO 9.0.1 requests 1.84'
         }
+        implementation('com.google.guava:guava:33.7.2-jre') {
+            because 'CVE-2026-102554 fix; MinIO 9.0.1 requests 33.6.0-jre'
+        }
+        implementation('org.xerial.snappy:snappy-java:1.1.10.9') {
+            because 'CVE-2026-108106 and CVE-2026-93451 fixes; MinIO and kafka-clients request older versions'
+        }
     }
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

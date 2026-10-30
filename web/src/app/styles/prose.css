@@ -29,6 +29,9 @@
   background: var(--bg-2); padding: 1px 6px; border-radius: 4px;
   color: var(--accent-2); font-size: var(--fs-sm);
 }
+/* 문단의 keep-all 아래에서 띄어쓰기 없는 긴 식별자(테스트 이름 따위)는 칼럼 밖으로 삐져나간다.
+   본문 속 코드만 어디서든 끊는다. 표 안의 코드는 열 너비 계산 때문에 따로 둔다(아래 모바일 절) */
+.prose p code, .prose li code { overflow-wrap: anywhere; }
 .prose pre {
   margin: 0; padding: 16px 18px; border-radius: var(--r-md);
   background: #0b0d14; border: 1px solid var(--border); overflow-x: auto;

@@ -1,8 +1,7 @@
-// See docs/security-nextjs-20261005.md. This is an expiring exception, not a fix.
-const BRACES_ADVISORY = 'https://github.com/advisories/GHSA-vfj7-8cjw-p6xm';
-const EXPIRES = Date.parse('2026-11-05T00:00:00Z');
-
-export function evaluateAudit(report, lock, now = new Date()) {
+// See docs/security-nextjs-20261005.md. No temporary exceptions remain: the braces
+// exception was removed after GitHub withdrew GHSA-vfj7-8cjw-p6xm on 2026-10-23.
+// Every High/Critical finding blocks; malformed reports fail rather than pass.
+export function evaluateAudit(report, lock) {
   if (report?.auditReportVersion !== 2 || !report?.vulnerabilities || typeof report.vulnerabilities !== 'object' ||
       Array.isArray(report.vulnerabilities) || report.error || !lock?.packages) {
     throw new Error('Invalid npm audit report or lockfile');
@@ -28,24 +27,8 @@ export function evaluateAudit(report, lock, now = new Date()) {
         Number.isSafeInteger(reported[severity]) && reported[severity] === count)) {
     throw new Error('Invalid or inconsistent npm audit totals');
   }
-  function isException(name, seen = new Set()) {
-    const v = entries[name];
-    if (!v || seen.has(name) || v.severity !== 'high' ||
-        !Number.isFinite(now.getTime()) || now.getTime() >= EXPIRES ||
-        !Array.isArray(v.nodes) || v.nodes.length === 0 ||
-        !v.nodes.every(node => lock.packages[node]?.dev === true) ||
-        !Array.isArray(v.via) || v.via.length === 0) return false;
-    const nextSeen = new Set([...seen, name]);
-    return v.via.every(via => typeof via === 'string'
-      ? isException(via, nextSeen)
-      : name === 'braces' && via?.url === BRACES_ADVISORY &&
-        v.nodes.every(node => lock.packages[node]?.version === '3.0.3'));
-  }
-  const result = { blocked: [], exceptions: [] };
-  for (const [name, vulnerability] of Object.entries(entries)) {
-    if (['high', 'critical'].includes(vulnerability.severity)) {
-      result[isException(name) ? 'exceptions' : 'blocked'].push(name);
-    }
-  }
-  return result;
+  const blocked = Object.entries(entries)
+    .filter(([, vulnerability]) => ['high', 'critical'].includes(vulnerability.severity))
+    .map(([name]) => name);
+  return { blocked };
 }

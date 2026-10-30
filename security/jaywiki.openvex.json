@@ -1,10 +1,10 @@
 {
   "@context": "https://openvex.dev/ns/v0.2.0",
-  "@id": "https://github.com/jaymunsh/jay-wiki/security/jaywiki-spring-20261022",
+  "@id": "https://github.com/jaymunsh/jay-wiki/security/jaywiki-spring-20261030",
   "author": "jay-wiki maintainers",
-  "timestamp": "2026-10-22T00:00:00Z",
-  "version": 2,
-  "x-jaywiki-review-before": "2026-11-05T00:00:00Z",
+  "timestamp": "2026-10-30T00:00:00Z",
+  "version": 3,
+  "x-jaywiki-review-before": "2026-11-13T00:00:00Z",
   "statements": [
     {
       "vulnerability": {

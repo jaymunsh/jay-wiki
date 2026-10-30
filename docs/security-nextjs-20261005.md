@@ -19,6 +19,10 @@ glob dependency chain. No application routes or authentication rules change.
 - Reassessed 2026-10-22: braces is still 3.0.3 with no patched release, the chain is
   unchanged (`@next/eslint-plugin-next@16.4.2` still pins fast-glob 3.3.1) and
   `npm audit --omit=dev --audit-level=high` still reports zero. Extended by 14 days.
+- **Removed 2026-10-30.** GitHub withdrew GHSA-vfj7-8cjw-p6xm on 2026-10-23 and the
+  full `npm audit` no longer reports braces (0 High/Critical; two Moderate Vitest
+  findings remain below the threshold). `scripts/lib/npm-audit-policy.mjs` now has no
+  exception: every High/Critical finding blocks CI again.
 - Limits: a production dependency, new advisory, changed braces version, malformed
   audit report, unknown dependency chain, critical finding or expired exception
   still fails CI. Full npm audit JSON is retained for 30 days.
