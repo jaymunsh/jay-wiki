@@ -1,7 +1,7 @@
 # Current application assessment: CVE-2026-47884
 
 Reviewed on 2026-10-06 and reassessed on 2026-10-22 and 2026-10-30; reassessment
-required before 2026-11-13 00:00 UTC. The 2026-10-22 reassessment found no change under
+required before 2026-12-31 00:00 UTC. The 2026-10-22 reassessment found no change under
 `spring/src/main` or `spring/build.gradle` since the original review, no public 6.2.x fix
 on Maven Central (latest 6.2.19, Boot 3.5.16) and a passing `MvcXsltReachabilityTest`.
 
@@ -13,6 +13,13 @@ No source under `spring/src/main` uses `XsltView`, a view resolver, `ModelAndVie
 `SseEmitter`, `ResponseBodyEmitter`, `FragmentsRendering`, `text/event-stream` or
 `RouterFunction`; the only `Mono` is the outbound `PartnerApiClient`. Both
 `MvcXsltReachabilityTest` and `MvcSseRouterReachabilityTest` pass.
+
+The review deadline was then set to 2026-12-31 rather than another 14 days. OSS support
+for Spring Framework 6.2.x and Boot 3.5.x ended on 2026-06-30, so a public 6.2.20 is not
+expected and the exit is a Boot 4.1 migration, not waiting. The longer window does not
+widen scope: the statements still cover only these three CVEs on 6.2.19, any other 6.2
+finding blocks the scans, and both reachability tests run on every change. Plan the
+Boot 4.1 migration (OSS support to 2027-07-31; Boot 4.0 ends 2026-12-31) before then.
 
 The packaged Spring Framework 6.2.19 remains an affected library version. This
 assessment does not patch the library or apply to another application. The
