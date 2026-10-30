@@ -40,8 +40,17 @@ const failures = [];
 const markdownFiles = collectMarkdown(root);
 const markdownLink = /!?\[[^\]]*\]\((<[^>]+>|[^\s)]+)(?:\s+["'][^)]*["'])?\)/g;
 
+// Link syntax inside code (e.g. `[text](URL)` in a table) is not rendered as a link.
+// Blank it with same-length spaces so match offsets and line numbers stay correct.
+function maskCode(text) {
+  const blank = (code) => code.replace(/[^\n]/g, ' ');
+  return text
+    .replace(/^(```|~~~)[^\n]*\n[\s\S]*?^\1[^\n]*$/gm, blank)
+    .replace(/``[^\n]+?``|`[^`\n]+`/g, blank);
+}
+
 for (const file of markdownFiles) {
-  const text = readFileSync(file, 'utf8');
+  const text = maskCode(readFileSync(file, 'utf8'));
   for (const match of text.matchAll(markdownLink)) {
     const target = localTarget(match[1], file);
     if (!target || existsSync(target)) continue;
