@@ -16,7 +16,7 @@ class VexTests(unittest.TestCase):
     def test_current_statement_and_expiry_boundary(self):
         module.validate(DOCUMENT, NOW)
         with self.assertRaises(ValueError):
-            module.validate(DOCUMENT, datetime(2026, 11, 13, tzinfo=timezone.utc))
+            module.validate(DOCUMENT, datetime(2026, 12, 31, tzinfo=timezone.utc))
 
     def test_other_versions_and_products_cannot_inherit_statement(self):
         for product in ['pkg:maven/org.springframework/spring-webmvc@6.2.18',
