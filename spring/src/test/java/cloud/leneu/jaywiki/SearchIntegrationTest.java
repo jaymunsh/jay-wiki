@@ -22,8 +22,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   PG/Redis 컨테이너가 뜨고 @ServiceConnection 으로 자동 연결됨.
  * - Flyway 의 schemas:[public] 덕에 테스트 PG 에도 public.tb_article 이 생성됨.
  * - @Transactional 을 안 붙인다: seed 가 커밋돼야 RANDOM_PORT 서버 스레드가 그 데이터를 봄.
+ * - OpenSearch 를 끈다: 이 테스트는 PostgreSQL LIKE 경로를 본다. local 프로필은 OpenSearch 를 켜므로
+ *   로컬 개발 스택(localhost:9200)이 떠 있으면 seed 와 무관한 개발 인덱스를 검색해 실패했다(2026-10-30).
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "app.opensearch.enabled=false")
 @Import(TestcontainersConfiguration.class)
 class SearchIntegrationTest {
 
