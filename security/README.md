@@ -1,9 +1,18 @@
 # Current application assessment: CVE-2026-47884
 
-Reviewed on 2026-10-06 and reassessed on 2026-10-22; reassessment required before
-2026-11-05 00:00 UTC. The 2026-10-22 reassessment found no change under `spring/src/main`
-or `spring/build.gradle` since the original review, no public 6.2.x fix on Maven Central
-(latest 6.2.19, Boot 3.5.16) and a passing `MvcXsltReachabilityTest`.
+Reviewed on 2026-10-06 and reassessed on 2026-10-22 and 2026-10-30; reassessment
+required before 2026-11-13 00:00 UTC. The 2026-10-22 reassessment found no change under
+`spring/src/main` or `spring/build.gradle` since the original review, no public 6.2.x fix
+on Maven Central (latest 6.2.19, Boot 3.5.16) and a passing `MvcXsltReachabilityTest`.
+
+The 2026-10-30 reassessment found Maven Central unchanged for the 6.2 line (latest
+6.2.19, Boot 3.5.16; public fixes remain 7.0.9+ and Boot 4). Changes since 2026-10-22
+are dependency pins (lz4-java, guava, snappy-java) and one `@RestControllerAdvice`
+handler that returns a `ProblemDetail` body for `MethodArgumentTypeMismatchException`.
+No source under `spring/src/main` uses `XsltView`, a view resolver, `ModelAndView`,
+`SseEmitter`, `ResponseBodyEmitter`, `FragmentsRendering`, `text/event-stream` or
+`RouterFunction`; the only `Mono` is the outbound `PartnerApiClient`. Both
+`MvcXsltReachabilityTest` and `MvcSseRouterReachabilityTest` pass.
 
 The packaged Spring Framework 6.2.19 remains an affected library version. This
 assessment does not patch the library or apply to another application. The

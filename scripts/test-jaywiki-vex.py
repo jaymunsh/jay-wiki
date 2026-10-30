@@ -10,13 +10,13 @@ spec = importlib.util.spec_from_file_location('vex', Path(__file__).with_name('c
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 DOCUMENT = json.loads(Path('security/jaywiki.openvex.json').read_text())
-NOW = datetime(2026, 10, 6, tzinfo=timezone.utc)
+NOW = datetime(2026, 10, 30, tzinfo=timezone.utc)
 
 class VexTests(unittest.TestCase):
     def test_current_statement_and_expiry_boundary(self):
         module.validate(DOCUMENT, NOW)
         with self.assertRaises(ValueError):
-            module.validate(DOCUMENT, datetime(2026, 11, 5, tzinfo=timezone.utc))
+            module.validate(DOCUMENT, datetime(2026, 11, 13, tzinfo=timezone.utc))
 
     def test_other_versions_and_products_cannot_inherit_statement(self):
         for product in ['pkg:maven/org.springframework/spring-webmvc@6.2.18',
